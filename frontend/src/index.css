@@ -1,0 +1,106 @@
+@import "@fontsource/poppins/300.css";
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", sans-serif;
+  --font-display: "Poppins", sans-serif;
+  --color-brand-teal-50: #effcfb;
+  --color-brand-teal-100: #ccfbf6;
+  --color-brand-teal-500: #14b8a6;
+  --color-brand-teal-600: #0d9488;
+  --color-brand-teal-700: #0f766e;
+  --color-brand-cyan-50: #ecfeff;
+  --color-brand-cyan-100: #cffafe;
+  --color-brand-cyan-500: #06b6d4;
+  --color-brand-cyan-600: #0891b2;
+  --shadow-soft: 0 24px 80px rgba(15, 118, 110, 0.16);
+  --shadow-card: 0 20px 56px rgba(15, 23, 42, 0.08);
+}
+
+@layer base {
+  :root {
+    color: #0f172a;
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 36%),
+      radial-gradient(circle at right center, rgba(20, 184, 166, 0.12), transparent 28%),
+      linear-gradient(180deg, #f6feff 0%, #f8fafc 48%, #eefdfb 100%);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    color: #0f172a;
+    background: transparent;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button,
+  a[href],
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(13, 148, 136, 0.18);
+    color: #0f172a;
+  }
+
+  .lucide {
+    stroke-width: 1.55;
+  }
+}
+
+@layer components {
+  .surface-panel {
+    @apply rounded-[36px] border border-white/70 bg-white/84 shadow-[0_24px_72px_rgba(15,23,42,0.09)] backdrop-blur;
+  }
+
+  .brand-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+
+  .interactive-press {
+    @apply transition duration-200 ease-out;
+  }
+
+  .interactive-press:hover {
+    transform: translateY(-1px);
+  }
+
+  .interactive-press:active {
+    transform: translateY(1px) scale(0.985);
+  }
+}

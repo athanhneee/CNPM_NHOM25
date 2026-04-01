@@ -1,0 +1,53 @@
+﻿import { Outlet } from 'react-router-dom'
+import { useDataStore } from '@/app/store/data.store'
+import { useSessionStore } from '@/app/store/session.store'
+import { useUiStore } from '@/app/store/ui.store'
+import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
+import { SidebarNav } from '@/components/layout/SidebarNav'
+import { TopHeader } from '@/components/layout/TopHeader'
+import { Button } from '@/components/ui/Button'
+
+export function AppShell() {
+  const settings = useDataStore((state) => state.settings)
+  const maintenanceDismissed = useSessionStore((state) => state.maintenanceDismissed)
+  const dismissMaintenance = useSessionStore((state) => state.dismissMaintenance)
+  const warningVisible = useSessionStore((state) => state.warningVisible)
+  const remainingSeconds = useSessionStore((state) => state.remainingSeconds)
+  const sidebarOpen = useUiStore((state) => state.sidebarOpen)
+
+  return (
+    <div className="min-h-screen bg-transparent text-slate-900">
+      <SidebarNav />
+      <div className={`transition-all xl:ml-[300px] ${sidebarOpen ? 'xl:ml-[300px]' : 'xl:ml-[300px]'}`}>
+        <TopHeader />
+        <main className="px-4 py-6 xl:px-6">
+          <div className="mx-auto max-w-[1600px] space-y-6">
+            {settings.maintenanceMode && !maintenanceDismissed ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900">
+                <div>
+                  <p className="font-semibold">Hệ thống đang ở chế độ bảo trì</p>
+                  <p className="text-sm">{settings.maintenanceMessage}</p>
+                </div>
+                <Button variant="ghost" onClick={dismissMaintenance} type="button">
+                  Đã hiểu
+                </Button>
+              </div>
+            ) : null}
+
+            {warningVisible ? (
+              <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-800">
+                Phiên đăng nhập sẽ hết hạn sau {remainingSeconds} giây nếu không có tương tác.
+              </div>
+            ) : null}
+
+            <Breadcrumbs />
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+export default AppShell
+
