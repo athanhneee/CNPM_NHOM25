@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  LECTURER
+  ACADEMIC_OFFICE
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  LOCKED
+  INACTIVE
+}
+
+enum CourseStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CourseCategory {
+  FOUNDATION
+  CORE
+  ELECTIVE
+  THESIS
+}
+
+enum EnrollmentStatus {
+  PENDING
+  REGISTERED
+  CANCELLED
+  REJECTED
+  COMPLETED
+  FAILED
+  WAITLISTED
+  DROPPED
+}
+
+enum SectionStatus {
+  OPEN
+  CLOSED
+  FULL
+  CANCELLED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum WishStatus {
+  PENDING
+  REVIEWED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum AuditResult {
+  SUCCESS
+  FAILURE
+  WARNING
+  INFO
+}
+
+enum SemesterRegistrationStatus {
+  UPCOMING
+  OPEN
+  ADJUSTMENT
+  CLOSED
+  COMPLETED
+}
+
+model User {
+  id                   String           @id @default(uuid())
+  code                 String?
+  username             String           @unique
+  email                String           @unique
+  fullName             String
+  phone                String?
+  secondaryEmail       String?
+  roles                Json
+  status               AccountStatus    @default(ACTIVE)
+  passwordDigest       String
+  failedLoginAttempts  Int              @default(0)
+  lastLoginAt          DateTime?
+  campus               String?
+  department           String?
+  dateOfBirth          DateTime?
+  gender               String?
+  citizenId            String?
+  nationality          String?
+  ethnicity            String?
+  religion             String?
+  birthPlace           String?
+  address              String?
+  homeTown             String?
+  program              String?
+  cohort               String?
+  faculty              String?
+  majorCode            String?
+  majorName            String?
+  studentClass         String?
+  educationProgram     String?
+  academicPeriod       String?
+  studentStatus        String?
+  classificationStatus String?
+  title                String?
+  position             String?
+  specialization       String?
+  yearLevel            String?
+  gpa                  Float?
+  attendanceRate       Float?
+  completedCredits     Int?
+  interests            Json?
+  assignedSectionIds   Json?
+  bio                  String?
+  avatarUrl            String?
+  refreshToken         String?
+  refreshTokenExpiresAt DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  enrollments          Enrollment[]
+  lectures             Section[]        @relation("LecturerSections")
+  wishRequests         WishRequest[]
+  auditLogs            AuditLog[]
+
+  @@index([status])
+}
+
+model Course {
+  id                       String    @id @default(uuid())
+  code                     String    @unique
+  name                     String
+  credits                  Int
+  status                   CourseStatus @default(ACTIVE)
+  department               String
+  campus                   String
+  description              String
+  prerequisites            Json      @default("[]")
+  prestudy                 Json      @default("[]")
+  corequisites             Json      @default("[]")
+  category                 CourseCategory
+  faculty                  String?
+  courseType               String?
+  academicBlock            String?
+  suggestedSemester        Int?
+  lectureHours             Int?
+  practiceHours            Int?
+  labHours                 Int?
+  passingScore             Float?
+  maxStudents              Int?
+  classSectionCount        Int?
+  gradingWeight            Json?
+  majorsSupported          Json?
+  majorCodesSupported      Json?
+  track                    String?
+  applicableSpecializations Json?
+  sections                 Section[]
+
+  @@index([status])
+  @@index([department])
+}
+
+model SemesterOption {
+  id                  String                   @id @default(uuid())
+  label               String
+  isCurrent           Boolean                 @default(false)
+  academicYear        String?
+  termCode            String?
+  registrationStatus  SemesterRegistrationStatus?
+  registrationStart   DateTime?
+  registrationEnd     DateTime?
+  adjustmentStart     DateTime?
+  adjustmentEnd       DateTime?
+  sections            Section[]
+  enrollments         Enrollment[]
+  wishRequests        WishRequest[]
+  systemSettings      SystemSetting[]
+
+  @@index([isCurrent])
+}
+
+model Section {
+  id             String        @id @default(uuid())
+  sectionCode    String
+  courseCode     String
+  course         Course        @relation(fields: [courseCode], references: [code])
+  semesterId     String
+  semester       SemesterOption @relation(fields: [semesterId], references: [id])
+  group          String
+  subGroup       String
+  lecturerId     String
+  lecturer       User          @relation("LecturerSections", fields: [lecturerId], references: [id])
+  room           String
+  weekday        Int
+  startPeriod    Int
+  periodCount    Int
+  weeks          String
+  capacity       Int
+  registeredCount Int          @default(0)
+  waitlistCount  Int          @default(0)
+  allowWaitlist  Boolean      @default(true)
+  status         SectionStatus @default(OPEN)
+  campus         String
+  notes          String?
+  examSlot       String?
+  enrollments    Enrollment[]
+
+  @@unique([sectionCode, semesterId])
+  @@index([courseCode])
+  @@index([semesterId])
+  @@index([lecturerId])
+  @@index([status])
+}
+
+model Enrollment {
+  id           String           @id @default(uuid())
+  studentId    String
+  student      User             @relation(fields: [studentId], references: [id])
+  sectionId    String
+  section      Section          @relation(fields: [sectionId], references: [id])
+  semesterId   String
+  semester     SemesterOption   @relation(fields: [semesterId], references: [id])
+  status       EnrollmentStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  cancelledAt  DateTime?
+  droppedAt    DateTime?
+  reasonCode   String?
+  waitlistOrder Int?
+  timeline     Json             @default("[]")
+
+  @@index([studentId, semesterId])
+  @@index([sectionId])
+  @@index([status])
+}
+
+model WishRequest {
+  id            String     @id @default(uuid())
+  studentId     String
+  student       User       @relation(fields: [studentId], references: [id])
+  semesterId    String
+  semester      SemesterOption @relation(fields: [semesterId], references: [id])
+  courseCode    String
+  preferredGroup String?
+  reason        String
+  createdAt     DateTime   @default(now())
+  status        WishStatus @default(PENDING)
+
+  @@index([studentId, semesterId])
+  @@index([status])
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  timestamp DateTime    @default(now())
+  actorId   String
+  actor     User        @relation(fields: [actorId], references: [id])
+  actorRole UserRole
+  action    String
+  targetId  String
+  result    AuditResult
+  message   String
+  metadata  Json?
+
+  @@index([actorId])
+  @@index([targetId])
+  @@index([result])
+}
+
+model SystemSetting {
+  id                        Int     @id @default(1)
+  simulationNow             DateTime
+  registrationStart         DateTime
+  registrationEnd           DateTime
+  adjustmentStart           DateTime
+  adjustmentEnd             DateTime
+  withdrawalDeadline        DateTime
+  maxCredits                Int
+  minCredits                Int
+  maintenanceMode           Boolean
+  allowWaitlist             Boolean
+  sessionTimeoutMinutes     Int
+  warningBeforeLogoutSeconds Int
+  maxClassesPerDay          Int
+  maxClassesPerSemester     Int
+  currentSemesterId         String
+  maintenanceMessage        String
+  currentSemester           SemesterOption @relation(fields: [currentSemesterId], references: [id])
+}
