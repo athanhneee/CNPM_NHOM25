@@ -18,10 +18,11 @@ async function bootstrap() {
   assertRequiredEnv()
 
   const app = await NestFactory.create(AppModule)
-  const frontendOrigin = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173'
+  const corsOrigin =
+    process.env.CORS_ORIGIN ?? process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173'
 
   app.enableCors({
-    origin: frontendOrigin.split(',').map((origin) => origin.trim()),
+    origin: corsOrigin.split(',').map((origin) => origin.trim()),
     credentials: true,
   })
 

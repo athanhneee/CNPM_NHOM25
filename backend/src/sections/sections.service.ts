@@ -60,6 +60,15 @@ export class SectionsService {
     }
   }
 
+  private async resolveRoomId(roomCode: string) {
+    const room = await this.prisma.room.findUnique({ where: { code: roomCode } })
+    if (!room) {
+      throw new BadRequestException('Phong hoc khong ton tai trong danh muc phong.')
+    }
+
+    return room.id
+  }
+
   private async assertCourseSemesterLecturer(courseCode: string, semesterId: string, lecturerId: string) {
     const [course, semester, lecturer] = await Promise.all([
       this.prisma.course.findUnique({ where: { code: courseCode } }),
@@ -161,6 +170,8 @@ export class SectionsService {
       periodCount: createSectionDto.periodCount,
     })
 
+    const roomId = await this.resolveRoomId(createSectionDto.room)
+
     const section = await this.prisma.section.create({
       data: {
         sectionCode: createSectionDto.sectionCode,
@@ -169,6 +180,7 @@ export class SectionsService {
         group: createSectionDto.group,
         subGroup: createSectionDto.subGroup ?? '',
         lecturerId: createSectionDto.lecturerId,
+        roomId,
         room: createSectionDto.room,
         weekday: createSectionDto.weekday,
         startPeriod: createSectionDto.startPeriod,
@@ -221,10 +233,13 @@ export class SectionsService {
       periodCount: nextSection.periodCount,
     })
 
+    const roomId = updateSectionDto.room ? await this.resolveRoomId(nextSection.room) : undefined
+
     const section = await this.prisma.section.update({
       where: { id },
       data: {
         ...updateSectionDto,
+        roomId,
         status: updateSectionDto.status ?? getSectionStatus(nextSection),
       },
     })

@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum UserRole {
@@ -75,6 +76,19 @@ enum SemesterRegistrationStatus {
   COMPLETED
 }
 
+enum CourseConditionType {
+  PREREQUISITE
+  PRESTUDY
+  COREQUISITE
+}
+
+enum StudentResultStatus {
+  PASSED
+  FAILED
+  IN_PROGRESS
+  TRANSFERRED
+}
+
 model User {
   id                   String           @id @default(uuid())
   code                 String?
@@ -128,6 +142,7 @@ model User {
   lectures             Section[]        @relation("LecturerSections")
   wishRequests         WishRequest[]
   auditLogs            AuditLog[]
+  studentResults       StudentResult[]
 
   @@index([status])
 }
@@ -161,6 +176,9 @@ model Course {
   track                    String?
   applicableSpecializations Json?
   sections                 Section[]
+  conditions                CourseCondition[] @relation("CourseConditions")
+  requiredByConditions      CourseCondition[] @relation("RequiredCourseConditions")
+  studentResults            StudentResult[]
 
   @@index([status])
   @@index([department])
@@ -181,6 +199,7 @@ model SemesterOption {
   enrollments         Enrollment[]
   wishRequests        WishRequest[]
   systemSettings      SystemSetting[]
+  studentResults      StudentResult[]
 
   @@index([isCurrent])
 }
@@ -196,6 +215,8 @@ model Section {
   subGroup       String
   lecturerId     String
   lecturer       User          @relation("LecturerSections", fields: [lecturerId], references: [id])
+  roomId         String?
+  roomRef        Room?         @relation(fields: [roomId], references: [id], onDelete: SetNull)
   room           String
   weekday        Int
   startPeriod    Int
@@ -215,7 +236,36 @@ model Section {
   @@index([courseCode])
   @@index([semesterId])
   @@index([lecturerId])
+  @@index([roomId])
   @@index([status])
+}
+
+model Room {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  name      String
+  capacity  Int
+  campus    String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sections  Section[]
+}
+
+model CourseCondition {
+  id                 String              @id @default(uuid())
+  courseCode         String
+  course             Course              @relation("CourseConditions", fields: [courseCode], references: [code], onDelete: Cascade)
+  requiredCourseCode String
+  requiredCourse     Course              @relation("RequiredCourseConditions", fields: [requiredCourseCode], references: [code], onDelete: Restrict)
+  type               CourseConditionType
+  note               String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@unique([courseCode, requiredCourseCode, type])
+  @@index([courseCode])
+  @@index([requiredCourseCode])
+  @@index([type])
 }
 
 model Enrollment {
@@ -238,6 +288,35 @@ model Enrollment {
   @@index([studentId, semesterId])
   @@index([sectionId])
   @@index([status])
+}
+
+model StudentResult {
+  id           String              @id @default(uuid())
+  studentId    String
+  student      User                @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseCode   String
+  course       Course              @relation(fields: [courseCode], references: [code], onDelete: Restrict)
+  semesterId   String?
+  semester     SemesterOption?     @relation(fields: [semesterId], references: [id], onDelete: SetNull)
+  letterGrade  String?
+  numericGrade Float?
+  status       StudentResultStatus
+  passed       Boolean             @default(false)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([studentId])
+  @@index([courseCode])
+  @@index([semesterId])
+  @@index([passed])
+}
+
+model RegistrationErrorCode {
+  code        String   @id
+  message     String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model WishRequest {

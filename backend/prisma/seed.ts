@@ -7,8 +7,12 @@ async function resetDatabase() {
   await prisma.auditLog.deleteMany()
   await prisma.enrollment.deleteMany()
   await prisma.wishRequest.deleteMany()
+  await prisma.studentResult.deleteMany()
   await prisma.section.deleteMany()
+  await prisma.courseCondition.deleteMany()
+  await prisma.registrationErrorCode.deleteMany()
   await prisma.systemSetting.deleteMany()
+  await prisma.room.deleteMany()
   await prisma.course.deleteMany()
   await prisma.user.deleteMany()
   await prisma.semesterOption.deleteMany()
@@ -207,6 +211,57 @@ async function main() {
     ],
   })
 
+  await prisma.room.createMany({
+    data: [
+      { id: 'room-a1-101', code: 'A1-101', name: 'A1-101', capacity: 40, campus: 'PTIT HCM' },
+      { id: 'room-a1-201', code: 'A1-201', name: 'A1-201', capacity: 45, campus: 'PTIT HCM' },
+      { id: 'room-a1-202', code: 'A1-202', name: 'A1-202', capacity: 45, campus: 'PTIT HCM' },
+      { id: 'room-a1-301', code: 'A1-301', name: 'A1-301', capacity: 50, campus: 'PTIT HCM' },
+    ],
+  })
+
+  await prisma.courseCondition.createMany({
+    data: [
+      {
+        id: 'cond-cse201-cse101-prereq',
+        courseCode: 'CSE201',
+        requiredCourseCode: 'CSE101',
+        type: 'PREREQUISITE',
+        note: 'CSE101 is required before CSE201.',
+      },
+      {
+        id: 'cond-cse301-cse201-prereq',
+        courseCode: 'CSE301',
+        requiredCourseCode: 'CSE201',
+        type: 'PREREQUISITE',
+        note: 'CSE201 is required before CSE301.',
+      },
+    ],
+  })
+
+  await prisma.registrationErrorCode.createMany({
+    data: [
+      { code: 'REG_ERR_SECTION_NOT_OPEN', message: 'Lop hoc phan chua mo dang ky.' },
+      { code: 'REG_ERR_OUTSIDE_REGISTRATION_WINDOW', message: 'Ngoai thoi gian dang ky.' },
+      { code: 'REG_ERR_OUTSIDE_ADJUSTMENT_WINDOW', message: 'Ngoai thoi gian dieu chinh dang ky.' },
+      { code: 'REG_ERR_OUTSIDE_WITHDRAWAL_WINDOW', message: 'Da qua han rut hoc phan.' },
+      { code: 'REG_ERR_FULL_CAPACITY', message: 'Lop hoc phan da du si so.' },
+      { code: 'REG_ERR_PREREQUISITE_NOT_MET', message: 'Chua dat mon tien quyet.' },
+      { code: 'REG_ERR_PRESTUDY_NOT_MET', message: 'Chua dap ung mon hoc truoc.' },
+      { code: 'REG_ERR_COREQUISITE_NOT_MET', message: 'Chua dap ung mon song hanh.' },
+      { code: 'REG_ERR_SCHEDULE_CONFLICT', message: 'Trung thoi khoa bieu.' },
+      { code: 'REG_ERR_CREDIT_LIMIT_EXCEEDED', message: 'Vuot gioi han tin chi.' },
+      { code: 'REG_ERR_ALREADY_REGISTERED', message: 'Da dang ky lop hoc phan nay.' },
+      { code: 'REG_ERR_CLASS_NOT_FOUND', message: 'Khong tim thay lop hoc phan.' },
+      { code: 'REG_ERR_STUDENT_NOT_FOUND', message: 'Khong tim thay sinh vien.' },
+      { code: 'REG_ERR_CANNOT_WITHDRAW', message: 'Khong the huy hoac rut hoc phan nay.' },
+      { code: 'REG_ERR_CLASS_CANCELLED', message: 'Lop hoc phan da bi huy.' },
+      { code: 'REG_ERR_ACCOUNT_INACTIVE', message: 'Tai khoan khong hoat dong.' },
+      { code: 'REG_ERR_MAX_CLASS_PER_DAY', message: 'Vuot so lop toi da trong ngay.' },
+      { code: 'REG_ERR_MAX_CLASS_PER_SEMESTER', message: 'Vuot so lop toi da trong hoc ky.' },
+    ],
+  })
+
   await prisma.section.createMany({
     data: [
       {
@@ -217,6 +272,7 @@ async function main() {
         group: 'HIS',
         subGroup: '001',
         lecturerId: 'LEC001',
+        roomId: 'room-a1-101',
         room: 'A1-101',
         weekday: 2,
         startPeriod: 1,
@@ -237,6 +293,7 @@ async function main() {
         group: '01',
         subGroup: '001',
         lecturerId: 'LEC001',
+        roomId: 'room-a1-201',
         room: 'A1-201',
         weekday: 2,
         startPeriod: 1,
@@ -257,6 +314,7 @@ async function main() {
         group: '02',
         subGroup: '001',
         lecturerId: 'LEC002',
+        roomId: 'room-a1-202',
         room: 'A1-202',
         weekday: 3,
         startPeriod: 1,
@@ -277,6 +335,7 @@ async function main() {
         group: '01',
         subGroup: '001',
         lecturerId: 'LEC001',
+        roomId: 'room-a1-301',
         room: 'A1-301',
         weekday: 4,
         startPeriod: 4,
@@ -312,6 +371,31 @@ async function main() {
       currentSemesterId,
       maintenanceMessage: 'Hệ thống đang hoạt động bình thường.',
     },
+  })
+
+  await prisma.studentResult.createMany({
+    data: [
+      {
+        id: 'result-n23dccn001-cse101',
+        studentId: 'N23DCCN001',
+        courseCode: 'CSE101',
+        semesterId: previousSemesterId,
+        letterGrade: 'B+',
+        numericGrade: 8.0,
+        status: 'PASSED',
+        passed: true,
+      },
+      {
+        id: 'result-n23dccn002-cse101',
+        studentId: 'N23DCCN002',
+        courseCode: 'CSE101',
+        semesterId: previousSemesterId,
+        letterGrade: 'F',
+        numericGrade: 3.5,
+        status: 'FAILED',
+        passed: false,
+      },
+    ],
   })
 
   await prisma.enrollment.createMany({
@@ -376,7 +460,7 @@ async function main() {
       targetId: 'SYSTEM',
       result: 'SUCCESS',
       message: 'Tạo dữ liệu demo ban đầu.',
-      metadata: { defaultPassword: 'ptithcm2026' },
+      metadata: { seed: 'initial-demo-data' },
     },
   })
 }

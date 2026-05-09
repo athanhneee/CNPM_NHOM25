@@ -84,6 +84,19 @@ export interface RuleEnrollment {
   status: EnrollmentStatus
 }
 
+export interface RuleCourseCondition {
+  courseCode: string
+  requiredCourseCode: string
+  type: 'PREREQUISITE' | 'PRESTUDY' | 'COREQUISITE'
+}
+
+export interface RuleStudentResult {
+  studentId: string
+  courseCode: string
+  status: string
+  passed: boolean
+}
+
 export interface RuleSettings {
   simulationNow: string
   registrationStart: string
@@ -105,6 +118,8 @@ export interface EligibilityContext {
   courses: RuleCourse[]
   sections: RuleSection[]
   enrollments: RuleEnrollment[]
+  courseConditions?: RuleCourseCondition[]
+  studentResults?: RuleStudentResult[]
   settings: RuleSettings
 }
 
@@ -133,6 +148,21 @@ const DUPLICATE_ENROLLMENT_STATUSES = new Set<EnrollmentStatus>(['REGISTERED', '
 
 function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
+
+function conditionCodes(
+  targetCourse: RuleCourse | undefined,
+  courseConditions: RuleCourseCondition[] | undefined,
+  type: RuleCourseCondition['type'],
+  fallback: unknown,
+) {
+  const normalizedConditions = courseConditions?.filter(
+    (condition) => condition.courseCode === targetCourse?.code && condition.type === type,
+  )
+
+  return normalizedConditions?.length
+    ? normalizedConditions.map((condition) => condition.requiredCourseCode)
+    : stringArray(fallback)
 }
 
 function isWithinRange(nowIso: string, startIso: string, endIso: string) {
@@ -213,21 +243,40 @@ export function evaluateEnrollmentEligibility(
     .map((item) => sections.find((sectionItem) => sectionItem.id === item.sectionId))
     .filter((item): item is RuleSection => Boolean(item))
 
-  const completedCourseCodes = new Set(
-    studentEnrollments
+  const completedCourseCodes = new Set([
+    ...(context.studentResults ?? [])
+      .filter((item) => item.studentId === student?.id && item.passed)
+      .map((item) => item.courseCode),
+    ...studentEnrollments
       .filter((item) => HISTORY_PASS_STATUSES.has(item.status))
       .map((item) => sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode)
       .filter((item): item is string => Boolean(item)),
-  )
+  ])
 
-  const completedOrAttemptedCourseCodes = new Set(
-    studentEnrollments
+  const completedOrAttemptedCourseCodes = new Set([
+    ...(context.studentResults ?? [])
+      .filter((item) => item.studentId === student?.id)
+      .map((item) => item.courseCode),
+    ...studentEnrollments
       .filter((item) => HISTORY_RESULT_STATUSES.has(item.status))
       .map((item) => sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode)
       .filter((item): item is string => Boolean(item)),
-  )
+  ])
 
   const currentSemesterCourseCodes = new Set(currentSections.map((item) => item.courseCode))
+  const prerequisiteCodes = conditionCodes(
+    targetCourse,
+    context.courseConditions,
+    'PREREQUISITE',
+    targetCourse?.prerequisites,
+  )
+  const prestudyCodes = conditionCodes(targetCourse, context.courseConditions, 'PRESTUDY', targetCourse?.prestudy)
+  const corequisiteCodes = conditionCodes(
+    targetCourse,
+    context.courseConditions,
+    'COREQUISITE',
+    targetCourse?.corequisites,
+  )
 
   const checks = [
     buildRuleResult(
@@ -281,7 +330,7 @@ export function evaluateEnrollmentEligibility(
     buildRuleResult(
       'prerequisite',
       'Điều kiện tiên quyết',
-      Boolean(stringArray(targetCourse?.prerequisites).every((code) => completedCourseCodes.has(code))),
+      Boolean(prerequisiteCodes.every((code) => completedCourseCodes.has(code))),
       'Sinh viên đáp ứng tất cả môn tiên quyết.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_PREREQUISITE_NOT_MET,
       'REG_ERR_PREREQUISITE_NOT_MET',
@@ -289,7 +338,7 @@ export function evaluateEnrollmentEligibility(
     buildRuleResult(
       'prestudy',
       'Điều kiện học trước',
-      Boolean(stringArray(targetCourse?.prestudy).every((code) => completedOrAttemptedCourseCodes.has(code))),
+      Boolean(prestudyCodes.every((code) => completedOrAttemptedCourseCodes.has(code))),
       'Sinh viên đã có kết quả cho tất cả môn học trước.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_PRESTUDY_NOT_MET,
       'REG_ERR_PRESTUDY_NOT_MET',
@@ -298,7 +347,7 @@ export function evaluateEnrollmentEligibility(
       'corequisite',
       'Điều kiện song hành',
       Boolean(
-        stringArray(targetCourse?.corequisites).every(
+        corequisiteCodes.every(
           (code) => completedCourseCodes.has(code) || currentSemesterCourseCodes.has(code),
         ),
       ),

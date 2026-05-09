@@ -10,6 +10,62 @@ import { UpdateCourseDto } from './dto/update-course.dto'
 export class CoursesService {
   constructor(private prisma: PrismaService) {}
 
+  private stringArray(value: unknown): string[] {
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+  }
+
+  private withConditionArrays<T extends { prerequisites: unknown; prestudy: unknown; corequisites: unknown }>(
+    course: T & { conditions?: Array<{ requiredCourseCode: string; type: string }> },
+  ) {
+    const { conditions, ...rest } = course
+    const byType = (type: string, fallback: unknown) => {
+      const codes = conditions
+        ?.filter((condition) => condition.type === type)
+        .map((condition) => condition.requiredCourseCode)
+
+      return codes?.length ? codes : this.stringArray(fallback)
+    }
+
+    return {
+      ...rest,
+      prerequisites: byType('PREREQUISITE', course.prerequisites),
+      prestudy: byType('PRESTUDY', course.prestudy),
+      corequisites: byType('COREQUISITE', course.corequisites),
+    }
+  }
+
+  private async syncCourseConditions(
+    courseCode: string,
+    relations: {
+      prerequisites?: string[]
+      prestudy?: string[]
+      corequisites?: string[]
+    },
+  ) {
+    const data = [
+      ...(relations.prerequisites ?? []).map((requiredCourseCode) => ({
+        courseCode,
+        requiredCourseCode,
+        type: 'PREREQUISITE' as const,
+      })),
+      ...(relations.prestudy ?? []).map((requiredCourseCode) => ({
+        courseCode,
+        requiredCourseCode,
+        type: 'PRESTUDY' as const,
+      })),
+      ...(relations.corequisites ?? []).map((requiredCourseCode) => ({
+        courseCode,
+        requiredCourseCode,
+        type: 'COREQUISITE' as const,
+      })),
+    ]
+
+    await this.prisma.$transaction([
+      this.prisma.courseCondition.deleteMany({ where: { courseCode } }),
+      ...(data.length ? [this.prisma.courseCondition.createMany({ data, skipDuplicates: true })] : []),
+    ])
+  }
+
   private async assertUniqueCode(code: string, ignoredCourseId?: string) {
     const duplicate = await this.prisma.course.findFirst({
       where: {
@@ -19,7 +75,7 @@ export class CoursesService {
     })
 
     if (duplicate) {
-      throw new BadRequestException('Mã học phần đã tồn tại.')
+      throw new BadRequestException('Course code already exists.')
     }
   }
 
@@ -45,6 +101,7 @@ export class CoursesService {
     const [items, total] = await this.prisma.$transaction([
       this.prisma.course.findMany({
         where,
+        include: { conditions: true },
         orderBy: { code: 'asc' },
         skip: query.page || query.limit ? skip : undefined,
         take: query.page || query.limit ? take : undefined,
@@ -52,7 +109,8 @@ export class CoursesService {
       this.prisma.course.count({ where }),
     ])
 
-    return query.page || query.limit ? paginated(items, total, page, limit) : items
+    const mappedItems = items.map((course) => this.withConditionArrays(course))
+    return query.page || query.limit ? paginated(mappedItems, total, page, limit) : mappedItems
   }
 
   async findOne(idOrCode: string) {
@@ -60,22 +118,23 @@ export class CoursesService {
       where: {
         OR: [{ id: idOrCode }, { code: idOrCode }],
       },
+      include: { conditions: true },
     })
 
     if (!course) {
-      throw new NotFoundException('Không tìm thấy học phần.')
+      throw new NotFoundException('Course not found.')
     }
 
-    return course
+    return this.withConditionArrays(course)
   }
 
   async findByCode(code: string) {
-    const course = await this.prisma.course.findUnique({ where: { code } })
+    const course = await this.prisma.course.findUnique({ where: { code }, include: { conditions: true } })
     if (!course) {
-      throw new NotFoundException('Không tìm thấy học phần.')
+      throw new NotFoundException('Course not found.')
     }
 
-    return course
+    return this.withConditionArrays(course)
   }
 
   async create(createCourseDto: CreateCourseDto, actor: AuditActor) {
@@ -95,22 +154,21 @@ export class CoursesService {
       },
     })
 
-    await appendAuditLog(
-      this.prisma,
-      actor,
-      'CREATE_COURSE',
-      course.id,
-      'SUCCESS',
-      `Thêm mới học phần ${course.code}.`,
-    )
+    await this.syncCourseConditions(course.code, {
+      prerequisites: createCourseDto.prerequisites ?? [],
+      prestudy: createCourseDto.prestudy ?? [],
+      corequisites: createCourseDto.corequisites ?? [],
+    })
 
-    return course
+    await appendAuditLog(this.prisma, actor, 'CREATE_COURSE', course.id, 'SUCCESS', `Created course ${course.code}.`)
+
+    return this.findOne(course.id)
   }
 
   async update(id: string, updateCourseDto: UpdateCourseDto, actor: AuditActor) {
     const currentCourse = await this.prisma.course.findUnique({ where: { id } })
     if (!currentCourse) {
-      throw new NotFoundException('Không tìm thấy học phần.')
+      throw new NotFoundException('Course not found.')
     }
 
     if (updateCourseDto.code && updateCourseDto.code !== currentCourse.code) {
@@ -130,16 +188,21 @@ export class CoursesService {
       },
     })
 
-    await appendAuditLog(
-      this.prisma,
-      actor,
-      'UPDATE_COURSE',
-      course.id,
-      'SUCCESS',
-      `Cập nhật học phần ${course.code}.`,
-    )
+    if (
+      updateCourseDto.prerequisites !== undefined ||
+      updateCourseDto.prestudy !== undefined ||
+      updateCourseDto.corequisites !== undefined
+    ) {
+      await this.syncCourseConditions(course.code, {
+        prerequisites: updateCourseDto.prerequisites ?? this.stringArray(currentCourse.prerequisites),
+        prestudy: updateCourseDto.prestudy ?? this.stringArray(currentCourse.prestudy),
+        corequisites: updateCourseDto.corequisites ?? this.stringArray(currentCourse.corequisites),
+      })
+    }
 
-    return course
+    await appendAuditLog(this.prisma, actor, 'UPDATE_COURSE', course.id, 'SUCCESS', `Updated course ${course.code}.`)
+
+    return this.findOne(course.id)
   }
 
   async remove(id: string, actor: AuditActor) {
@@ -154,7 +217,7 @@ export class CoursesService {
       'DEACTIVATE_COURSE',
       course.id,
       'WARNING',
-      `Vô hiệu hóa học phần ${course.code}.`,
+      `Deactivated course ${course.code}.`,
     )
 
     return course

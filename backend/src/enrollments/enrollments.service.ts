@@ -11,11 +11,13 @@ import {
   canWithdrawEnrollment,
   evaluateEnrollmentEligibility,
   EligibilityOptions,
+  RuleCourseCondition,
   EnrollmentStatus as RuleEnrollmentStatus,
   RuleCourse,
   RuleEnrollment,
   RuleSection,
   RuleSettings,
+  RuleStudentResult,
   RuleUser,
 } from './enrollment-rules'
 
@@ -121,12 +123,14 @@ export class EnrollmentsService {
     sectionId: string,
   ) {
     const settings = await this.getCurrentSettings(client)
-    const [student, section, courses, sections, enrollments] = await Promise.all([
+    const [student, section, courses, sections, enrollments, courseConditions, studentResults] = await Promise.all([
       client.user.findUnique({ where: { id: studentId } }),
       client.section.findUnique({ where: { id: sectionId } }),
       client.course.findMany(),
       client.section.findMany(),
       client.enrollment.findMany({ where: { studentId } }),
+      client.courseCondition.findMany(),
+      client.studentResult.findMany({ where: { studentId } }),
     ])
 
     const targetCourse = section ? courses.find((course) => course.code === section.courseCode) : undefined
@@ -176,14 +180,38 @@ export class EnrollmentsService {
               status: enrollment.status as RuleEnrollmentStatus,
             }) satisfies RuleEnrollment,
         ),
+        courseConditions: courseConditions.map(
+          (condition) =>
+            ({
+              courseCode: condition.courseCode,
+              requiredCourseCode: condition.requiredCourseCode,
+              type: condition.type,
+            }) satisfies RuleCourseCondition,
+        ),
+        studentResults: studentResults.map(
+          (result) =>
+            ({
+              studentId: result.studentId,
+              courseCode: result.courseCode,
+              status: result.status,
+              passed: result.passed,
+            }) satisfies RuleStudentResult,
+        ),
       },
     }
   }
 
-  private assertStudentMayTouchEnrollment(enrollmentStudentId: string, actor: AuditActor) {
-    if (actor.actorRole === UserRole.STUDENT && actor.actorId !== enrollmentStudentId) {
-      throw new ForbiddenException('Sinh viên chỉ được thao tác trên đăng ký của chính mình.')
+  private assertActorMayActForStudent(studentId: string, actor: AuditActor) {
+    if (actor.actorRole === UserRole.ADMIN || actor.actorRole === UserRole.ACADEMIC_OFFICE) {
+      return
     }
+
+    if (actor.actorRole === UserRole.STUDENT && actor.actorId === studentId) {
+      return
+    }
+
+    throw new ForbiddenException('You do not have permission to access this enrollment.')
+
   }
 
   async findAll(query: Record<string, any> = {}) {
@@ -207,10 +235,14 @@ export class EnrollmentsService {
     return query.page || query.limit ? paginated(items, total, page, limit) : items
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, actor?: AuditActor) {
     const enrollment = await this.prisma.enrollment.findUnique({ where: { id } })
     if (!enrollment) {
       throw new NotFoundException('Không tìm thấy thông tin đăng ký.')
+    }
+
+    if (actor) {
+      this.assertActorMayActForStudent(enrollment.studentId, actor)
     }
 
     return enrollment
@@ -225,10 +257,12 @@ export class EnrollmentsService {
   }
 
   async create(createEnrollmentDto: CreateEnrollmentDto, actor: AuditActor) {
+    this.assertActorMayActForStudent(createEnrollmentDto.studentId, actor)
     return this.registerSection(createEnrollmentDto.studentId, createEnrollmentDto.sectionId, actor)
   }
 
   async registerSection(studentId: string, sectionId: string, actor: AuditActor) {
+    this.assertActorMayActForStudent(studentId, actor)
     return this.prisma.$transaction(
       async (tx) => {
         const { context, settings, section } = await this.loadEligibilityContext(tx, studentId, sectionId)
@@ -351,7 +385,7 @@ export class EnrollmentsService {
           throw new NotFoundException('Không tìm thấy thông tin đăng ký.')
         }
 
-        this.assertStudentMayTouchEnrollment(enrollment.studentId, actor)
+        this.assertActorMayActForStudent(enrollment.studentId, actor)
 
         if (!canCancelEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings))) {
           throw new BadRequestException('Ngoài thời gian điều chỉnh đăng ký.')
@@ -415,7 +449,7 @@ export class EnrollmentsService {
           throw new NotFoundException('Không tìm thấy thông tin đăng ký.')
         }
 
-        this.assertStudentMayTouchEnrollment(enrollment.studentId, actor)
+        this.assertActorMayActForStudent(enrollment.studentId, actor)
 
         if (!canWithdrawEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings))) {
           throw new BadRequestException('Ngoài cửa sổ rút học phần.')

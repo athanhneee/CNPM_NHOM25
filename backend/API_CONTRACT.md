@@ -2,6 +2,19 @@
 
 Base URL: `http://localhost:3000/api`
 
+Database target: PostgreSQL on Supabase via Prisma.
+
+Required backend env:
+
+```env
+DATABASE_URL="postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
+DIRECT_URL="postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
+JWT_SECRET="replace_with_a_secure_secret"
+JWT_EXPIRES_IN="15m"
+REFRESH_TOKEN_EXPIRES_IN="7d"
+CORS_ORIGIN="http://localhost:5173,http://127.0.0.1:5173"
+```
+
 Auth header for protected routes:
 
 ```http
