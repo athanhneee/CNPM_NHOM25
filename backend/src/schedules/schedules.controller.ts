@@ -12,23 +12,44 @@ import { SchedulesService } from './schedules.service'
 export class SchedulesController {
   constructor(private schedulesService: SchedulesService) {}
 
-  private assertCanReadStudent(user: RequestUser, studentId: string) {
-    const privileged = user.roles.some((role) => ['ADMIN', 'ACADEMIC_OFFICE'].includes(role))
-    if (user.roles.includes('STUDENT') && !privileged && user.userId !== studentId) {
-      throw new ForbiddenException('Sinh viên chỉ được xem lịch của chính mình.')
+  private isPrivileged(user: RequestUser) {
+    return user.roles.some((role) => ['ADMIN', 'ACADEMIC_OFFICE'].includes(role))
+  }
+
+  private assertCanReadSemesterSchedule(user: RequestUser) {
+    if (!this.isPrivileged(user)) {
+      throw new ForbiddenException('Chỉ quản trị hoặc phòng đào tạo được xem lịch toàn học kỳ.')
     }
   }
 
-  private assertCanReadLecturer(user: RequestUser, lecturerId: string) {
-    const privileged = user.roles.some((role) => ['ADMIN', 'ACADEMIC_OFFICE'].includes(role))
-    if (user.roles.includes('LECTURER') && !privileged && user.userId !== lecturerId) {
-      throw new ForbiddenException('Giảng viên chỉ được xem lịch giảng dạy của chính mình.')
+  private assertCanReadStudent(user: RequestUser, studentId: string) {
+    if (this.isPrivileged(user)) {
+      return
     }
+
+    if (user.roles.includes('STUDENT') && user.userId === studentId) {
+      return
+    }
+
+    throw new ForbiddenException('Sinh viên chỉ được xem lịch của chính mình.')
+  }
+
+  private assertCanReadLecturer(user: RequestUser, lecturerId: string) {
+    if (this.isPrivileged(user)) {
+      return
+    }
+
+    if (user.roles.includes('LECTURER') && user.userId === lecturerId) {
+      return
+    }
+
+    throw new ForbiddenException('Giảng viên chỉ được xem lịch giảng dạy của chính mình.')
   }
 
   @ApiOperation({ summary: 'Tất cả lớp học phần trong một học kỳ' })
   @Get('semester/:semesterId')
-  async findSemesterSchedule(@Param('semesterId') semesterId: string) {
+  async findSemesterSchedule(@CurrentUser() user: RequestUser, @Param('semesterId') semesterId: string) {
+    this.assertCanReadSemesterSchedule(user)
     return this.schedulesService.findSemesterSchedule(semesterId)
   }
 

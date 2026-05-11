@@ -1,4 +1,8 @@
 export const REGISTRATION_ERROR_MESSAGES = {
+  DK_TC: 'Đăng ký thành công.',
+  HUY_DK: 'Đã hủy đăng ký.',
+  KHONG_DU_DK: 'Không đủ điều kiện đăng ký.',
+  NGOAI_TGDK: 'Ngoài thời gian đăng ký.',
   REG_ERR_SECTION_NOT_OPEN: 'Lớp học phần chưa mở đăng ký.',
   REG_ERR_OUTSIDE_REGISTRATION_WINDOW: 'Ngoài thời gian đăng ký của học kỳ này.',
   REG_ERR_OUTSIDE_ADJUSTMENT_WINDOW: 'Ngoài thời gian điều chỉnh đăng ký.',

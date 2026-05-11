@@ -26,7 +26,7 @@ export function toPublicUser<T extends UnsafeUserShape | null | undefined>(user:
     return user
   }
 
-  const { passwordDigest, refreshToken, ...publicUser } = user
+  const { passwordDigest, refreshToken, refreshTokenExpiresAt, ...publicUser } = user
   return {
     ...publicUser,
     roles: normalizeRoles(user.roles),

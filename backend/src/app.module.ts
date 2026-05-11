@@ -11,6 +11,7 @@ import { LogsModule } from './logs/logs.module'
 import { SettingsModule } from './settings/settings.module'
 import { SnapshotModule } from './snapshot/snapshot.module'
 import { ReportsModule } from './reports/reports.module'
+import { WishesModule } from './wishes/wishes.module'
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ReportsModule } from './reports/reports.module'
     SettingsModule,
     SnapshotModule,
     ReportsModule,
+    WishesModule,
   ],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
@@ -17,10 +17,22 @@ import { SectionCapacityBar } from '@/components/shared/SectionCapacityBar'
 import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { getLecturerScheduleEntries, getLecturerSections, getSectionStudents } from '@/lib/selectors'
+import { courseService } from '@/services/course.api'
+import { sectionService, type SectionStudentRow } from '@/services/section.api'
 
 function useLecturerContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
+
+  useEffect(() => {
+    if (!currentUser?.roles.includes('LECTURER')) {
+      return
+    }
+
+    void courseService.listCourses().catch(() => undefined)
+    void sectionService.listSections({ lecturerId: currentUser.id }).catch(() => undefined)
+  }, [currentUser?.id, currentUser?.roles])
+
   return { currentUser, snapshot }
 }
 
@@ -79,6 +91,18 @@ export function SectionStudentsPage() {
   const { sectionId } = useParams()
   const { currentUser, snapshot } = useLecturerContext()
   const [query, setQuery] = useState('')
+  const [apiResult, setApiResult] = useState<{ sectionId: string; rows: SectionStudentRow[] } | null>(null)
+
+  useEffect(() => {
+    if (!sectionId || !currentUser?.roles.includes('LECTURER')) {
+      return
+    }
+
+    void sectionService
+      .getSectionStudents(sectionId)
+      .then((rows) => setApiResult({ sectionId, rows }))
+      .catch(() => setApiResult({ sectionId, rows: [] }))
+  }, [currentUser?.id, currentUser?.roles, sectionId])
 
   if (!currentUser) {
     return <EmptyState title="Không tìm thấy giảng viên" description="Vui lòng đăng nhập lại." />
@@ -90,10 +114,11 @@ export function SectionStudentsPage() {
   }
 
   const course = snapshot.courses.find((item) => item.code === ownedSection.courseCode)
-  const rows = getSectionStudents(snapshot, ownedSection.id).filter((item) =>
+  const sourceRows = apiResult?.sectionId === ownedSection.id ? apiResult.rows : getSectionStudents(snapshot, ownedSection.id)
+  const rows = sourceRows.filter((item) =>
     !query ||
     item.student?.fullName.toLowerCase().includes(query.toLowerCase()) ||
-    item.student?.code.toLowerCase().includes(query.toLowerCase()),
+    (item.student?.code ?? '').toLowerCase().includes(query.toLowerCase()),
   )
 
   const columns: TableColumn<(typeof rows)[number]>[] = [

@@ -149,7 +149,7 @@ export const seedLogs: AuditLog[] = [
     action: 'UPDATE_ROLE',
     targetId: 'AO001',
     result: 'SUCCESS',
-    message: 'Đồng bộ ma trận quyền cho tài khoản ngson.',
+    message: 'Đồng bộ ma trận quyền cho tài khoản academic.office.',
   },
   {
     id: 'LOG016',

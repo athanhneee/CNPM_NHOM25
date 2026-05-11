@@ -49,6 +49,14 @@ export interface ReportRow {
   status: string
 }
 
+export interface UtilizationStats {
+  totalSections: number
+  totalCapacity: number
+  totalRegistered: number
+  averageUtilization: number
+  fullSections: number
+}
+
 export interface ReportPreset {
   id: string
   label: string

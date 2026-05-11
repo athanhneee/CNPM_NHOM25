@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { AuditResult, User, UserRole } from '@prisma/client'
+import { AuditResult, User } from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
 import * as jwt from 'jsonwebtoken'
 import { appendAuditLog } from '../common/utils/audit'

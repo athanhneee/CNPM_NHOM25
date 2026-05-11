@@ -28,6 +28,12 @@ export class SectionsController {
     return this.sectionsService.findAll(query)
   }
 
+  @ApiOperation({ summary: 'Danh sách sinh viên trong lớp học phần' })
+  @Get(':id/students')
+  async findSectionStudents(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.sectionsService.findSectionStudents(id, user)
+  }
+
   @ApiOperation({ summary: 'Chi tiết lớp học phần' })
   @Get(':id')
   async findOne(@Param('id') id: string) {

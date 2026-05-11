@@ -1,31 +1,31 @@
 import { PrismaClient } from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
-
-async function resetDatabase() {
-  await prisma.auditLog.deleteMany()
-  await prisma.enrollment.deleteMany()
-  await prisma.wishRequest.deleteMany()
-  await prisma.studentResult.deleteMany()
-  await prisma.section.deleteMany()
-  await prisma.courseCondition.deleteMany()
-  await prisma.registrationErrorCode.deleteMany()
-  await prisma.systemSetting.deleteMany()
-  await prisma.room.deleteMany()
-  await prisma.course.deleteMany()
-  await prisma.user.deleteMany()
-  await prisma.semesterOption.deleteMany()
+export async function resetDatabase(client: PrismaClient) {
+  await client.auditLog.deleteMany()
+  await client.enrollment.deleteMany()
+  await client.wishRequest.deleteMany()
+  await client.studentResult.deleteMany()
+  await client.section.deleteMany()
+  await client.courseCondition.deleteMany()
+  await client.registrationErrorCode.deleteMany()
+  await client.systemSetting.deleteMany()
+  await client.room.deleteMany()
+  await client.course.deleteMany()
+  await client.user.deleteMany()
+  await client.semesterOption.deleteMany()
 }
 
-async function main() {
-  await resetDatabase()
+export async function seedDemoData(client: PrismaClient, options: { reset?: boolean } = {}) {
+  if (options.reset ?? true) {
+    await resetDatabase(client)
+  }
 
   const passwordDigest = await bcrypt.hash('ptithcm2026', 10)
   const currentSemesterId = 'sem-2026-1'
   const previousSemesterId = 'sem-2025-2'
 
-  await prisma.semesterOption.createMany({
+  await client.semesterOption.createMany({
     data: [
       {
         id: previousSemesterId,
@@ -50,7 +50,7 @@ async function main() {
     ],
   })
 
-  await prisma.user.createMany({
+  await client.user.createMany({
     data: [
       {
         id: 'AD001',
@@ -155,7 +155,7 @@ async function main() {
     ],
   })
 
-  await prisma.course.createMany({
+  await client.course.createMany({
     data: [
       {
         id: 'course-cse101',
@@ -211,7 +211,7 @@ async function main() {
     ],
   })
 
-  await prisma.room.createMany({
+  await client.room.createMany({
     data: [
       { id: 'room-a1-101', code: 'A1-101', name: 'A1-101', capacity: 40, campus: 'PTIT HCM' },
       { id: 'room-a1-201', code: 'A1-201', name: 'A1-201', capacity: 45, campus: 'PTIT HCM' },
@@ -220,7 +220,7 @@ async function main() {
     ],
   })
 
-  await prisma.courseCondition.createMany({
+  await client.courseCondition.createMany({
     data: [
       {
         id: 'cond-cse201-cse101-prereq',
@@ -239,8 +239,12 @@ async function main() {
     ],
   })
 
-  await prisma.registrationErrorCode.createMany({
+  await client.registrationErrorCode.createMany({
     data: [
+      { code: 'DK_TC', message: 'Dang ky thanh cong.' },
+      { code: 'HUY_DK', message: 'Da huy dang ky.' },
+      { code: 'KHONG_DU_DK', message: 'Khong du dieu kien dang ky.' },
+      { code: 'NGOAI_TGDK', message: 'Ngoai thoi gian dang ky.' },
       { code: 'REG_ERR_SECTION_NOT_OPEN', message: 'Lop hoc phan chua mo dang ky.' },
       { code: 'REG_ERR_OUTSIDE_REGISTRATION_WINDOW', message: 'Ngoai thoi gian dang ky.' },
       { code: 'REG_ERR_OUTSIDE_ADJUSTMENT_WINDOW', message: 'Ngoai thoi gian dieu chinh dang ky.' },
@@ -262,7 +266,7 @@ async function main() {
     ],
   })
 
-  await prisma.section.createMany({
+  await client.section.createMany({
     data: [
       {
         id: 'sec-history-cse101',
@@ -322,7 +326,7 @@ async function main() {
         weeks: '1-15',
         capacity: 1,
         registeredCount: 1,
-        waitlistCount: 0,
+        waitlistCount: 1,
         allowWaitlist: true,
         status: 'FULL',
         campus: 'PTIT HCM',
@@ -351,7 +355,7 @@ async function main() {
     ],
   })
 
-  await prisma.systemSetting.create({
+  await client.systemSetting.create({
     data: {
       id: 1,
       simulationNow: new Date('2026-04-10T08:00:00.000Z'),
@@ -373,7 +377,7 @@ async function main() {
     },
   })
 
-  await prisma.studentResult.createMany({
+  await client.studentResult.createMany({
     data: [
       {
         id: 'result-n23dccn001-cse101',
@@ -398,7 +402,7 @@ async function main() {
     ],
   })
 
-  await prisma.enrollment.createMany({
+  await client.enrollment.createMany({
     data: [
       {
         id: 'enr-history-cse101',
@@ -448,10 +452,92 @@ async function main() {
           },
         ],
       },
+      {
+        id: 'enr-waitlist-cse101',
+        studentId: 'N23DCCN002',
+        sectionId: 'sec-cse101-full',
+        semesterId: currentSemesterId,
+        status: 'WAITLISTED',
+        waitlistOrder: 1,
+        timeline: [
+          {
+            status: 'WAITLISTED',
+            timestamp: '2026-04-10T08:10:00.000Z',
+            actorId: 'N23DCCN002',
+            actorRole: 'STUDENT',
+            note: 'Lớp đã đủ sĩ số, sinh viên được đưa vào danh sách chờ.',
+          },
+        ],
+      },
+      {
+        id: 'enr-cancelled-cse101',
+        studentId: 'N23DCCN002',
+        sectionId: 'sec-cse101-1',
+        semesterId: currentSemesterId,
+        status: 'CANCELLED',
+        cancelledAt: new Date('2026-05-02T03:00:00.000Z'),
+        reasonCode: 'Đổi kế hoạch học tập',
+        timeline: [
+          {
+            status: 'CANCELLED',
+            timestamp: '2026-05-02T03:00:00.000Z',
+            actorId: 'N23DCCN002',
+            actorRole: 'STUDENT',
+            note: 'Hủy đăng ký trong cửa sổ điều chỉnh.',
+          },
+        ],
+      },
+      {
+        id: 'enr-dropped-cse201',
+        studentId: 'N23DCCN001',
+        sectionId: 'sec-cse201-1',
+        semesterId: currentSemesterId,
+        status: 'DROPPED',
+        droppedAt: new Date('2026-05-15T03:00:00.000Z'),
+        reasonCode: 'Rút học phần để giảm tải tín chỉ',
+        timeline: [
+          {
+            status: 'DROPPED',
+            timestamp: '2026-05-15T03:00:00.000Z',
+            actorId: 'N23DCCN001',
+            actorRole: 'STUDENT',
+            note: 'Rút học phần trước hạn rút.',
+          },
+        ],
+      },
+      {
+        id: 'enr-rejected-cse201',
+        studentId: 'N23DCCN002',
+        sectionId: 'sec-cse201-1',
+        semesterId: currentSemesterId,
+        status: 'REJECTED',
+        reasonCode: 'REG_ERR_PREREQUISITE_NOT_MET',
+        timeline: [
+          {
+            status: 'REJECTED',
+            timestamp: '2026-04-10T08:20:00.000Z',
+            actorId: 'N23DCCN002',
+            actorRole: 'STUDENT',
+            note: 'Từ chối vì chưa đạt môn tiên quyết CSE101.',
+          },
+        ],
+      },
     ],
   })
 
-  await prisma.auditLog.create({
+  await client.wishRequest.create({
+    data: {
+      id: 'wish-cse301-extra',
+      studentId: 'N23DCCN001',
+      semesterId: currentSemesterId,
+      courseCode: 'CSE301',
+      preferredGroup: '01',
+      reason: 'Sinh viên có nhu cầu mở thêm lớp Công nghệ phần mềm để kịp tiến độ học tập.',
+      status: 'PENDING',
+    },
+  })
+
+  await client.auditLog.create({
     data: {
       id: 'log-seed',
       actorId: 'AD001',
@@ -465,11 +551,19 @@ async function main() {
   })
 }
 
-main()
-  .catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
-  .finally(async () => {
+async function main() {
+  const prisma = new PrismaClient()
+  try {
+    await seedDemoData(prisma, { reset: true })
+  } finally {
     await prisma.$disconnect()
-  })
+  }
+}
+
+if (require.main === module) {
+  void main()
+    .catch((error) => {
+      console.error(error)
+      process.exit(1)
+    })
+}

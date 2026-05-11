@@ -5,6 +5,7 @@ import type { Section } from '@/types/section'
 import type { SystemSettings } from '@/types/settings'
 import { REGISTRATION_ERROR_MESSAGES, type RegistrationErrorCode } from '@/lib/error-codes'
 import { isWithinRange } from '@/lib/date'
+import { mapEnrollmentStatusToPdfStatus, mapRegistrationErrorToPdfStatus } from '@/lib/status-conventions'
 
 const HISTORY_PASS_STATUSES = new Set(['COMPLETED'])
 const HISTORY_RESULT_STATUSES = new Set(['COMPLETED', 'FAILED'])
@@ -138,8 +139,8 @@ export function evaluateEnrollmentEligibility(
     buildRuleResult(
       'section-status',
       'Trạng thái lớp',
-      Boolean(section && section.status === 'OPEN'),
-      'Lớp học phần đang mở đăng ký.',
+      Boolean(section && (section.status === 'OPEN' || section.status === 'FULL')),
+      'Lớp học phần đang mở đăng ký hoặc cho phép xét danh sách chờ.',
       section?.status === 'CANCELLED'
         ? REGISTRATION_ERROR_MESSAGES.REG_ERR_CLASS_CANCELLED
         : REGISTRATION_ERROR_MESSAGES.REG_ERR_SECTION_NOT_OPEN,
@@ -256,6 +257,7 @@ export function evaluateEnrollmentEligibility(
       finalStatus: null,
       message: firstFailedCheck.message,
       checks,
+      pdfStatusCode: mapRegistrationErrorToPdfStatus(firstFailedCheck.errorCode),
       ...(firstFailedCheck.errorCode ? { errorCode: firstFailedCheck.errorCode } : {}),
     }
   }
@@ -264,6 +266,7 @@ export function evaluateEnrollmentEligibility(
     return {
       canRegister: false,
       finalStatus: null,
+      pdfStatusCode: 'KHONG_DU_DK',
       errorCode: 'REG_ERR_CLASS_NOT_FOUND',
       message: REGISTRATION_ERROR_MESSAGES.REG_ERR_CLASS_NOT_FOUND,
       checks,
@@ -276,6 +279,7 @@ export function evaluateEnrollmentEligibility(
     return {
       canRegister: true,
       finalStatus: 'WAITLISTED',
+      pdfStatusCode: mapEnrollmentStatusToPdfStatus('WAITLISTED'),
       message: 'Lớp đã full, sinh viên sẽ được đưa vào danh sách chờ.',
       checks,
     }
@@ -285,6 +289,7 @@ export function evaluateEnrollmentEligibility(
     return {
       canRegister: false,
       finalStatus: null,
+      pdfStatusCode: 'KHONG_DU_DK',
       errorCode: 'REG_ERR_FULL_CAPACITY',
       message: REGISTRATION_ERROR_MESSAGES.REG_ERR_FULL_CAPACITY,
       checks,
@@ -294,6 +299,7 @@ export function evaluateEnrollmentEligibility(
   return {
     canRegister: true,
     finalStatus: 'REGISTERED',
+    pdfStatusCode: mapEnrollmentStatusToPdfStatus('REGISTERED'),
     message: 'Sinh viên đáp ứng đầy đủ điều kiện đăng ký.',
     checks,
   }

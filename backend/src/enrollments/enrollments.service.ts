@@ -283,6 +283,7 @@ export class EnrollmentsService {
             success: false,
             message: result.message,
             errorCode: result.errorCode,
+            pdfStatusCode: result.pdfStatusCode,
             checks: result.checks,
           }
         }
@@ -301,6 +302,7 @@ export class EnrollmentsService {
             success: false,
             message: 'Sinh viên đã có bản ghi đăng ký cho lớp này.',
             errorCode: 'REG_ERR_ALREADY_REGISTERED',
+            pdfStatusCode: 'KHONG_DU_DK',
             checks: result.checks,
           }
         }
@@ -348,7 +350,13 @@ export class EnrollmentsService {
           result.message,
         )
 
-        return { success: true, message: result.message, enrollment, checks: result.checks }
+        return {
+          success: true,
+          message: result.message,
+          enrollment,
+          pdfStatusCode: result.pdfStatusCode,
+          checks: result.checks,
+        }
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )

@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { CourseStatus, Prisma, Section, SectionStatus, UserRole } from '@prisma/client'
+import { RequestUser } from '../common/types/request-user'
 import { AuditActor, appendAuditLog } from '../common/utils/audit'
 import { paginated, parsePagination } from '../common/utils/pagination'
-import { normalizeRoles } from '../common/utils/public-user'
+import { normalizeRoles, toPublicUser } from '../common/utils/public-user'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateSectionDto } from './dto/create-section.dto'
 import {
@@ -151,6 +152,27 @@ export class SectionsService {
 
   async findOne(id: string) {
     return this.getExistingSection(id)
+  }
+
+  async findSectionStudents(id: string, requester: RequestUser) {
+    const section = await this.getExistingSection(id)
+    const privileged = requester.roles.some((role) => role === UserRole.ADMIN || role === UserRole.ACADEMIC_OFFICE)
+    const assignedLecturer = requester.roles.includes(UserRole.LECTURER) && requester.userId === section.lecturerId
+
+    if (!privileged && !assignedLecturer) {
+      throw new ForbiddenException('Giảng viên chỉ được xem danh sách sinh viên của lớp được phân công.')
+    }
+
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: { sectionId: id },
+      include: { student: true },
+      orderBy: [{ status: 'asc' }, { createdAt: 'asc' }],
+    })
+
+    return enrollments.map(({ student, ...enrollment }) => ({
+      ...enrollment,
+      student: toPublicUser(student),
+    }))
   }
 
   async create(createSectionDto: CreateSectionDto, actor: AuditActor) {

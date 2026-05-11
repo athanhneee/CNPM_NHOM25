@@ -47,8 +47,8 @@ Mật khẩu demo chung: `ptithcm2026`
 | --- | --- | --- | --- |
 | `N23DCCN001` | `n23dccn001@student.ptithcm.edu.vn` | `STUDENT` | Có dữ liệu để demo đăng ký thành công, vào danh sách chờ, hủy và bị từ chối |
 | `minh.tuan` | `minh.tuan@ptithcm.edu.vn` | `LECTURER` | Giảng viên PTIT HCM phụ trách nhiều lớp không trùng lịch trong học kỳ hiện tại |
-| `ngson` | `ngson@ptithcm.edu.vn` | `ACADEMIC_OFFICE` | Trưởng khoa dùng để demo luồng phòng đào tạo, xử lý danh sách chờ và cập nhật lịch |
-| `dangminhthanh` | `dangminhthanh@admin.ptithcm.edu.vn` | `ADMIN` | Quản trị viên toàn quyền với tài khoản, vai trò, tham số hệ thống và audit log |
+| `academic.office` | `academic.office@ptithcm.edu.vn` | `ACADEMIC_OFFICE` | Tài khoản phòng đào tạo dùng để demo quản lý học phần, xử lý danh sách chờ và cập nhật lịch |
+| `admin` | `admin@ptithcm.edu.vn` | `ADMIN` | Quản trị viên toàn quyền với tài khoản, vai trò, tham số hệ thống và audit log |
 | `N23DCCN020` | `n23dccn020@student.ptithcm.edu.vn` | `STUDENT` | Tài khoản mẫu đã bị khóa để kiểm thử đăng nhập thất bại |
 
 ## Tính năng theo vai trò
@@ -131,7 +131,7 @@ Trạng thái có sẵn:
 
 Trong route `/admin/settings`:
 
-- `Reset demo data`: đưa dữ liệu về seed mặc định
+- `Reset demo data`: gọi backend `/snapshot/reset` để đưa dữ liệu về seed mặc định khi backend đang chạy; ở mock/localStorage thì đưa dữ liệu về seed frontend
 - `Export snapshot`: sao chép JSON hiện tại vào clipboard
 - `Import snapshot`: nạp lại dữ liệu từ JSON
 
@@ -188,7 +188,7 @@ src/
 
 ### Phòng đào tạo
 
-1. Đăng nhập bằng `ngson@ptithcm.edu.vn`
+1. Đăng nhập bằng `academic.office@ptithcm.edu.vn`
 2. Tạo lớp học phần mới
 3. Phân công giảng viên
 4. Xử lý waitlist hoặc override
@@ -196,7 +196,7 @@ src/
 
 ### Quản trị
 
-1. Đăng nhập bằng `dangminhthanh@admin.ptithcm.edu.vn`
+1. Đăng nhập bằng `admin@ptithcm.edu.vn`
 2. Khóa hoặc mở khóa một tài khoản
 3. Đổi `maxCredits` trong phần tham số hệ thống
 4. Quay lại màn đăng ký để kiểm tra business rule đã thay đổi

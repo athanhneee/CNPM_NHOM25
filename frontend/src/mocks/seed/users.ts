@@ -186,14 +186,14 @@ const lecturerUsers = buildStaffUsers([
 ])
 
 const academicOfficeUsers = buildStaffUsers([
-  { id: 'AO001', username: 'dao.tao', email: 'dao.tao@ptithcm.edu.vn', fullName: 'Nguyễn Hồng Sơn', roles: ['ACADEMIC_OFFICE'], department: 'Phòng Đào tạo', code: 'AO001', title: 'Tiến sĩ', position: 'Trưởng phòng Đào tạo', specialization: 'Điều phối học vụ', bio: 'Điều phối học phần, kế hoạch học kỳ và xử lý các tình huống phát sinh trong đợt đăng ký.' },
+  { id: 'AO001', username: 'academic.office', email: 'academic.office@ptithcm.edu.vn', fullName: 'Phòng Đào tạo', roles: ['ACADEMIC_OFFICE'], department: 'Phòng Đào tạo', code: 'AO001', title: 'Tiến sĩ', position: 'Trưởng phòng Đào tạo', specialization: 'Điều phối học vụ', bio: 'Điều phối học phần, kế hoạch học kỳ và xử lý các tình huống phát sinh trong đợt đăng ký.' },
   { id: 'AO002', username: 'ht.thua', email: 'ht.thua@ptithcm.edu.vn', fullName: 'Huỳnh Trọng Thừa', roles: ['ACADEMIC_OFFICE'], department: 'Phòng Đào tạo', code: 'AO002', title: 'Tiến sĩ', position: 'Phó trưởng phòng Đào tạo', specialization: 'Điều phối chương trình ATTT', bio: 'Phụ trách học phần chuyên ngành ATTT và xử lý danh sách chờ.' },
   { id: 'AO003', username: 'tuyet.hai', email: 'tuyet.hai@ptithcm.edu.vn', fullName: 'Nguyễn Thị Tuyết Hải', roles: ['ACADEMIC_OFFICE'], department: 'Phòng Đào tạo', code: 'AO003', title: 'Tiến sĩ', position: 'Phụ trách chương trình CNTT', specialization: 'Khung chương trình và học phần cốt lõi', bio: 'Rà soát chương trình khung, chuẩn đầu ra và danh mục học phần.' },
   { id: 'AO004', username: 'ky.thu', email: 'ky.thu@ptithcm.edu.vn', fullName: 'Lưu Nguyễn Kỳ Thư', roles: ['ACADEMIC_OFFICE'], department: 'Phòng Đào tạo', code: 'AO004', title: 'Thạc sĩ', position: 'Chuyên viên giáo vụ', specialization: 'Điều phối đăng ký học phần', bio: 'Theo dõi chỉ tiêu lớp và hỗ trợ sinh viên trong đợt đăng ký cao điểm.' },
 ])
 
 const adminUsers = buildStaffUsers([
-  { id: 'AD001', username: 'admin.ptit', email: 'admin.ptit@ptithcm.edu.vn', fullName: 'Đặng Minh Thành', roles: ['ADMIN'], department: 'Trung tâm Công nghệ thông tin', code: 'AD001', title: 'Kỹ sư', position: 'Quản trị hệ thống', specialization: 'Điều hành nền tảng và phân quyền', bio: 'Quản trị viên chính chịu trách nhiệm vận hành và phân quyền hệ thống.' },
+  { id: 'AD001', username: 'admin', email: 'admin@ptithcm.edu.vn', fullName: 'Quản trị hệ thống', roles: ['ADMIN'], department: 'Trung tâm Công nghệ thông tin', code: 'AD001', title: 'Kỹ sư', position: 'Quản trị hệ thống', specialization: 'Điều hành nền tảng và phân quyền', bio: 'Quản trị viên chính chịu trách nhiệm vận hành và phân quyền hệ thống.' },
   { id: 'AD002', username: 'duyen.ntn', email: 'duyen.ntn@ptithcm.edu.vn', fullName: 'Nguyễn Trần Ngọc Duyên', roles: ['ADMIN'], department: 'Trung tâm Công nghệ thông tin', code: 'AD002', title: 'Kỹ sư', position: 'Quản trị hệ thống', specialization: 'Nhật ký và bảo mật phiên', bio: 'Theo dõi nhật ký, phiên đăng nhập và các thay đổi cấu hình quan trọng.' },
   { id: 'AD003', username: 'khoi.td', email: 'khoi.td@ptithcm.edu.vn', fullName: 'Trần Đăng Khôi', roles: ['ADMIN'], department: 'Trung tâm Công nghệ thông tin', code: 'AD003', title: 'Kỹ sư', position: 'Quản trị dữ liệu', specialization: 'Dữ liệu học vụ và sao lưu', bio: 'Phụ trách sao lưu, import/export snapshot và dữ liệu mô phỏng học vụ.' },
 ])
@@ -214,8 +214,8 @@ export const demoAccounts = [
     note: 'Sinh viên CNTT dùng để demo danh sách học phần, đăng ký nhanh và lịch học cá nhân.',
   },
   {
-    username: 'N23DCAT001',
-    email: 'n23dcat001@student.ptithcm.edu.vn',
+    username: 'N23DCCN002',
+    email: 'n23dccn002@student.ptithcm.edu.vn',
     role: 'STUDENT',
     password: 'ptithcm2026',
     note: 'Sinh viên ATTT dùng để demo các học phần an toàn mạng, mật mã và bảo mật hệ thống.',
@@ -228,15 +228,15 @@ export const demoAccounts = [
     note: 'Giảng viên phụ trách nhiều lớp CNTT trong học kỳ hiện tại.',
   },
   {
-    username: 'dao.tao',
-    email: 'dao.tao@ptithcm.edu.vn',
+    username: 'academic.office',
+    email: 'academic.office@ptithcm.edu.vn',
     role: 'ACADEMIC_OFFICE',
     password: 'ptithcm2026',
     note: 'Tài khoản phòng đào tạo để xử lý sĩ số, danh sách chờ và lịch học phần.',
   },
   {
-    username: 'admin.ptit',
-    email: 'admin.ptit@ptithcm.edu.vn',
+    username: 'admin',
+    email: 'admin@ptithcm.edu.vn',
     role: 'ADMIN',
     password: 'ptithcm2026',
     note: 'Tài khoản quản trị để kiểm tra phân quyền, cấu hình hệ thống và nhật ký vận hành.',

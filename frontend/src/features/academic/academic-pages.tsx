@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -17,10 +17,10 @@ import { InfoList } from '@/components/shared/InfoList'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { courseService } from '@/mocks/services/course.service'
-import { enrollmentService } from '@/mocks/services/enrollment.service'
-import { reportService } from '@/mocks/services/report.service'
-import { sectionService } from '@/mocks/services/section.service'
+import { courseService } from '@/services/course.api'
+import { enrollmentService } from '@/services/enrollment.api'
+import { reportService } from '@/services/report.api'
+import { sectionService } from '@/services/section.api'
 import { getCurrentSemesterSections, getSectionStudents, getSectionWaitlist } from '@/lib/selectors'
 import type { Course } from '@/types/course'
 
@@ -65,6 +65,19 @@ function useAcademicContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
   const pushToast = useUiStore((state) => state.pushToast)
+
+  useEffect(() => {
+    if (
+      !currentUser?.roles.includes('ACADEMIC_OFFICE') &&
+      !currentUser?.roles.includes('ADMIN')
+    ) {
+      return
+    }
+
+    void courseService.listCourses().catch(() => undefined)
+    void sectionService.listSections().catch(() => undefined)
+    void enrollmentService.listEnrollments().catch(() => undefined)
+  }, [currentUser?.id, currentUser?.roles])
 
   return {
     currentUser,
@@ -381,7 +394,7 @@ export function CreateSectionPage() {
     group: '01',
     subGroup: '01',
     lecturerId: snapshot.users.find((user) => user.roles.includes('LECTURER'))?.id ?? '',
-    room: 'A2-201',
+    room: 'A1-101',
     weekday: '2',
     startPeriod: '1',
     periodCount: '3',
@@ -630,7 +643,7 @@ export function RegistrationManagementPage() {
                       variant="secondary"
                       onClick={async () => {
                         const promoted = await enrollmentService.processWaitlist(selected.section.id, actor)
-                        pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang REGISTERED.` : 'Chưa có bản ghi nào đủ điều kiện.' })
+                        pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang DK_TC.` : 'Chưa có bản ghi nào đủ điều kiện.' })
                       }}
                       type="button"
                     >
@@ -641,7 +654,7 @@ export function RegistrationManagementPage() {
               </div>
             </Card>
 
-            <Card title="Danh sách sinh viên" description="Bao gồm REGISTERED, WAITLISTED và các trạng thái liên quan">
+            <Card title="Danh sách sinh viên" description="Hiển thị theo quy ước PDF: DK_TC, HUY_DK, KHONG_DU_DK hoặc NGOAI_TGDK">
               <Table columns={columns} rows={students} rowKey={(row) => row.enrollment.id} />
             </Card>
           </div>
@@ -851,7 +864,7 @@ export function WaitlistOverridePage() {
                       return
                     }
                     const promoted = await enrollmentService.processWaitlist(selected.section.id, actor)
-                    pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang REGISTERED.` : 'Không có bản ghi nào đủ điều kiện.' })
+                    pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang DK_TC.` : 'Không có bản ghi nào đủ điều kiện.' })
                   }}
                   type="button"
                 >

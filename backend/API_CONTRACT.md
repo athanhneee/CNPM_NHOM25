@@ -54,6 +54,7 @@ Authorization: Bearer <accessToken>
 | POST/PATCH/DELETE | `/courses` / `/courses/:id` | ADMIN, ACADEMIC_OFFICE | Delete sets `status = INACTIVE`. |
 | GET | `/sections` | Authenticated | Supports `search`, `semesterId`, `courseCode`, `lecturerId`, `status`, `page`, `limit`. |
 | GET | `/sections/:id` | Authenticated | Section detail. |
+| GET | `/sections/:id/students` | Assigned LECTURER, ADMIN, ACADEMIC_OFFICE | Returns enrollments in the section with sanitized student info. |
 | POST/PATCH/DELETE | `/sections` / `/sections/:id` | ADMIN, ACADEMIC_OFFICE | Delete sets `status = CANCELLED`. |
 | PATCH | `/sections/:id/assign-lecturer` | ADMIN, ACADEMIC_OFFICE | Body `{ lecturerId }`. |
 | PATCH | `/sections/:id/room-schedule` | ADMIN, ACADEMIC_OFFICE | Body `{ room, weekday, startPeriod, periodCount }`. |
@@ -71,6 +72,16 @@ Authorization: Bearer <accessToken>
 | POST | `/enrollments/sections/:sectionId/process-waitlist` | ADMIN, ACADEMIC_OFFICE | Promotes eligible waitlisted students. |
 | POST | `/enrollments/override` | ADMIN, ACADEMIC_OFFICE | Body `{ studentId, sectionId, reason }`. |
 
+## Wishes
+
+| Method | Endpoint | Role | Notes |
+| --- | --- | --- | --- |
+| GET | `/wishes` | STUDENT, ADMIN, ACADEMIC_OFFICE | Students are restricted to their own wishes. Supports `studentId`, `semesterId`, `courseCode`, `status`. |
+| GET | `/wishes/:id` | Owner, ADMIN, ACADEMIC_OFFICE | Wish detail. |
+| POST | `/wishes` | STUDENT, ADMIN, ACADEMIC_OFFICE | Body `{ studentId?, semesterId?, courseCode, preferredGroup?, reason }`; students can only create for themselves. |
+| POST | `/wishes/:id/cancel` | Owner, ADMIN, ACADEMIC_OFFICE | Cancels a pending wish. |
+| PATCH | `/wishes/:id/status` | ADMIN, ACADEMIC_OFFICE | Body `{ status }` for `REVIEWED`, `APPROVED`, `REJECTED`, `CANCELLED`. |
+
 ## Schedules, Reports, Settings, Logs
 
 | Method | Endpoint | Role | Notes |
@@ -83,4 +94,4 @@ Authorization: Bearer <accessToken>
 | GET/PATCH | `/settings` | GET authenticated, PATCH admin/academic | System settings. |
 | GET | `/settings/semesters` | Authenticated | Semester options. |
 | GET | `/logs` | ADMIN, ACADEMIC_OFFICE | Supports `actorId`, `targetId`, `result`, `action`, `from`, `to`, `page`, `limit`. |
-| GET/POST | `/snapshot/export`, `/snapshot/import`, `/snapshot/reset` | ADMIN | Export omits password and refresh token. |
+| GET/POST | `/snapshot/export`, `/snapshot/import`, `/snapshot/reset` | ADMIN | Export omits password and refresh token fields, and includes Room, CourseCondition, StudentResult, RegistrationErrorCode. Reset re-seeds demo data and returns the refreshed snapshot. |

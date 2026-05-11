@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { FileSpreadsheet, Upload, UserPlus } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
@@ -16,7 +16,7 @@ import { PermissionMatrix } from '@/components/shared/PermissionMatrix'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { adminService } from '@/mocks/services/admin.service'
+import { adminService } from '@/services/admin.api'
 import { getMajorMappingFromStudentCode } from '@/mocks/seed/ptit-helpers'
 import { ExportButtons } from '@/components/shared/ExportButtons'
 import { SystemWindowCard } from '@/components/shared/SystemWindowCard'
@@ -34,6 +34,15 @@ function useAdminContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
   const pushToast = useUiStore((state) => state.pushToast)
+
+  useEffect(() => {
+    if (!currentUser?.roles.includes('ADMIN')) {
+      return
+    }
+
+    void adminService.listUsers()
+  }, [currentUser?.id, currentUser?.roles])
+
   return {
     currentUser,
     snapshot,

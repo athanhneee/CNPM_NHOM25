@@ -27,7 +27,7 @@ import {
 import { demoAccounts, seedUsers } from '@/mocks/seed/users'
 import type { AccountStatus, UserRole } from '@/types/auth'
 import type { Course, WishRequest } from '@/types/course'
-import type { Enrollment, EnrollmentStatus } from '@/types/enrollment'
+import type { Enrollment, EnrollmentConventionCode, EnrollmentStatus } from '@/types/enrollment'
 import type { AuditLog, AuditResult } from '@/types/log'
 import type { Section } from '@/types/section'
 import type {
@@ -255,6 +255,7 @@ export interface DataStoreState {
     success: boolean
     message: string
     enrollment?: Enrollment | undefined
+    pdfStatusCode?: EnrollmentConventionCode | undefined
     errorCode?: string | undefined
   }
   cancelEnrollment: (enrollmentId: string, actor: AuditActor, reason?: string) => Enrollment
@@ -729,6 +730,7 @@ export const useDataStore = create<DataStoreState>((set, get) => ({
       return {
         success: false,
         message: result.message,
+        ...(result.pdfStatusCode ? { pdfStatusCode: result.pdfStatusCode } : {}),
         ...(result.errorCode ? { errorCode: result.errorCode } : {}),
       }
     }
@@ -787,7 +789,7 @@ export const useDataStore = create<DataStoreState>((set, get) => ({
       actor,
     )
 
-    return { success: true, message: result.message, enrollment: nextEnrollment }
+    return { success: true, message: result.message, enrollment: nextEnrollment, pdfStatusCode: result.pdfStatusCode }
   },
   cancelEnrollment: (enrollmentId, actor, reason) => {
     const snapshot = get()
