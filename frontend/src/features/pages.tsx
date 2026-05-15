@@ -28,6 +28,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
+import { ApiError } from '@/lib/api-client'
 import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -38,6 +39,7 @@ import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { SystemWindowCard } from '@/components/shared/SystemWindowCard'
 import { formatDateTime } from '@/lib/date'
+import { authApiService } from '@/services/auth.api'
 import {
   getRelevantLogs,
   getRoleDashboardMetrics,
@@ -127,7 +129,7 @@ function DashboardQuickLinks({ links }: { links: QuickLink[] }) {
     <div className="grid gap-3 md:grid-cols-2">
       {links.map((link) => (
         <Link
-          key={link.to}
+          key={`${link.to}-${link.label}`}
           className="interactive-press rounded-[30px] border border-slate-200 bg-white/90 px-5 py-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)] transition hover:border-cyan-200 hover:bg-cyan-50/80"
           to={link.to}
         >
@@ -505,9 +507,9 @@ export function LoginPage() {
 
             <div className="grid gap-3 md:grid-cols-3">
               {[
-                'Dữ liệu sinh viên PTIT HCM thực tế hơn',
-                'Biểu mẫu đăng nhập mềm, bo góc mạnh',
-                'Hiệu ứng nhấn và con trỏ tay trên vùng tương tác',
+                'Tài khoản demo theo 4 vai trò',
+                'Dữ liệu học phần có waitlist và tiên quyết',
+                'Audit log hỗ trợ đối chiếu sau demo',
               ].map((item) => (
                 <div
                   className="rounded-[30px] border border-white/80 bg-white/80 px-4 py-4 text-sm font-medium text-slate-600 shadow-[0_16px_34px_rgba(15,23,42,0.05)]"
@@ -1192,13 +1194,32 @@ export function ProfilePage() {
     setAddress(user.address ?? '')
   }
 
-  function handleSave() {
+  async function handleSave() {
     try {
-      const updatedUser = updateUser(
-        user.id,
-        { email, secondaryEmail, phone, address },
-        { actorId: user.id, actorRole: user.roles[0] ?? 'STUDENT' },
-      )
+      let source: 'backend' | 'local' = 'backend'
+      let updatedUser: User
+
+      try {
+        updatedUser = await authApiService.updateProfile({ email, secondaryEmail, phone, address })
+        useDataStore.setState((state) => {
+          const users = state.users.some((item) => item.id === updatedUser.id)
+            ? state.users.map((item) => (item.id === updatedUser.id ? updatedUser : item))
+            : [...state.users, updatedUser]
+
+          return { users }
+        })
+      } catch (error) {
+        if (error instanceof ApiError) {
+          throw error
+        }
+
+        source = 'local'
+        updatedUser = updateUser(
+          user.id,
+          { email, secondaryEmail, phone, address },
+          { actorId: user.id, actorRole: user.roles[0] ?? 'STUDENT' },
+        )
+      }
       useAuthStore.setState((state) => ({
         ...state,
         currentUser: state.currentUser?.id === updatedUser.id ? updatedUser : state.currentUser,
@@ -1206,8 +1227,11 @@ export function ProfilePage() {
       setIsEditing(false)
       pushToast({
         tone: 'success',
-      title: 'Cập nhật hồ sơ thành công',
-      description: 'Thông tin liên hệ đã được đồng bộ vào localStorage.',
+        title: 'Cập nhật hồ sơ thành công',
+        description:
+          source === 'backend'
+            ? 'Thông tin liên hệ đã được đồng bộ với backend.'
+            : 'Chưa kết nối được backend, thông tin tạm thời được lưu cục bộ trên trình duyệt.',
       })
     } catch (error) {
       pushToast({
@@ -1575,11 +1599,11 @@ export function ChangePasswordPage() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (nextPassword.length < 6) {
+    if (nextPassword.length < 8) {
       pushToast({
         tone: 'warning',
         title: 'Mật khẩu mới quá ngắn',
-        description: 'Vui lòng nhập tối thiểu 6 ký tự cho mật khẩu mới.',
+        description: 'Vui lòng nhập tối thiểu 8 ký tự cho mật khẩu mới.',
       })
       return
     }
@@ -1620,7 +1644,7 @@ export function ChangePasswordPage() {
     <div className="grid gap-6">
       <PageTitleBlock
         title="Trang đổi mật khẩu"
-        subtitle="Cập nhật mật khẩu đăng nhập cho tài khoản PTIT HCM trong môi trường mô phỏng, đồng thời ghi nhận thao tác vào nhật ký hệ thống."
+        subtitle="Cập nhật mật khẩu đăng nhập cho tài khoản PTIT HCM qua backend và ghi nhận thao tác vào nhật ký hệ thống."
       />
 
       <div className="grid gap-6 xl:grid-cols-[0.62fr_0.38fr]">
@@ -1634,8 +1658,8 @@ export function ChangePasswordPage() {
               Tạo mật khẩu mới an toàn và dễ nhớ với bạn.
             </h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-white/82">
-              Sau khi cập nhật, thông tin sẽ được lưu ngay vào localStorage của bản demo và ghi log
-              để bạn tiện kiểm thử luồng quản trị, sinh viên hoặc giảng viên.
+              Sau khi cập nhật thành công, phiên hiện tại sẽ được làm mới để bạn đăng nhập lại bằng
+              mật khẩu mới và đối chiếu thao tác trong nhật ký hệ thống.
             </p>
           </div>
 
@@ -1649,7 +1673,7 @@ export function ChangePasswordPage() {
             />
             <Input
               label="Mật khẩu mới"
-              hint="Nên có tối thiểu 6 ký tự để phù hợp với bản demo."
+              hint="Mật khẩu mới cần có tối thiểu 8 ký tự."
               type="password"
               value={nextPassword}
               onChange={(event) => setNextPassword(event.target.value)}

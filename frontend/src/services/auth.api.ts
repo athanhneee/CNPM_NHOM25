@@ -63,6 +63,15 @@ interface LoginResponse {
   user: BackendUser
 }
 
+const PROFILE_MUTATION_FIELDS = [
+  'email',
+  'phone',
+  'secondaryEmail',
+  'address',
+  'bio',
+  'avatarUrl',
+] as const satisfies readonly (keyof User)[]
+
 function nullable(value: string | null | undefined) {
   return value ?? undefined
 }
@@ -130,6 +139,19 @@ function isExpired(session: AuthSession) {
   return new Date(session.expiresAt).getTime() <= Date.now()
 }
 
+function pickProfilePayload(payload: Partial<User>) {
+  const nextPayload: Partial<Record<(typeof PROFILE_MUTATION_FIELDS)[number], unknown>> = {}
+
+  PROFILE_MUTATION_FIELDS.forEach((field) => {
+    const value = payload[field]
+    if (value !== undefined) {
+      nextPayload[field] = value
+    }
+  })
+
+  return nextPayload
+}
+
 export const authApiService = {
   async login(credentials: AuthCredentials) {
     try {
@@ -157,7 +179,7 @@ export const authApiService = {
     } catch (error) {
       return {
         success: false as const,
-        message: getApiErrorMessage(error, 'Dang nhap khong thanh cong.'),
+        message: getApiErrorMessage(error, 'Đăng nhập không thành công.'),
       }
     }
   },
@@ -228,8 +250,17 @@ export const authApiService = {
     } catch (error) {
       return {
         success: false as const,
-        message: getApiErrorMessage(error, 'Khong the doi mat khau.'),
+        message: getApiErrorMessage(error, 'Không thể đổi mật khẩu.'),
       }
     }
+  },
+
+  async updateProfile(payload: Partial<User>) {
+    return normalizeUser(
+      await apiRequest<BackendUser>('/users/me', {
+        method: 'PATCH',
+        body: pickProfilePayload(payload),
+      }),
+    )
   },
 }

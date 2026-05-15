@@ -1,30 +1,31 @@
-# CNPM_NHOM25 - He thong dang ky hoc phan PTIT HCM
+# CNPM_NHOM25 - Hệ thống đăng ký học phần PTIT HCM
 
-Do an cuoi mon Cong nghe phan mem: mo phong he thong dang ky hoc phan/tin chi cho sinh vien, giang vien, phong dao tao va quan tri vien.
+Đồ án cuối môn Công nghệ phần mềm: mô phỏng hệ thống đăng ký học phần/tín chỉ cho sinh viên, giảng viên, phòng đào tạo và quản trị viên.
 
 ## Stack
 
 - Frontend: React, Vite, TypeScript, Tailwind CSS, Zustand, React Router.
 - Backend: NestJS, TypeScript, Prisma ORM, Swagger, JWT + RBAC.
-- Database: PostgreSQL/Supabase, migration quan ly bang Prisma.
+- Database: PostgreSQL/Supabase, migration quản lý bằng Prisma.
 
-## Cau truc thu muc
+## Cấu trúc thư mục
 
 ```text
 backend/   NestJS API, Prisma schema, migration, seed
-frontend/  React app, API client, UI theo vai tro, mock seed fallback
-docs/      Tai lieu phan tich thiet ke va kich ban demo
+frontend/  React app, API client, UI theo vai trò, mock seed fallback
+docs/      Tài liệu phân tích thiết kế và kịch bản demo
 ```
 
-## Yeu cau moi truong
+## Yêu cầu môi trường
 
 - Node.js 20+.
 - npm.
-- PostgreSQL hoac Supabase PostgreSQL.
-- File `backend/.env` duoc tao tu `backend/.env.example`.
-- File `frontend/.env` neu can doi API base URL, theo mau `frontend/.env.example`.
+- PostgreSQL hoặc Supabase PostgreSQL.
+- File `backend/.env` được tạo từ `backend/.env.example`.
+- File `frontend/.env` nếu cần đổi API base URL, theo mẫu `frontend/.env.example`.
+- Nếu chạy integration test backend, cấu hình thêm `TEST_DATABASE_URL` trỏ đến database test riêng. Script này có reset/seed test DB, không dùng cho DB demo thật.
 
-## Chay backend
+## Chạy backend
 
 ```bash
 cd backend
@@ -35,10 +36,10 @@ npm run prisma:seed
 npm run start:dev
 ```
 
-Backend mac dinh chay tai `http://localhost:3000/api`.
+Backend mặc định chạy tại `http://localhost:3000/api`.
 Swagger UI: `http://localhost:3000/api`.
 
-## Chay frontend
+## Chạy frontend
 
 ```bash
 cd frontend
@@ -46,15 +47,17 @@ npm install
 npm run dev
 ```
 
-Frontend mac dinh chay tai `http://127.0.0.1:5173`.
+Frontend mặc định chạy tại `http://127.0.0.1:5173`.
 
-Frontend uu tien goi API backend that qua `VITE_API_BASE_URL=http://localhost:3000/api`. Cac mock/localStorage trong `frontend/src/mocks` duoc giu lam du lieu fallback va doi chieu demo, khong phai nguon du lieu chinh khi backend dang chay.
+Frontend ưu tiên gọi API backend thật qua `VITE_API_BASE_URL=http://localhost:3000/api`. Backend là nguồn dữ liệu chính cho đăng nhập, phân quyền và các thao tác mutation. Mock/localStorage trong `frontend/src/mocks` chủ yếu là cache/fallback hiển thị và dữ liệu demo phụ trợ khi backend không sẵn sàng; để demo cuối môn ổn định nên chạy backend.
 
-## Tai khoan demo backend seed
+Trang Admin/Settings có trường `simulationNow` để đổi mốc thời gian demo của backend, giúp trình bày các cửa sổ đăng ký, điều chỉnh, hủy và rút học phần mà không cần sửa seed.
 
-Mat khau mac dinh: `ptithcm2026`.
+## Tài khoản demo backend seed
 
-| Vai tro | Username | Email |
+Mật khẩu mặc định: `ptithcm2026`.
+
+| Vai trò | Username | Email |
 | --- | --- | --- |
 | ADMIN | `admin` | `admin@ptithcm.edu.vn` |
 | ACADEMIC_OFFICE | `academic.office` | `academic.office@ptithcm.edu.vn` |
@@ -62,42 +65,44 @@ Mat khau mac dinh: `ptithcm2026`.
 | STUDENT | `N23DCCN001` | `n23dccn001@student.ptithcm.edu.vn` |
 | STUDENT | `N23DCCN002` | `n23dccn002@student.ptithcm.edu.vn` |
 
-Backend seed la bo demo rut gon de chay nhanh voi PostgreSQL. Frontend mock seed co bo du lieu mo rong hon, gom nhieu sinh vien/mon hoc/section de doi chieu UI va demo offline.
+Backend seed có dữ liệu demo cho: đăng ký thành công, lớp full/waitlist, case fail tiên quyết, giảng viên có lớp, và đủ tài khoản admin/academic/student/lecturer. Không chạy seed/reset trên DB demo thật nếu chưa xác nhận vì thao tác này sẽ thay thế dữ liệu hiện tại.
 
 ## Checklist demo
 
-Sinh vien:
-- Dang nhap bang `N23DCCN001`.
-- Xem hoc phan mo, chi tiet lop, dieu kien dang ky.
-- Dang ky lop con cho, thu lop full de vao waitlist.
-- Xem lich su, TKB, ket qua dang ky.
-- Gui va huy nguyen vong hoc phan.
+Sinh viên:
+- Đăng nhập bằng `N23DCCN001` hoặc `N23DCCN002`.
+- Xem học phần mở, chi tiết lớp, điều kiện đăng ký.
+- Đăng ký lớp còn chỗ, thử lớp full để vào waitlist.
+- Xem lịch sử, TKB, kết quả đăng ký.
+- Gửi và hủy nguyện vọng học phần.
 
-Giang vien:
-- Dang nhap bang `minh.tuan`.
-- Xem lop duoc phan cong.
-- Mo danh sach sinh vien trong lop.
-- Xem TKB tuan va hoc ky.
+Giảng viên:
+- Đăng nhập bằng `minh.tuan`.
+- Xem lớp được phân công.
+- Mở danh sách sinh viên trong lớp.
+- Xem TKB tuần và học kỳ.
 
-Phong dao tao:
-- Dang nhap bang `academic.office`.
-- Quan ly catalog hoc phan va lop hoc phan.
-- Tao lop, phan cong giang vien, cap nhat phong/lich.
-- Theo doi dang ky, xu ly waitlist, override.
-- Xem bao cao si so/lap day.
+Phòng đào tạo:
+- Đăng nhập bằng `academic.office`.
+- Quản lý catalog học phần và lớp học phần.
+- Tạo lớp, phân công giảng viên, cập nhật phòng/lịch.
+- Theo dõi đăng ký, xử lý waitlist, override.
+- Xem báo cáo sĩ số/lấp đầy.
+- Duyệt/từ chối nguyện vọng kèm phản hồi.
 
-Quan tri:
-- Dang nhap bang `admin`.
-- Quan ly tai khoan, khoa/mo khoa, import sinh vien.
-- Cap nhat tham so he thong.
-- Export/import snapshot va xem audit log.
+Quản trị:
+- Đăng nhập bằng `admin`.
+- Quản lý tài khoản, khóa/mở khóa, import sinh viên.
+- Cập nhật tham số hệ thống, timeout phiên.
+- Export/import snapshot và xem audit log.
 
-## Lenh kiem tra
+## Lệnh kiểm tra
 
 ```bash
 cd backend
 npm run lint
 npm run test:rules
+npm run test:integration
 npm run build
 ```
 
@@ -108,10 +113,12 @@ npm run test
 npm run build
 ```
 
-## Tai lieu bao cao
+Chỉ chạy `npm run test:integration` khi có `TEST_DATABASE_URL` riêng cho test.
 
-- [Phan tich thiet ke](docs/analysis-design.md)
-- [Kich ban demo](docs/demo-script.md)
-- [Ke hoach kiem thu](docs/test-plan.md)
+## Tài liệu báo cáo
+
+- [Phân tích thiết kế](docs/analysis-design.md)
+- [Kịch bản demo](docs/demo-script.md)
+- [Kế hoạch kiểm thử](docs/test-plan.md)
 - [Backend API contract](backend/API_CONTRACT.md)
 - [Frontend README](frontend/README.md)

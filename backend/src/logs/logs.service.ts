@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common'
 import { AuditResult, Prisma } from '@prisma/client'
 import { paginated, parsePagination } from '../common/utils/pagination'
 import { PrismaService } from '../prisma/prisma.service'
+import { LogQueryDto } from './dto/log-query.dto'
 
 @Injectable()
 export class LogsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(query: Record<string, any> = {}) {
+  async findAll(query: LogQueryDto = {}) {
     const where: Prisma.AuditLogWhereInput = {}
     if (query.actorId) where.actorId = query.actorId
     if (query.targetId) where.targetId = query.targetId

@@ -37,6 +37,7 @@ export class ReportsService {
       lecturerName: section.lecturer.fullName,
       capacity: section.capacity,
       registeredCount: section.registeredCount,
+      waitlistCount: section.waitlistCount,
       utilizationRate: section.capacity ? section.registeredCount / section.capacity : 0,
       status: section.status,
     }))
@@ -47,12 +48,14 @@ export class ReportsService {
     const totalSections = rows.length
     const totalCapacity = rows.reduce((sum, row) => sum + row.capacity, 0)
     const totalRegistered = rows.reduce((sum, row) => sum + row.registeredCount, 0)
+    const totalWaitlisted = rows.reduce((sum, row) => sum + row.waitlistCount, 0)
     const fullSections = rows.filter((row) => row.status === 'FULL').length
 
     return {
       totalSections,
       totalCapacity,
       totalRegistered,
+      totalWaitlisted,
       averageUtilization: totalCapacity ? totalRegistered / totalCapacity : 0,
       fullSections,
     }

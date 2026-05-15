@@ -109,11 +109,14 @@ export const wishService = {
     return wish
   },
 
-  async updateWishStatus(wishId: string, status: WishRequest['status']) {
+  async updateWishStatus(wishId: string, status: WishRequest['status'], reviewNote?: string) {
     const wish = normalizeWish(
       await apiRequest<BackendWishRequest>(`/wishes/${wishId}/status`, {
         method: 'PATCH',
-        body: { status },
+        body: {
+          status,
+          ...(reviewNote?.trim() ? { reviewNote: reviewNote.trim() } : {}),
+        },
       }),
     )
     upsertWish(wish)

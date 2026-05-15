@@ -5,6 +5,7 @@ import { paginated, parsePagination } from '../common/utils/pagination'
 import { normalizeRoles } from '../common/utils/public-user'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto'
+import { EnrollmentQueryDto } from './dto/enrollment-query.dto'
 import { OverrideEnrollmentDto, UpdateEnrollmentDto } from './dto/update-enrollment.dto'
 import {
   canCancelEnrollment,
@@ -102,6 +103,13 @@ function nextSectionStatus(section: Pick<Section, 'status' | 'registeredCount' |
   }
 
   return section.registeredCount >= section.capacity ? SectionStatus.FULL : SectionStatus.OPEN
+}
+
+export function countSectionEnrollmentStatuses(enrollments: Array<{ status: EnrollmentStatus }>) {
+  return {
+    registeredCount: enrollments.filter((enrollment) => enrollment.status === EnrollmentStatus.REGISTERED).length,
+    waitlistCount: enrollments.filter((enrollment) => enrollment.status === EnrollmentStatus.WAITLISTED).length,
+  }
 }
 
 @Injectable()
@@ -214,7 +222,28 @@ export class EnrollmentsService {
 
   }
 
-  async findAll(query: Record<string, any> = {}) {
+  private async syncSectionCounters(client: Prisma.TransactionClient, sectionId: string) {
+    const [section, enrollments] = await Promise.all([
+      client.section.findUnique({ where: { id: sectionId } }),
+      client.enrollment.findMany({ where: { sectionId }, select: { status: true } }),
+    ])
+
+    if (!section) {
+      return
+    }
+
+    const { registeredCount, waitlistCount } = countSectionEnrollmentStatuses(enrollments)
+    await client.section.update({
+      where: { id: sectionId },
+      data: {
+        registeredCount,
+        waitlistCount,
+        status: nextSectionStatus({ ...section, registeredCount }),
+      },
+    })
+  }
+
+  async findAll(query: EnrollmentQueryDto = {}) {
     const where: Prisma.EnrollmentWhereInput = {}
     if (query.studentId) where.studentId = query.studentId
     if (query.sectionId) where.sectionId = query.sectionId
@@ -307,6 +336,33 @@ export class EnrollmentsService {
           }
         }
 
+        const duplicateCourse = await tx.enrollment.findFirst({
+          where: {
+            studentId,
+            sectionId: { not: sectionId },
+            semesterId: settings.currentSemesterId,
+            status: { in: ACTIVE_ENROLLMENT_STATUSES },
+            section: { is: { courseCode: section.courseCode } },
+          },
+        })
+
+        if (duplicateCourse) {
+          const message =
+            'Sinh vien da dang ky hoac vao danh sach cho mot lop khac cua cung hoc phan trong hoc ky nay.'
+          await appendAuditLog(tx, actor, 'REGISTER_COURSE', sectionId, 'FAILURE', message, {
+            errorCode: 'REG_ERR_ALREADY_REGISTERED_COURSE',
+            existingEnrollmentId: duplicateCourse.id,
+          })
+
+          return {
+            success: false,
+            message,
+            errorCode: 'REG_ERR_ALREADY_REGISTERED_COURSE',
+            pdfStatusCode: 'KHONG_DU_DK',
+            checks: result.checks,
+          }
+        }
+
         const finalStatus = result.finalStatus as EnrollmentStatus
         const waitlistOrder =
           finalStatus === EnrollmentStatus.WAITLISTED
@@ -363,25 +419,39 @@ export class EnrollmentsService {
   }
 
   async update(id: string, updateEnrollmentDto: UpdateEnrollmentDto, actor: AuditActor) {
-    const enrollment = await this.prisma.enrollment.update({
-      where: { id },
-      data: {
-        status: updateEnrollmentDto.status,
-        reasonCode: updateEnrollmentDto.reasonCode,
+    return this.prisma.$transaction(
+      async (tx) => {
+        const currentEnrollment = await tx.enrollment.findUnique({ where: { id } })
+        if (!currentEnrollment) {
+          throw new NotFoundException('Không tìm thấy thông tin đăng ký.')
+        }
+
+        this.assertActorMayActForStudent(currentEnrollment.studentId, actor)
+
+        const enrollment = await tx.enrollment.update({
+          where: { id },
+          data: {
+            status: updateEnrollmentDto.status,
+            reasonCode: updateEnrollmentDto.reasonCode,
+          },
+        })
+
+        await this.syncSectionCounters(tx, enrollment.sectionId)
+
+        await appendAuditLog(
+          tx,
+          actor,
+          'UPDATE_ENROLLMENT',
+          id,
+          'SUCCESS',
+          'Cập nhật trạng thái đăng ký học phần.',
+          { status: updateEnrollmentDto.status ?? null, reasonCode: updateEnrollmentDto.reasonCode ?? null },
+        )
+
+        return enrollment
       },
-    })
-
-    await appendAuditLog(
-      this.prisma,
-      actor,
-      'UPDATE_ENROLLMENT',
-      id,
-      'SUCCESS',
-      'Cập nhật trạng thái đăng ký học phần.',
-      { status: updateEnrollmentDto.status ?? null, reasonCode: updateEnrollmentDto.reasonCode ?? null },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )
-
-    return enrollment
   }
 
   async cancelEnrollment(id: string, actor: AuditActor, reason?: string) {
@@ -657,8 +727,21 @@ export class EnrollmentsService {
   }
 
   async remove(id: string, actor: AuditActor) {
-    const enrollment = await this.prisma.enrollment.delete({ where: { id } })
-    await appendAuditLog(this.prisma, actor, 'DELETE_ENROLLMENT', id, 'WARNING', 'Xóa bản ghi đăng ký học phần.')
-    return enrollment
+    return this.prisma.$transaction(
+      async (tx) => {
+        const currentEnrollment = await tx.enrollment.findUnique({ where: { id } })
+        if (!currentEnrollment) {
+          throw new NotFoundException('Không tìm thấy thông tin đăng ký.')
+        }
+
+        this.assertActorMayActForStudent(currentEnrollment.studentId, actor)
+
+        const enrollment = await tx.enrollment.delete({ where: { id } })
+        await this.syncSectionCounters(tx, enrollment.sectionId)
+        await appendAuditLog(tx, actor, 'DELETE_ENROLLMENT', id, 'WARNING', 'Xóa bản ghi đăng ký học phần.')
+        return enrollment
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    )
   }
 }

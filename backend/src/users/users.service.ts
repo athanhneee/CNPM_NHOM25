@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { CreateUserDto } from './dto/create-user.dto'
 import { ImportStudentCandidateDto } from './dto/import-students.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { UserQueryDto } from './dto/user-query.dto'
 
 const DEFAULT_PASSWORD = 'ptithcm2026'
 
@@ -28,7 +29,7 @@ export class UsersService {
     }
   }
 
-  async findAll(query: Record<string, any> = {}) {
+  async findAll(query: UserQueryDto = {}) {
     const { page, limit, skip, take } = parsePagination(query)
     const where: Prisma.UserWhereInput = {}
 
@@ -224,6 +225,7 @@ export class UsersService {
         email: updateUserDto.email,
         phone: updateUserDto.phone,
         secondaryEmail: updateUserDto.secondaryEmail,
+        address: updateUserDto.address,
         roles: allowSensitiveFields ? updateUserDto.roles : undefined,
         status: allowSensitiveFields ? updateUserDto.status : undefined,
         campus: updateUserDto.campus,

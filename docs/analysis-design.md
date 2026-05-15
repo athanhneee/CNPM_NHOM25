@@ -1,39 +1,39 @@
-# Tai lieu phan tich thiet ke
+# Tài liệu phân tích thiết kế
 
-## Pham vi
+## Phạm vi
 
-He thong ho tro dang ky hoc phan theo vai tro:
-- Sinh vien: xem hoc phan, dang ky, huy/rut, waitlist, gui nguyen vong.
-- Giang vien: xem lop duoc phan cong, danh sach sinh vien, lich day.
-- Phong dao tao: quan ly hoc phan/lop, phan cong giang vien, xu ly waitlist/override, bao cao.
-- Quan tri: quan ly tai khoan, phan quyen, tham so he thong, snapshot, audit log.
+Hệ thống hỗ trợ đăng ký học phần theo vai trò:
+- Sinh viên: xem học phần, đăng ký, hủy/rút, waitlist, gửi nguyện vọng.
+- Giảng viên: xem lớp được phân công, danh sách sinh viên, lịch dạy.
+- Phòng đào tạo: quản lý học phần/lớp, phân công giảng viên, xử lý waitlist/override, báo cáo, duyệt nguyện vọng.
+- Quản trị: quản lý tài khoản, phân quyền, tham số hệ thống, snapshot, audit log.
 
-## Use Case Tom Tat
+## Use Case Tóm Tắt
 
-| Actor | Use case chinh |
+| Actor | Use case chính |
 | --- | --- |
-| Sinh vien | Dang nhap, tra cuu hoc phan, kiem tra dieu kien, dang ky, huy/rut, xem TKB, gui nguyen vong |
-| Giang vien | Xem lop phu trach, xem sinh vien trong lop, xem lich day |
-| Phong dao tao | Tao/cap nhat hoc phan va lop, phan cong giang vien, xu ly waitlist, override, xem bao cao |
-| Quan tri | Quan ly tai khoan, phan quyen, tham so, snapshot, audit log |
+| Sinh viên | Đăng nhập, tra cứu học phần, kiểm tra điều kiện, đăng ký, hủy/rút, xem TKB, gửi nguyện vọng |
+| Giảng viên | Xem lớp phụ trách, xem sinh viên trong lớp, xem lịch dạy |
+| Phòng đào tạo | Tạo/cập nhật học phần và lớp, phân công giảng viên, xử lý waitlist, override, xem báo cáo, duyệt/từ chối nguyện vọng |
+| Quản trị | Quản lý tài khoản, phân quyền, tham số, snapshot, audit log |
 
 ```mermaid
 flowchart LR
-  Student[Sinh vien]
-  Lecturer[Giang vien]
-  Academic[Phong dao tao]
-  Admin[Quan tri]
+  Student[Sinh viên]
+  Lecturer[Giảng viên]
+  Academic[Phòng đào tạo]
+  Admin[Quản trị]
 
-  UCLogin((Dang nhap))
-  UCRegister((Dang ky hoc phan))
-  UCCancel((Huy/Rut hoc phan))
-  UCWish((Gui nguyen vong))
-  UCSchedule((Xem thoi khoa bieu))
-  UCSectionStudents((Xem sinh vien trong lop))
-  UCCourse((Quan ly hoc phan/lop))
-  UCWaitlist((Xu ly waitlist/override))
-  UCUsers((Quan ly tai khoan))
-  UCSettings((Tham so/snapshot/log))
+  UCLogin((Đăng nhập))
+  UCRegister((Đăng ký học phần))
+  UCCancel((Hủy/Rút học phần))
+  UCWish((Gửi nguyện vọng))
+  UCSchedule((Xem thời khóa biểu))
+  UCSectionStudents((Xem sinh viên trong lớp))
+  UCCourse((Quản lý học phần/lớp))
+  UCWaitlist((Xử lý waitlist/override))
+  UCUsers((Quản lý tài khoản))
+  UCSettings((Tham số/snapshot/log))
 
   Student --> UCLogin
   Student --> UCRegister
@@ -47,11 +47,12 @@ flowchart LR
   Academic --> UCCourse
   Academic --> UCWaitlist
   Academic --> UCSchedule
+  Academic --> UCWish
   Admin --> UCUsers
   Admin --> UCSettings
 ```
 
-## ERD Rut Gon
+## ERD Rút Gọn
 
 ```mermaid
 erDiagram
@@ -111,53 +112,55 @@ erDiagram
   }
 ```
 
-## Sequence Dang Ky Hoc Phan
+## Sequence Đăng Ký Học Phần
 
 ```mermaid
 sequenceDiagram
-  actor S as Sinh vien
+  actor S as Sinh viên
   participant FE as Frontend
   participant API as Enrollment API
   participant Rules as Enrollment Rules
   participant DB as PostgreSQL/Prisma
 
-  S->>FE: Chon lop hoc phan
+  S->>FE: Chọn lớp học phần
   FE->>API: POST /enrollments/eligibility
   API->>DB: Load student, section, courses, results, settings
   API->>Rules: evaluateEnrollmentEligibility()
   Rules-->>API: checks + finalStatus
-  API-->>FE: Ket qua dieu kien
-  S->>FE: Xac nhan dang ky
+  API-->>FE: Kết quả điều kiện
+  S->>FE: Xác nhận đăng ký
   FE->>API: POST /enrollments/register
   API->>DB: Transaction Serializable
-  API->>Rules: Kiem tra lai dieu kien
-  alt Du dieu kien va con cho
-    API->>DB: Tao Enrollment REGISTERED, tang registeredCount
-  else Lop day va cho waitlist
-    API->>DB: Tao Enrollment WAITLISTED, tang waitlistCount
-  else Khong du dieu kien
+  API->>Rules: Kiểm tra lại điều kiện
+  alt Đủ điều kiện và còn chỗ
+    API->>DB: Tạo Enrollment REGISTERED, tăng registeredCount
+  else Lớp đầy và cho waitlist
+    API->>DB: Tạo Enrollment WAITLISTED, tăng waitlistCount
+  else Không đủ điều kiện
     API->>DB: Ghi audit failure
   end
-  API-->>FE: Ket qua dang ky
+  API-->>FE: Kết quả đăng ký
 ```
 
-## Activity Huy/Rut/Waitlist
+## Activity Hủy/Rút/Waitlist
 
 ```mermaid
 flowchart TD
-  A[Chon enrollment] --> B{Loai thao tac}
-  B -->|Huy| C{Trong adjustment window?}
-  C -->|Co| D[Cap nhat CANCELLED va giam si so/waitlist]
-  C -->|Khong| E[Tu choi]
-  B -->|Rut| F{Sau adjustment va truoc withdrawal deadline?}
-  F -->|Co| G[Cap nhat DROPPED va giam si so]
-  F -->|Khong| E
-  B -->|Xu ly waitlist| H{Con cho trong lop?}
-  H -->|Co| I[Kiem tra lai dieu kien tung sinh vien]
+  A[Chọn enrollment] --> B{Loại thao tác}
+  B -->|Hủy| C{Trong adjustment window?}
+  C -->|Có| D[Cập nhật CANCELLED và giảm sĩ số/waitlist]
+  C -->|Không| E[Từ chối]
+  B -->|Rút| F{Sau adjustment và trước withdrawal deadline?}
+  F -->|Có| G[Cập nhật DROPPED và giảm sĩ số]
+  F -->|Không| E
+  B -->|Xử lý waitlist| H{Còn chỗ trong lớp?}
+  H -->|Có| I[Kiểm tra lại điều kiện từng sinh viên]
   I --> J[Promote WAITLISTED sang REGISTERED]
-  H -->|Khong| K[Ket thuc]
+  H -->|Không| K[Kết thúc]
 ```
 
-## Kien Truc
+## Kiến Trúc
 
-Frontend goi API backend that qua `frontend/src/services/*.api.ts`. Zustand giu state UI/cache phia client. Backend NestJS chia module theo nghiep vu: Auth, Users, Courses, Sections, Enrollments, Schedules, Reports, Settings, Logs, Snapshot, Wishes. Prisma schema la nguon chinh cho cau truc database va migration.
+Frontend gọi API backend thật qua `frontend/src/services/*.api.ts`. Zustand giữ state UI/cache phía client. Backend NestJS chia module theo nghiệp vụ: Auth, Users, Courses, Sections, Enrollments, Schedules, Reports, Settings, Logs, Snapshot, Wishes. Prisma schema là nguồn chính cho cấu trúc database và migration.
+
+Mock/localStorage không thay thế backend cho đăng nhập, phân quyền hoặc mutation học vụ quan trọng; chúng chỉ giúp UI còn dữ liệu hiển thị khi API lỗi hoặc dùng cho demo phụ trợ.

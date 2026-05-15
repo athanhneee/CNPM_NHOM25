@@ -1,19 +1,19 @@
-# CNPM Nhom 25 - Backend
+# CNPM Nhóm 25 - Backend
 
-Backend NestJS cho he thong dang ky hoc phan.
+Backend NestJS cho hệ thống đăng ký học phần.
 
 ## Stack
 
 - NestJS + TypeScript
-- PostgreSQL tren Supabase
+- PostgreSQL trên Supabase
 - Prisma ORM
 - Swagger API docs
 - JWT authentication + RBAC
 
-## Cai dat
+## Cài đặt
 
-1. Tao file `.env` tu `.env.example`.
-2. Cap nhat ket noi Supabase PostgreSQL:
+1. Tạo file `.env` từ `.env.example`.
+2. Cập nhật kết nối Supabase PostgreSQL:
 
 ```env
 DATABASE_URL="postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
@@ -22,9 +22,9 @@ JWT_SECRET="replace_with_a_secure_secret"
 CORS_ORIGIN="http://localhost:5173,http://127.0.0.1:5173"
 ```
 
-`DATABASE_URL` nen dung Supabase session pooler port 5432 cho backend NestJS local. Khi deploy serverless moi can can nhac transaction pooler port 6543 voi `pgbouncer=true`. `DIRECT_URL` duoc Prisma dung cho migration.
+`DATABASE_URL` nên dùng Supabase session pooler port 5432 cho backend NestJS local. Khi deploy serverless mới cần cân nhắc transaction pooler port 6543 với `pgbouncer=true`. `DIRECT_URL` được Prisma dùng cho migration.
 
-3. Cai dependencies:
+3. Cài dependencies:
 
 ```bash
 npm install
@@ -36,14 +36,16 @@ npm install
 npm run prisma:generate
 ```
 
-5. Chay migration va seed khi Supabase PostgreSQL da san sang:
+5. Chạy migration và seed khi Supabase PostgreSQL đã sẵn sàng:
 
 ```bash
 npm run prisma:migrate:dev
 npm run prisma:seed
 ```
 
-6. Chay backend:
+Không chạy seed/reset trên DB demo thật nếu chưa xác nhận, vì seed sẽ xóa và tạo lại dữ liệu demo.
+
+6. Chạy backend:
 
 ```bash
 npm run start:dev
@@ -51,15 +53,17 @@ npm run start:dev
 
 Swagger UI: `http://localhost:3000/api`
 
-## Tai khoan demo
+## Tài khoản demo
 
-Tat ca dung mat khau mac dinh `ptithcm2026` sau khi chay seed.
+Tất cả dùng mật khẩu mặc định `ptithcm2026` sau khi chạy seed.
 
 - ADMIN: `admin`
 - ACADEMIC_OFFICE: `academic.office`
 - LECTURER: `minh.tuan`
 - STUDENT: `N23DCCN001`, `N23DCCN002`
 
-## Endpoint chinh
+Seed hiện có case đăng ký thành công, lớp full/waitlist, fail tiên quyết, giảng viên có lớp, và đủ tài khoản demo cho 4 vai trò.
+
+## Endpoint chính
 
 Xem [API_CONTRACT.md](./API_CONTRACT.md).

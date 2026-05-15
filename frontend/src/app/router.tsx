@@ -10,6 +10,7 @@ const CreateSectionPage = lazy(() => import('@/features/academic/CreateSectionPa
 const RegistrationManagementPage = lazy(() => import('@/features/academic/RegistrationManagementPage'))
 const ScheduleRoomsPage = lazy(() => import('@/features/academic/ScheduleRoomsPage'))
 const WaitlistOverridePage = lazy(() => import('@/features/academic/WaitlistOverridePage'))
+const WishReviewPage = lazy(() => import('@/features/academic/WishReviewPage'))
 const ChangePasswordPage = lazy(() => import('@/features/auth/ChangePasswordPage'))
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
 const AuditLogsPage = lazy(() => import('@/features/admin/AuditLogsPage'))
@@ -86,6 +87,7 @@ export function AppRouter() {
             <Route path="academic/schedule-rooms" element={<ScheduleRoomsPage />} />
             <Route path="academic/reports" element={<ReportsPage />} />
             <Route path="academic/waitlist-override" element={<WaitlistOverridePage />} />
+            <Route path="academic/wishes" element={<WishReviewPage />} />
           </Route>
 
           <Route element={<RoleGuard roles={['ADMIN']} />}>
@@ -93,6 +95,7 @@ export function AppRouter() {
             <Route path="admin/roles" element={<RolesPage />} />
             <Route path="admin/settings" element={<SettingsPage />} />
             <Route path="admin/audit-logs" element={<AuditLogsPage />} />
+            <Route path="admin/wishes" element={<WishReviewPage />} />
           </Route>
         </Route>
         <Route path="/home" element={<Navigate replace to="/" />} />

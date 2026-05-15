@@ -19,6 +19,7 @@ import { RolesGuard } from '../common/guards/roles.guard'
 import { RequestUser } from '../common/types/request-user'
 import { buildActor } from '../common/utils/audit'
 import { CheckEligibilityDto, CreateEnrollmentDto, RegisterEnrollmentDto } from './dto/create-enrollment.dto'
+import { EnrollmentQueryDto } from './dto/enrollment-query.dto'
 import {
   EnrollmentReasonDto,
   OverrideEnrollmentDto,
@@ -60,7 +61,7 @@ export class EnrollmentsController {
 
   @ApiOperation({ summary: 'Danh sach dang ky hoc phan' })
   @Get()
-  async findAll(@CurrentUser() user: RequestUser, @Query() query: Record<string, any>) {
+  async findAll(@CurrentUser() user: RequestUser, @Query() query: EnrollmentQueryDto) {
     if (!this.isPrivileged(user) && !user.roles.includes('STUDENT')) {
       throw new ForbiddenException('You do not have permission to list enrollments.')
     }

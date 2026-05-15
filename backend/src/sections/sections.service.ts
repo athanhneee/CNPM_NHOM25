@@ -1,11 +1,12 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { CourseStatus, Prisma, Section, SectionStatus, UserRole } from '@prisma/client'
+import { CourseStatus, EnrollmentStatus, Prisma, Section, SectionStatus, UserRole } from '@prisma/client'
 import { RequestUser } from '../common/types/request-user'
 import { AuditActor, appendAuditLog } from '../common/utils/audit'
 import { paginated, parsePagination } from '../common/utils/pagination'
 import { normalizeRoles, toPublicUser } from '../common/utils/public-user'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateSectionDto } from './dto/create-section.dto'
+import { SectionQueryDto } from './dto/section-query.dto'
 import {
   AssignLecturerDto,
   UpdateCapacityDto,
@@ -26,12 +27,37 @@ const PRESERVED_SECTION_STATUSES: SectionStatus[] = [
   SectionStatus.IN_PROGRESS,
 ]
 
+const SECTION_CANCELLATION_ENROLLMENT_STATUSES: EnrollmentStatus[] = [
+  EnrollmentStatus.PENDING,
+  EnrollmentStatus.REGISTERED,
+  EnrollmentStatus.WAITLISTED,
+]
+
+function timelineArray(value: Prisma.JsonValue): Prisma.InputJsonValue[] {
+  return Array.isArray(value) ? (value as Prisma.InputJsonValue[]) : []
+}
+
 export function getSectionStatus(section: Pick<Section, 'status' | 'registeredCount' | 'capacity'>) {
   if (PRESERVED_SECTION_STATUSES.includes(section.status)) {
     return section.status
   }
 
   return section.registeredCount >= section.capacity ? SectionStatus.FULL : SectionStatus.OPEN
+}
+
+export function summarizeSectionCancellation(enrollments: Array<{ status: EnrollmentStatus }>) {
+  const cancellable = enrollments.filter((enrollment) =>
+    SECTION_CANCELLATION_ENROLLMENT_STATUSES.includes(enrollment.status),
+  )
+
+  return {
+    cancelledEnrollmentCount: cancellable.length,
+    pendingCancelled: cancellable.filter((enrollment) => enrollment.status === EnrollmentStatus.PENDING).length,
+    registeredCancelled: cancellable.filter((enrollment) => enrollment.status === EnrollmentStatus.REGISTERED)
+      .length,
+    waitlistCancelled: cancellable.filter((enrollment) => enrollment.status === EnrollmentStatus.WAITLISTED)
+      .length,
+  }
 }
 
 @Injectable()
@@ -124,7 +150,7 @@ export class SectionsService {
     }
   }
 
-  async findAll(query: Record<string, any> = {}) {
+  async findAll(query: SectionQueryDto = {}) {
     const where: Prisma.SectionWhereInput = {}
     if (query.semesterId) where.semesterId = query.semesterId
     if (query.courseCode) where.courseCode = query.courseCode
@@ -301,20 +327,64 @@ export class SectionsService {
   }
 
   async remove(id: string, actor: AuditActor) {
-    const section = await this.prisma.section.update({
-      where: { id },
-      data: { status: SectionStatus.CANCELLED },
+    return this.prisma.$transaction(async (tx) => {
+      const currentSection = await tx.section.findUnique({ where: { id } })
+      if (!currentSection) {
+        throw new NotFoundException('Khong tim thay lop hoc phan.')
+      }
+
+      const settings = await tx.systemSetting.findUnique({ where: { id: 1 } })
+      const now = settings?.simulationNow ?? new Date()
+      const activeEnrollments = await tx.enrollment.findMany({
+        where: {
+          sectionId: id,
+          status: { in: SECTION_CANCELLATION_ENROLLMENT_STATUSES },
+        },
+      })
+      const cancellationSummary = summarizeSectionCancellation(activeEnrollments)
+
+      await Promise.all(
+        activeEnrollments.map((enrollment) =>
+          tx.enrollment.update({
+            where: { id: enrollment.id },
+            data: {
+              status: EnrollmentStatus.CANCELLED,
+              cancelledAt: now,
+              timeline: [
+                ...timelineArray(enrollment.timeline),
+                {
+                  status: EnrollmentStatus.CANCELLED,
+                  timestamp: now.toISOString(),
+                  actorId: actor.actorId,
+                  actorRole: actor.actorRole,
+                  note: `Section ${currentSection.sectionCode} was cancelled.`,
+                },
+              ],
+            },
+          }),
+        ),
+      )
+
+      const section = await tx.section.update({
+        where: { id },
+        data: {
+          status: SectionStatus.CANCELLED,
+          registeredCount: 0,
+          waitlistCount: 0,
+        },
+      })
+
+      await appendAuditLog(
+        tx,
+        actor,
+        'CANCEL_SECTION',
+        id,
+        'WARNING',
+        `Hủy lớp học phần ${section.sectionCode}.`,
+        cancellationSummary,
+      )
+
+      return section
     })
-
-    await appendAuditLog(
-      this.prisma,
-      actor,
-      'CANCEL_SECTION',
-      id,
-      'WARNING',
-      `Hủy lớp học phần ${section.sectionCode}.`,
-    )
-
-    return section
   }
 }

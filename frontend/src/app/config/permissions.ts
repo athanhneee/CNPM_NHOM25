@@ -15,9 +15,11 @@ export type PermissionKey =
   | 'academic.assignLecturer'
   | 'academic.manageRegistrations'
   | 'academic.manageWaitlist'
+  | 'academic.manageWishes'
   | 'admin.manageUsers'
   | 'admin.manageRoles'
   | 'admin.manageSettings'
+  | 'admin.manageWishes'
   | 'admin.viewLogs'
 
 export const ROLE_PERMISSIONS: Record<UserRole, PermissionKey[]> = {
@@ -46,6 +48,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, PermissionKey[]> = {
     'academic.assignLecturer',
     'academic.manageRegistrations',
     'academic.manageWaitlist',
+    'academic.manageWishes',
   ],
   ADMIN: [
     'profile.view',
@@ -54,6 +57,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, PermissionKey[]> = {
     'admin.manageUsers',
     'admin.manageRoles',
     'admin.manageSettings',
+    'admin.manageWishes',
     'admin.viewLogs',
   ],
 }

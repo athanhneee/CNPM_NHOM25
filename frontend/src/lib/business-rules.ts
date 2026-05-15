@@ -122,17 +122,17 @@ export function evaluateEnrollmentEligibility(
   const checks: RuleResult[] = [
     buildRuleResult(
       'account',
-      'Tai khoan hop le',
+      'Tài khoản hợp lệ',
       Boolean(student?.roles.includes('STUDENT') && student.status === 'ACTIVE'),
-      'Tai khoan sinh vien dang hoat dong.',
+      'Tài khoản sinh viên đang hoạt động.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_ACCOUNT_INACTIVE,
       'REG_ERR_ACCOUNT_INACTIVE',
     ),
     buildRuleResult(
       'section-exists',
-      'Ton tai lop hoc phan',
+      'Tồn tại lớp học phần',
       Boolean(section),
-      'Da tim thay lop hoc phan.',
+      'Đã tìm thấy lớp học phần.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_CLASS_NOT_FOUND,
       'REG_ERR_CLASS_NOT_FOUND',
     ),
@@ -148,7 +148,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'registration-window',
-      'Cua so dang ky',
+      'Cửa sổ đăng ký',
       isWithinRange(nowIso, settings.registrationStart, settings.registrationEnd),
       'Hệ thống đang nằm trong cửa sổ đăng ký.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_OUTSIDE_REGISTRATION_WINDOW,
@@ -156,7 +156,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'duplicate',
-      'Trung lap dang ky',
+      'Trùng lặp đăng ký',
       Boolean(
         section &&
           !currentSemesterEnrollments.some(
@@ -171,7 +171,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'prerequisite',
-      'Dieu kien tien quyet',
+      'Điều kiện tiên quyết',
       Boolean(
         targetCourse?.prerequisites.every((code) => completedCourseCodes.has(code)) ?? false,
       ),
@@ -181,7 +181,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'prestudy',
-      'Dieu kien hoc truoc',
+      'Điều kiện học trước',
       Boolean(
         targetCourse?.prestudy.every((code) => completedOrAttemptedCourseCodes.has(code)) ?? false,
       ),
@@ -191,7 +191,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'corequisite',
-      'Dieu kien song hanh',
+      'Điều kiện song hành',
       Boolean(
         targetCourse?.corequisites.every(
           (code) => completedCourseCodes.has(code) || currentSemesterCourseCodes.has(code),
@@ -203,7 +203,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'schedule-conflict',
-      'Trung lich hoc',
+      'Trùng lịch học',
       Boolean(section && !checkScheduleConflict(section, currentSections)),
       'Không phát hiện xung đột thời khóa biểu.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_SCHEDULE_CONFLICT,
@@ -211,7 +211,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'credit-limit',
-      'Gioi han tin chi',
+      'Giới hạn tín chỉ',
       Boolean(
         section &&
           targetCourse &&
@@ -229,7 +229,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'class-per-day',
-      'So lop toi da trong ngay',
+      'Số lớp tối đa trong ngày',
       Boolean(
         section &&
           currentSections.filter((item) => item.weekday === section.weekday).length + 1 <=
@@ -241,7 +241,7 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'class-per-semester',
-      'So lop toi da trong hoc ky',
+      'Số lớp tối đa trong học kỳ',
       currentSections.length + 1 <= settings.maxClassesPerSemester,
       'Tổng số lớp học phần trong học kỳ vẫn hợp lệ.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_MAX_CLASS_PER_SEMESTER,

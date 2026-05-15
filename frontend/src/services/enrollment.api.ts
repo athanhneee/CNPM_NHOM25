@@ -248,7 +248,7 @@ function failedRegisterResponse(error: unknown): RegisterResponse {
   const errorCode = errorCodeFromApiError(error)
   return {
     success: false,
-    message: getApiErrorMessage(error, 'Khong the dang ky hoc phan.'),
+    message: getApiErrorMessage(error, 'Không thể đăng ký học phần.'),
     ...(errorCode ? { errorCode } : {}),
     pdfStatusCode: mapRegistrationErrorToPdfStatus(errorCode),
     checks: [],
@@ -301,7 +301,7 @@ export const enrollmentService = {
       return {
         canRegister: false,
         finalStatus: null,
-        message: getApiErrorMessage(error, 'Khong the kiem tra dieu kien dang ky.'),
+        message: getApiErrorMessage(error, 'Không thể kiểm tra điều kiện đăng ký.'),
         ...(errorCode ? { errorCode } : {}),
         pdfStatusCode: mapRegistrationErrorToPdfStatus(errorCode),
         checks: [],

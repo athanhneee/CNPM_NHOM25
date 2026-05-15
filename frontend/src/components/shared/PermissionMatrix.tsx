@@ -18,9 +18,11 @@ const permissionLabels: Record<PermissionKey, string> = {
   'academic.assignLecturer': 'Phân công giảng viên',
   'academic.manageRegistrations': 'Quản lý đăng ký',
   'academic.manageWaitlist': 'Xử lý danh sách chờ',
+  'academic.manageWishes': 'Duyệt nguyện vọng',
   'admin.manageUsers': 'Quản lý tài khoản',
   'admin.manageRoles': 'Phân quyền hệ thống',
   'admin.manageSettings': 'Cấu hình tham số',
+  'admin.manageWishes': 'Duyệt nguyện vọng',
   'admin.viewLogs': 'Xem nhật ký hệ thống',
 }
 

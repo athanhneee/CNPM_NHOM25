@@ -7,6 +7,7 @@ import { RolesGuard } from '../common/guards/roles.guard'
 import { RequestUser } from '../common/types/request-user'
 import { buildActor } from '../common/utils/audit'
 import { CreateSectionDto } from './dto/create-section.dto'
+import { SectionQueryDto } from './dto/section-query.dto'
 import {
   AssignLecturerDto,
   UpdateCapacityDto,
@@ -24,7 +25,7 @@ export class SectionsController {
 
   @ApiOperation({ summary: 'Danh sách lớp học phần' })
   @Get()
-  async findAll(@Query() query: Record<string, any>) {
+  async findAll(@Query() query: SectionQueryDto) {
     return this.sectionsService.findAll(query)
   }
 

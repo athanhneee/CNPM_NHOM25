@@ -3,6 +3,7 @@ import { CourseStatus, Prisma } from '@prisma/client'
 import { AuditActor, appendAuditLog } from '../common/utils/audit'
 import { paginated, parsePagination } from '../common/utils/pagination'
 import { PrismaService } from '../prisma/prisma.service'
+import { CourseQueryDto } from './dto/course-query.dto'
 import { CreateCourseDto } from './dto/create-course.dto'
 import { UpdateCourseDto } from './dto/update-course.dto'
 
@@ -79,7 +80,7 @@ export class CoursesService {
     }
   }
 
-  async findAll(query: Record<string, any> = {}) {
+  async findAll(query: CourseQueryDto = {}) {
     const where: Prisma.CourseWhereInput = {}
     if (query.department) where.department = query.department
     if (query.campus) where.campus = query.campus

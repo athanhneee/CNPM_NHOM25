@@ -5,6 +5,7 @@ import {
   type StudentImportCandidate,
   type StudentImportSummary,
 } from '@/lib/student-import'
+import { settingsService } from '@/services/settings.api'
 import type { AccountStatus, UserRole } from '@/types/auth'
 import type { Course, WishRequest } from '@/types/course'
 import type { Enrollment } from '@/types/enrollment'
@@ -350,14 +351,7 @@ export const adminService = {
   },
 
   async updateSettings(payload: Partial<SystemSettings>, _actor?: AdminActor) {
-    const settings = normalizeSettings(
-      await apiRequest<BackendSettings>('/settings', {
-        method: 'PATCH',
-        body: payload,
-      }),
-    )
-    syncSettings(settings)
-    return settings
+    return settingsService.updateSettings(payload)
   },
 
   async lockUser(userId: string, _actor?: AdminActor) {
@@ -374,6 +368,17 @@ export const adminService = {
     const user = normalizeUser(
       await apiRequest<BackendUser>(`/users/${userId}/unlock`, {
         method: 'POST',
+      }),
+    )
+    upsertUser(user)
+    return user
+  },
+
+  async resetPassword(userId: string, password: string, _actor?: AdminActor) {
+    const user = normalizeUser(
+      await apiRequest<BackendUser>(`/users/${userId}/reset-password`, {
+        method: 'POST',
+        body: { password },
       }),
     )
     upsertUser(user)
@@ -407,7 +412,7 @@ export const adminService = {
     } catch (error) {
       return {
         ok: false as const,
-        error: getApiErrorMessage(error, 'Du lieu import khong hop le.'),
+        error: getApiErrorMessage(error, 'Dữ liệu import không hợp lệ.'),
       }
     }
   },

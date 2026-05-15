@@ -1,5 +1,7 @@
 import { strict as assert } from 'assert'
+import { EnrollmentStatus } from '@prisma/client'
 import { evaluateEnrollmentEligibility, RuleSettings } from './enrollment-rules'
+import { countSectionEnrollmentStatuses } from './enrollments.service'
 
 const settings: RuleSettings = {
   simulationNow: '2026-04-10T00:00:00.000Z',
@@ -56,12 +58,15 @@ const waitlisted = evaluateEnrollmentEligibility({
 assert.equal(waitlisted.canRegister, true)
 assert.equal(waitlisted.finalStatus, 'WAITLISTED')
 
+const conflictCourse = { code: 'CSE102', credits: 3, prerequisites: [], prestudy: [], corequisites: [] }
+const conflictSection = { ...openSection, id: 'section-2', courseCode: 'CSE102', startPeriod: 2 }
+
 const conflict = evaluateEnrollmentEligibility({
   student,
-  section: { ...openSection, id: 'section-2', startPeriod: 2 },
-  targetCourse: course,
-  courses: [course],
-  sections: [openSection, { ...openSection, id: 'section-2', startPeriod: 2 }],
+  section: conflictSection,
+  targetCourse: conflictCourse,
+  courses: [course, conflictCourse],
+  sections: [openSection, conflictSection],
   enrollments: [
     {
       id: 'enrollment-1',
@@ -76,5 +81,37 @@ const conflict = evaluateEnrollmentEligibility({
 
 assert.equal(conflict.canRegister, false)
 assert.equal(conflict.errorCode, 'REG_ERR_SCHEDULE_CONFLICT')
+
+const duplicateCourseSection = { ...openSection, id: 'section-3', weekday: 4 }
+const duplicateCourse = evaluateEnrollmentEligibility({
+  student,
+  section: duplicateCourseSection,
+  targetCourse: course,
+  courses: [course],
+  sections: [openSection, duplicateCourseSection],
+  enrollments: [
+    {
+      id: 'enrollment-1',
+      studentId: 'student-1',
+      sectionId: 'section-1',
+      semesterId: 'semester-1',
+      status: 'WAITLISTED',
+    },
+  ],
+  settings,
+})
+
+assert.equal(duplicateCourse.canRegister, false)
+assert.equal(duplicateCourse.errorCode, 'REG_ERR_ALREADY_REGISTERED_COURSE')
+
+const counterSummary = countSectionEnrollmentStatuses([
+  { status: EnrollmentStatus.REGISTERED },
+  { status: EnrollmentStatus.WAITLISTED },
+  { status: EnrollmentStatus.PENDING },
+  { status: EnrollmentStatus.CANCELLED },
+  { status: EnrollmentStatus.DROPPED },
+])
+
+assert.deepEqual(counterSummary, { registeredCount: 1, waitlistCount: 1 })
 
 console.log('Enrollment rule smoke tests passed.')

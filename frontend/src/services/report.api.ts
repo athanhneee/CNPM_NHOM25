@@ -24,6 +24,7 @@ export const reportService = {
         giang_vien: row.lecturerName,
         si_so_toi_da: row.capacity,
         da_dang_ky: row.registeredCount,
+        danh_sach_cho: row.waitlistCount,
         ty_le_lap_day: `${Math.round(row.utilizationRate * 100)}%`,
         trang_thai: row.status,
       })),

@@ -32,7 +32,7 @@ export function ExportButtons({
         }}
         type="button"
       >
-        Xuat CSV
+        Xuất CSV
       </Button>
       {onExportText ? (
         <Button
@@ -41,7 +41,7 @@ export function ExportButtons({
           onClick={onExportText}
           type="button"
         >
-          Xuat du lieu
+          Xuất dữ liệu
         </Button>
       ) : null}
     </div>

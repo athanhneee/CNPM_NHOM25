@@ -33,6 +33,11 @@ export class UpdateUserDto {
   @IsOptional()
   secondaryEmail?: string
 
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  address?: string
+
   @ApiPropertyOptional({ enum: UserRole, isArray: true })
   @IsArray()
   @IsEnum(UserRole, { each: true })

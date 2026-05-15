@@ -147,7 +147,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   return payload as T
 }
 
-export function getApiErrorMessage(error: unknown, fallback = 'Khong the ket noi den may chu.') {
+export function getApiErrorMessage(error: unknown, fallback = 'Không thể kết nối đến máy chủ.') {
   if (error instanceof ApiError) {
     return error.message
   }

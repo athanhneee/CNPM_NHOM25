@@ -20,6 +20,7 @@ export type RegistrationErrorCode =
   | 'REG_ERR_SCHEDULE_CONFLICT'
   | 'REG_ERR_CREDIT_LIMIT_EXCEEDED'
   | 'REG_ERR_ALREADY_REGISTERED'
+  | 'REG_ERR_ALREADY_REGISTERED_COURSE'
   | 'REG_ERR_CLASS_NOT_FOUND'
   | 'REG_ERR_STUDENT_NOT_FOUND'
   | 'REG_ERR_CANNOT_WITHDRAW'
@@ -31,6 +32,7 @@ export type RegistrationErrorCode =
 export type PdfRegistrationStatusCode = 'DK_TC' | 'HUY_DK' | 'KHONG_DU_DK' | 'NGOAI_TGDK'
 
 export const REGISTRATION_ERROR_MESSAGES: Record<RegistrationErrorCode, string> = {
+  REG_ERR_ALREADY_REGISTERED_COURSE: 'Sinh vien da dang ky hoac vao danh sach cho mot lop khac cua cung hoc phan trong hoc ky nay.',
   REG_ERR_SECTION_NOT_OPEN: 'Lớp học phần chưa mở đăng ký.',
   REG_ERR_OUTSIDE_REGISTRATION_WINDOW: 'Ngoài thời gian đăng ký của học kỳ này.',
   REG_ERR_OUTSIDE_ADJUSTMENT_WINDOW: 'Ngoài thời gian điều chỉnh đăng ký.',
@@ -290,6 +292,22 @@ export function evaluateEnrollmentEligibility(
   ])
 
   const currentSemesterCourseCodes = new Set(currentSections.map((item) => item.courseCode))
+  const hasDuplicateSection = Boolean(
+    section &&
+      currentSemesterEnrollments.some(
+        (item) => item.sectionId === section.id && DUPLICATE_ENROLLMENT_STATUSES.has(item.status),
+      ),
+  )
+  const hasDuplicateCourse = Boolean(
+    section &&
+      currentSemesterEnrollments.some((item) => {
+        if (!DUPLICATE_ENROLLMENT_STATUSES.has(item.status) || item.sectionId === section.id) {
+          return false
+        }
+
+        return sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode === section.courseCode
+      }),
+  )
   const prerequisiteCodes = conditionCodes(
     targetCourse,
     context.courseConditions,
@@ -343,15 +361,18 @@ export function evaluateEnrollmentEligibility(
     buildRuleResult(
       'duplicate',
       'Trùng lặp đăng ký',
-      Boolean(
-        section &&
-          !currentSemesterEnrollments.some(
-            (item) => item.sectionId === section.id && DUPLICATE_ENROLLMENT_STATUSES.has(item.status),
-          ),
-      ),
+      Boolean(section && !hasDuplicateSection),
       'Chưa có yêu cầu đăng ký trùng lặp.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_ALREADY_REGISTERED,
       'REG_ERR_ALREADY_REGISTERED',
+    ),
+    buildRuleResult(
+      'duplicate-course',
+      'Trung hoc phan trong hoc ky',
+      Boolean(section && !hasDuplicateCourse),
+      'Chua co lop khac cua cung hoc phan trong hoc ky nay.',
+      REGISTRATION_ERROR_MESSAGES.REG_ERR_ALREADY_REGISTERED_COURSE,
+      'REG_ERR_ALREADY_REGISTERED_COURSE',
     ),
     buildRuleResult(
       'prerequisite',

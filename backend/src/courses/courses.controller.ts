@@ -7,6 +7,7 @@ import { RolesGuard } from '../common/guards/roles.guard'
 import { RequestUser } from '../common/types/request-user'
 import { buildActor } from '../common/utils/audit'
 import { CoursesService } from './courses.service'
+import { CourseQueryDto } from './dto/course-query.dto'
 import { CreateCourseDto } from './dto/create-course.dto'
 import { UpdateCourseDto } from './dto/update-course.dto'
 
@@ -19,7 +20,7 @@ export class CoursesController {
 
   @ApiOperation({ summary: 'Danh sách học phần' })
   @Get()
-  async findAll(@Query() query: Record<string, any>) {
+  async findAll(@Query() query: CourseQueryDto) {
     return this.coursesService.findAll(query)
   }
 

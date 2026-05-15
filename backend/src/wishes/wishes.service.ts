@@ -6,6 +6,7 @@ import { paginated, parsePagination } from '../common/utils/pagination'
 import { normalizeRoles } from '../common/utils/public-user'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateWishDto } from './dto/create-wish.dto'
+import { WishQueryDto } from './dto/wish-query.dto'
 
 const REVIEW_STATUSES: WishStatus[] = [
   WishStatus.REVIEWED,
@@ -83,7 +84,7 @@ export class WishesService {
     }
   }
 
-  async findAll(user: RequestUser, query: Record<string, any> = {}) {
+  async findAll(user: RequestUser, query: WishQueryDto = {}) {
     const where: Prisma.WishRequestWhereInput = {}
 
     if (this.isPrivileged(user)) {
@@ -167,13 +168,18 @@ export class WishesService {
     return updatedWish
   }
 
-  async updateStatus(id: string, status: WishStatus, user: RequestUser) {
+  async updateStatus(id: string, status: WishStatus, user: RequestUser, reviewNote?: string) {
     if (!this.isPrivileged(user)) {
       throw new ForbiddenException('Chỉ quản trị hoặc phòng đào tạo được cập nhật trạng thái nguyện vọng.')
     }
 
     if (!REVIEW_STATUSES.includes(status)) {
       throw new BadRequestException('Trạng thái xử lý nguyện vọng không hợp lệ.')
+    }
+
+    const normalizedReviewNote = reviewNote?.trim()
+    if (status === WishStatus.REJECTED && !normalizedReviewNote) {
+      throw new BadRequestException('Cần nhập lý do khi từ chối nguyện vọng.')
     }
 
     const wish = await this.prisma.wishRequest.update({
@@ -188,7 +194,7 @@ export class WishesService {
       id,
       status === WishStatus.REJECTED ? 'WARNING' : 'SUCCESS',
       `Cập nhật trạng thái nguyện vọng thành ${status}.`,
-      { status },
+      { status, reviewNote: normalizedReviewNote ?? null },
     )
 
     return wish

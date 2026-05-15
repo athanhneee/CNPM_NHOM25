@@ -18,7 +18,9 @@ import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { getLecturerScheduleEntries, getLecturerSections, getSectionStudents } from '@/lib/selectors'
 import { courseService } from '@/services/course.api'
+import { scheduleService } from '@/services/schedule.api'
 import { sectionService, type SectionStudentRow } from '@/services/section.api'
+import type { ScheduleEntry } from '@/types/schedule'
 
 function useLecturerContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
@@ -146,14 +148,47 @@ export function SectionStudentsPage() {
 
 export function WeekTeachingPage() {
   const { currentUser, snapshot } = useLecturerContext()
+  const lecturerId = currentUser?.id
+  const semesterId = snapshot.settings.currentSemesterId
+  const scheduleKey = lecturerId ? `${lecturerId}:${semesterId}:week` : ''
+  const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
+
+  useEffect(() => {
+    if (!lecturerId) {
+      return
+    }
+
+    let active = true
+    void scheduleService
+      .getLecturerWeekSchedule(lecturerId, semesterId)
+      .then((entries) => {
+        if (active) {
+          setApiSchedule({ key: scheduleKey, entries })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setApiSchedule(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [lecturerId, semesterId, scheduleKey])
+
   if (!currentUser) {
     return <EmptyState title="Không tìm thấy giảng viên" description="Vui lòng đăng nhập lại." />
   }
 
-  const entries = getLecturerScheduleEntries(snapshot, currentUser.id)
+  const entries = apiEntries ?? getLecturerScheduleEntries(snapshot, currentUser.id)
   return (
     <div className="grid gap-6">
-      <PageTitleBlock title="Giảng viên - TKB giảng dạy dạng tuần" subtitle="Hiển thị toàn bộ lịch dạy của giảng viên theo ngày và khung giờ để rà soát nhanh trong tuần." />
+      <PageTitleBlock
+        title="Giảng viên - TKB giảng dạy dạng tuần"
+        subtitle="Hiển thị lịch dạy theo thứ, tiết và dải tuần học trong học kỳ hiện tại; màn này chưa lọc theo một tuần lịch cụ thể."
+      />
       <WeekCalendarGrid entries={entries} />
     </div>
   )
@@ -162,12 +197,42 @@ export function WeekTeachingPage() {
 export function SemesterTeachingPage() {
   const { currentUser, snapshot } = useLecturerContext()
   const [query, setQuery] = useState('')
+  const lecturerId = currentUser?.id
+  const semesterId = snapshot.settings.currentSemesterId
+  const scheduleKey = lecturerId ? `${lecturerId}:${semesterId}:semester` : ''
+  const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
+
+  useEffect(() => {
+    if (!lecturerId) {
+      return
+    }
+
+    let active = true
+    void scheduleService
+      .getLecturerSemesterSchedule(lecturerId, semesterId)
+      .then((entries) => {
+        if (active) {
+          setApiSchedule({ key: scheduleKey, entries })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setApiSchedule(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [lecturerId, semesterId, scheduleKey])
 
   if (!currentUser) {
     return <EmptyState title="Không tìm thấy giảng viên" description="Vui lòng đăng nhập lại." />
   }
 
-  const entries = getLecturerScheduleEntries(snapshot, currentUser.id).filter((entry) =>
+  const sourceEntries = apiEntries ?? getLecturerScheduleEntries(snapshot, currentUser.id)
+  const entries = sourceEntries.filter((entry) =>
     !query || entry.courseCode.toLowerCase().includes(query.toLowerCase()) || entry.title.toLowerCase().includes(query.toLowerCase()),
   )
 

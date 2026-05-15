@@ -31,9 +31,11 @@ import { SemesterScheduleTable } from '@/components/calendar/SemesterScheduleTab
 import { enrollmentService } from '@/services/enrollment.api'
 import { courseService } from '@/services/course.api'
 import { sectionService } from '@/services/section.api'
+import { scheduleService } from '@/services/schedule.api'
 import { wishService } from '@/services/wish.api'
 import { getStudentScheduleEntries } from '@/lib/selectors'
 import type { Course } from '@/types/course'
+import type { ScheduleEntry } from '@/types/schedule'
 import type { User } from '@/types/user'
 
 function useStudentContext() {
@@ -704,21 +706,54 @@ export function WithdrawPage() {
 
 export function WeekSchedulePage() {
   const { currentUser, snapshot } = useStudentContext()
+  const studentId = currentUser?.id
+  const semesterId = snapshot.settings.currentSemesterId
+  const scheduleKey = studentId ? `${studentId}:${semesterId}:week` : ''
+  const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
+
+  useEffect(() => {
+    if (!studentId) {
+      return
+    }
+
+    let active = true
+    void scheduleService
+      .getStudentWeekSchedule(studentId, semesterId)
+      .then((entries) => {
+        if (active) {
+          setApiSchedule({ key: scheduleKey, entries })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setApiSchedule(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [studentId, semesterId, scheduleKey])
+
   if (!currentUser) {
     return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
   const student = currentUser
-  const entries = getStudentScheduleEntries(snapshot, student.id)
+  const entries = apiEntries ?? getStudentScheduleEntries(snapshot, student.id)
   const morning = entries.filter((entry) => entry.startPeriod <= 4).length
   const afternoon = entries.filter((entry) => entry.startPeriod >= 5 && entry.startPeriod <= 8).length
   const evening = entries.filter((entry) => entry.startPeriod > 8).length
 
   return (
     <div className="grid gap-6">
-      <PageTitleBlock title="Sinh viên - Thời khóa biểu dạng tuần" subtitle="Hiển thị lịch học theo ngày và khung giờ, ưu tiên bố cục trực quan để đối chiếu nhanh trong tuần." />
+      <PageTitleBlock
+        title="Sinh viên - Thời khóa biểu dạng tuần"
+        subtitle="Hiển thị lịch theo thứ, tiết và dải tuần học trong học kỳ hiện tại; màn này chưa lọc theo một tuần lịch cụ thể."
+      />
       <div className="grid gap-4 lg:grid-cols-4">
-        <StatCard label="Tổng buổi" value={String(entries.length)} hint="Tất cả buổi học trong học kỳ hiện tại" />
+        <StatCard label="Tổng buổi" value={String(entries.length)} hint="Các buổi học theo khung tuần của học kỳ" />
         <StatCard label="Buổi sáng" value={String(morning)} hint="Tiết 1-4" />
         <StatCard label="Buổi chiều" value={String(afternoon)} hint="Tiết 5-8" />
         <StatCard label="Buổi tối" value={String(evening)} hint="Tiết 9-10" />
@@ -730,12 +765,42 @@ export function WeekSchedulePage() {
 
 export function SemesterSchedulePage() {
   const { currentUser, snapshot } = useStudentContext()
+  const studentId = currentUser?.id
+  const semesterId = snapshot.settings.currentSemesterId
+  const scheduleKey = studentId ? `${studentId}:${semesterId}:semester` : ''
+  const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
+
+  useEffect(() => {
+    if (!studentId) {
+      return
+    }
+
+    let active = true
+    void scheduleService
+      .getStudentSemesterSchedule(studentId, semesterId)
+      .then((entries) => {
+        if (active) {
+          setApiSchedule({ key: scheduleKey, entries })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setApiSchedule(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [studentId, semesterId, scheduleKey])
+
   if (!currentUser) {
     return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
   const student = currentUser
-  const entries = getStudentScheduleEntries(snapshot, student.id)
+  const entries = apiEntries ?? getStudentScheduleEntries(snapshot, student.id)
 
   return (
     <div className="grid gap-6">

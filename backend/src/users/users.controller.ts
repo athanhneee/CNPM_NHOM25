@@ -11,6 +11,7 @@ import { CreateUserDto } from './dto/create-user.dto'
 import { ImportStudentCandidateDto, ImportStudentsDto } from './dto/import-students.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { UserQueryDto } from './dto/user-query.dto'
 import { UsersService } from './users.service'
 
 @ApiTags('users')
@@ -24,7 +25,7 @@ export class UsersController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @Get()
-  async findAll(@Query() query: Record<string, any>) {
+  async findAll(@Query() query: UserQueryDto) {
     return this.usersService.findAll(query)
   }
 

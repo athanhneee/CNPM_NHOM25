@@ -45,6 +45,7 @@ export interface ReportRow {
   lecturerName: string
   capacity: number
   registeredCount: number
+  waitlistCount: number
   utilizationRate: number
   status: string
 }
@@ -53,6 +54,7 @@ export interface UtilizationStats {
   totalSections: number
   totalCapacity: number
   totalRegistered: number
+  totalWaitlisted: number
   averageUtilization: number
   fullSections: number
 }

@@ -7,6 +7,7 @@ import { RolesGuard } from '../common/guards/roles.guard'
 import { RequestUser } from '../common/types/request-user'
 import { CreateWishDto } from './dto/create-wish.dto'
 import { UpdateWishStatusDto } from './dto/update-wish.dto'
+import { WishQueryDto } from './dto/wish-query.dto'
 import { WishesService } from './wishes.service'
 
 @ApiTags('wishes')
@@ -18,7 +19,7 @@ export class WishesController {
 
   @ApiOperation({ summary: 'Danh sách nguyện vọng học phần' })
   @Get()
-  async findAll(@CurrentUser() user: RequestUser, @Query() query: Record<string, any>) {
+  async findAll(@CurrentUser() user: RequestUser, @Query() query: WishQueryDto) {
     return this.wishesService.findAll(user, query)
   }
 
@@ -49,6 +50,6 @@ export class WishesController {
     @Param('id') id: string,
     @Body() body: UpdateWishStatusDto,
   ) {
-    return this.wishesService.updateStatus(id, body.status, user)
+    return this.wishesService.updateStatus(id, body.status, user, body.reviewNote)
   }
 }

@@ -515,7 +515,7 @@ export const useDataStore = create<DataStoreState>((set, get) => ({
       },
       actor,
     )
-    get().appendAuditLog('RESET_PASSWORD', userId, 'SUCCESS', 'Dat lai mat khau tai khoan.', actor)
+    get().appendAuditLog('RESET_PASSWORD', userId, 'SUCCESS', 'Đặt lại mật khẩu tài khoản.', actor)
     return updatedUser
   },
   updateCourse: (courseId, payload, actor) => {
