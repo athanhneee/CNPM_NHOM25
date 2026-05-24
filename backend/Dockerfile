@@ -2,6 +2,9 @@ FROM node:24-alpine
 
 WORKDIR /app
 
+# Cài đặt thư viện OpenSSL cần thiết cho Prisma chạy trên Alpine Linux
+RUN apk add --no-cache openssl
+
 # Copy các file cấu hình và cài đặt dependencies
 COPY package*.json ./
 RUN npm install
