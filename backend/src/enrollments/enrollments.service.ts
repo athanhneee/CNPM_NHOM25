@@ -90,6 +90,7 @@ function asRuleSection(section: Section): RuleSection {
     weekday: section.weekday,
     startPeriod: section.startPeriod,
     periodCount: section.periodCount,
+    weeks: section.weeks,
     capacity: section.capacity,
     registeredCount: section.registeredCount,
     allowWaitlist: section.allowWaitlist,

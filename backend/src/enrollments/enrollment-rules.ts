@@ -76,6 +76,7 @@ export interface RuleSection {
   weekday: number
   startPeriod: number
   periodCount: number
+  weeks: string
   capacity: number
   registeredCount: number
   allowWaitlist: boolean
@@ -200,6 +201,65 @@ function isWithinRange(nowIso: string, startIso: string, endIso: string) {
   return now >= new Date(startIso).getTime() && now <= new Date(endIso).getTime()
 }
 
+export function parseWeeks(weeks: string): Set<number> {
+  const trimmed = weeks.trim()
+  if (!trimmed) {
+    return new Set()
+  }
+
+  const result = new Set<number>()
+  for (const segment of trimmed.split(',')) {
+    const part = segment.trim()
+    if (!part) continue
+
+    const rangeParts = part.split('-')
+    if (rangeParts.length === 1) {
+      const num = Number(rangeParts[0].trim())
+      if (!Number.isInteger(num) || num <= 0) {
+        throw new Error(`Định dạng tuần không hợp lệ: "${part}". Giá trị phải là số nguyên dương.`)
+      }
+      result.add(num)
+    } else if (rangeParts.length === 2) {
+      const start = Number(rangeParts[0].trim())
+      const end = Number(rangeParts[1].trim())
+      if (!Number.isInteger(start) || !Number.isInteger(end) || start <= 0 || end <= 0) {
+        throw new Error(`Định dạng tuần không hợp lệ: "${part}". Giá trị phải là số nguyên dương.`)
+      }
+      if (end < start) {
+        throw new Error(`Định dạng tuần không hợp lệ: "${part}". Giá trị kết thúc (${end}) phải >= giá trị bắt đầu (${start}).`)
+      }
+      for (let i = start; i <= end; i++) {
+        result.add(i)
+      }
+    } else {
+      throw new Error(`Định dạng tuần không hợp lệ: "${part}". Sử dụng dạng "1-15" hoặc "1,3,5".`)
+    }
+  }
+
+  return result
+}
+
+export function weeksOverlap(a: string, b: string): boolean {
+  const setA = parseWeeks(a)
+  const setB = parseWeeks(b)
+  if (setA.size === 0 || setB.size === 0) {
+    return true
+  }
+  const arrA = Array.from(setA)
+  for (let i = 0; i < arrA.length; i++) {
+    if (setB.has(arrA[i])) return true
+  }
+  return false
+}
+
+export interface ScheduleConflictDetail {
+  conflictSectionId: string
+  weekday: number
+  candidatePeriods: string
+  conflictPeriods: string
+  overlappingWeeks: number[]
+}
+
 function buildRuleResult(
   key: string,
   label: string,
@@ -243,16 +303,55 @@ export function calculateCurrentCredits(
     }, 0)
 }
 
-export function checkScheduleConflict(candidate: RuleSection, comparedSections: RuleSection[]) {
-  return comparedSections.some((section) => {
+export function checkScheduleConflict(
+  candidate: RuleSection,
+  comparedSections: RuleSection[],
+): ScheduleConflictDetail | null {
+  for (const section of comparedSections) {
     if (section.weekday !== candidate.weekday) {
-      return false
+      continue
     }
 
     const candidateEnd = candidate.startPeriod + candidate.periodCount
     const sectionEnd = section.startPeriod + section.periodCount
-    return candidate.startPeriod < sectionEnd && section.startPeriod < candidateEnd
-  })
+    const periodsOverlap = candidate.startPeriod < sectionEnd && section.startPeriod < candidateEnd
+    if (!periodsOverlap) {
+      continue
+    }
+
+    const candidateWeeks = parseWeeks(candidate.weeks)
+    const sectionWeeks = parseWeeks(section.weeks)
+
+    // If either has no weeks info, treat as overlapping (all weeks)
+    if (candidateWeeks.size === 0 || sectionWeeks.size === 0) {
+      return {
+        conflictSectionId: section.id,
+        weekday: candidate.weekday,
+        candidatePeriods: `${candidate.startPeriod}-${candidateEnd - 1}`,
+        conflictPeriods: `${section.startPeriod}-${sectionEnd - 1}`,
+        overlappingWeeks: [],
+      }
+    }
+
+    const overlapping: number[] = []
+    const candidateArr = Array.from(candidateWeeks)
+    for (let i = 0; i < candidateArr.length; i++) {
+      if (sectionWeeks.has(candidateArr[i])) overlapping.push(candidateArr[i])
+    }
+
+    if (overlapping.length > 0) {
+      overlapping.sort((a, b) => a - b)
+      return {
+        conflictSectionId: section.id,
+        weekday: candidate.weekday,
+        candidatePeriods: `${candidate.startPeriod}-${candidateEnd - 1}`,
+        conflictPeriods: `${section.startPeriod}-${sectionEnd - 1}`,
+        overlappingWeeks: overlapping,
+      }
+    }
+  }
+
+  return null
 }
 
 export function evaluateEnrollmentEligibility(
@@ -412,14 +511,27 @@ export function evaluateEnrollmentEligibility(
       REGISTRATION_ERROR_MESSAGES.REG_ERR_COREQUISITE_NOT_MET,
       'REG_ERR_COREQUISITE_NOT_MET',
     ),
-    buildRuleResult(
-      'schedule-conflict',
-      'Trùng lịch học',
-      Boolean(section && !checkScheduleConflict(section, currentSections)),
-      'Không phát hiện xung đột thời khóa biểu.',
-      REGISTRATION_ERROR_MESSAGES.REG_ERR_SCHEDULE_CONFLICT,
-      'REG_ERR_SCHEDULE_CONFLICT',
-    ),
+    (() => {
+      const conflict = section ? checkScheduleConflict(section, currentSections) : null
+      const passed = Boolean(section && !conflict)
+      let failMessage = REGISTRATION_ERROR_MESSAGES.REG_ERR_SCHEDULE_CONFLICT
+      if (conflict) {
+        const weekdayNames = ['', 'Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+        const dayName = weekdayNames[conflict.weekday] ?? `Thứ ${conflict.weekday}`
+        const weeksInfo = conflict.overlappingWeeks.length > 0
+          ? `, tuần ${conflict.overlappingWeeks.join(', ')}`
+          : ''
+        failMessage = `Trùng lịch với lớp ${conflict.conflictSectionId}: ${dayName}, tiết ${conflict.conflictPeriods}${weeksInfo}.`
+      }
+      return buildRuleResult(
+        'schedule-conflict',
+        'Trùng lịch học',
+        passed,
+        'Không phát hiện xung đột thời khóa biểu.',
+        failMessage,
+        'REG_ERR_SCHEDULE_CONFLICT',
+      )
+    })(),
     buildRuleResult(
       'credit-limit',
       'Giới hạn tín chỉ',
