@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../common/decorators/user.decorator'
+import { SkipMaintenance } from '../common/decorators/skip-maintenance.decorator'
 import { Roles } from '../common/decorators/roles.decorator'
 import { JwtAuthGuard } from '../common/guards/jwt.guard'
 import { RolesGuard } from '../common/guards/roles.guard'
@@ -25,6 +26,7 @@ export class SettingsController {
   @ApiOperation({ summary: 'Cập nhật tham số hệ thống' })
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'ACADEMIC_OFFICE')
+  @SkipMaintenance()
   @Patch()
   async updateSettings(@CurrentUser() user: RequestUser, @Body() body: UpdateSystemSettingsDto) {
     return this.settingsService.updateSettings(body, buildActor(user))

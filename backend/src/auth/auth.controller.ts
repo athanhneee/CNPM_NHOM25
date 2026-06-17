@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../common/decorators/user.decorator'
+import { SkipMaintenance } from '../common/decorators/skip-maintenance.decorator'
 import { JwtAuthGuard } from '../common/guards/jwt.guard'
 import { AuthService } from './auth.service'
 import { ChangePasswordDto } from './dto/change-password.dto'
@@ -13,12 +14,14 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: 'Đăng nhập và nhận access/refresh token' })
+  @SkipMaintenance()
   @Post('login')
   async login(@Body() body: LoginDto) {
     return this.authService.login(body.identifier, body.password, body.rememberMe)
   }
 
   @ApiOperation({ summary: 'Làm mới access token' })
+  @SkipMaintenance()
   @Post('refresh')
   async refresh(@Body() body: RefreshTokenDto) {
     return this.authService.refreshToken(body.refreshToken, body.userId)
@@ -35,6 +38,7 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Đăng xuất và thu hồi refresh token' })
+  @SkipMaintenance()
   @Post('logout')
   async logout(@CurrentUser('userId') userId: string) {
     return this.authService.logout(userId)

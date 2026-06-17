@@ -12,6 +12,8 @@ import { SettingsModule } from './settings/settings.module'
 import { SnapshotModule } from './snapshot/snapshot.module'
 import { ReportsModule } from './reports/reports.module'
 import { WishesModule } from './wishes/wishes.module'
+import { APP_GUARD } from '@nestjs/core'
+import { MaintenanceGuard } from './common/guards/maintenance.guard'
 
 @Module({
   imports: [
@@ -28,6 +30,12 @@ import { WishesModule } from './wishes/wishes.module'
     SnapshotModule,
     ReportsModule,
     WishesModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: MaintenanceGuard,
+    },
   ],
 })
 export class AppModule {}
