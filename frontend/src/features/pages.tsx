@@ -863,29 +863,30 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid items-start gap-6 xl:grid-cols-[0.38fr_0.62fr]">
+          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.4fr_0.6fr]">
             <StudentAttendanceCard user={currentUser} />
             <StudentPerformanceCard user={currentUser} />
           </div>
 
-          <div className="grid items-start gap-6 xl:grid-cols-[0.36fr_0.32fr_0.32fr]">
-            <StudentProfileCard user={currentUser} />
-            <StudentInstructorCard instructors={studentInstructors} />
-            <RecentLogsCard
-              logs={logs}
-              title="Nhật ký học vụ"
-              description="Các thao tác đăng ký, chờ xếp lớp và cập nhật gần đây của bạn."
-            />
-          </div>
-
-          <div className="grid items-start gap-6 xl:grid-cols-[0.58fr_0.42fr]">
-            <Card
-              title="Lối tắt dành cho sinh viên"
-              description="Đi thẳng tới các màn hình quan trọng nhất trong quá trình đăng ký tín chỉ."
-            >
-              <DashboardQuickLinks links={quickLinksByRole.STUDENT} />
-            </Card>
-            <SystemWindowCard settings={snapshot.settings} />
+          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.55fr_0.45fr]">
+            <div className="grid gap-6">
+              <StudentProfileCard user={currentUser} />
+              <Card
+                title="Lối tắt dành cho sinh viên"
+                description="Đi thẳng tới các màn hình quan trọng nhất trong quá trình đăng ký tín chỉ."
+              >
+                <DashboardQuickLinks links={quickLinksByRole.STUDENT} />
+              </Card>
+              <SystemWindowCard settings={snapshot.settings} />
+            </div>
+            <div className="grid gap-6">
+              <StudentInstructorCard instructors={studentInstructors} />
+              <RecentLogsCard
+                logs={logs}
+                title="Nhật ký học vụ"
+                description="Các thao tác đăng ký, chờ xếp lớp và cập nhật gần đây của bạn."
+              />
+            </div>
           </div>
         </>
       ) : null}
@@ -900,10 +901,10 @@ export function DashboardPage() {
                   Lịch dạy học kỳ hiện tại
                 </p>
                 <h2 className="text-2xl font-semibold tracking-[-0.05em] lg:text-3xl">
-                  Xin chào {currentUser.fullName}, đây là bức tranh giảng dạy của bạn hôm nay.
+                  Xin chào {currentUser.fullName}, chào mừng trở lại không gian giảng dạy.
                 </h2>
                 <p className="max-w-3xl text-base leading-8 text-white/82">
-                  Theo dõi nhanh số lớp phụ trách, sĩ số, phòng dạy và các hoạt động mới nhất của từng lớp học phần được phân công.
+                  Quản lý toàn diện các lớp học phần được phân công. Dễ dàng theo dõi sĩ số, tra cứu lịch trình và cập nhật tức thời mọi diễn biến mới nhất.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -939,7 +940,7 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid items-start gap-6 xl:grid-cols-[0.58fr_0.42fr]">
+          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.55fr_0.45fr]">
             <Card title="Lối tắt dành cho giảng viên" description="Đi tới lớp được phân công, lịch dạy và danh sách sinh viên.">
               <DashboardQuickLinks links={quickLinksByRole.LECTURER} />
             </Card>
@@ -989,20 +990,21 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid items-start gap-6 xl:grid-cols-[0.56fr_0.44fr]">
-            <AcademicLeadershipCard leaders={academicLeadership} />
-            <SystemWindowCard settings={snapshot.settings} />
-          </div>
-
-          <div className="grid items-start gap-6 xl:grid-cols-[0.56fr_0.44fr]">
-            <Card title="Lối tắt điều phối" description="Chuyển nhanh tới các khu vực quản trị học vụ quan trọng.">
-              <DashboardQuickLinks links={quickLinksByRole.ACADEMIC_OFFICE} />
-            </Card>
-            <RecentLogsCard
-              logs={logs}
-              title="Nhật ký điều phối"
-              description="Các bản ghi xử lý waitlist, mở lớp, phân công giảng viên và cập nhật lịch học."
-            />
+          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.55fr_0.45fr]">
+            <div className="grid gap-6">
+              {academicLeadership.length > 0 && <AcademicLeadershipCard leaders={academicLeadership} />}
+              <Card title="Lối tắt điều phối" description="Chuyển nhanh tới các khu vực quản trị học vụ quan trọng.">
+                <DashboardQuickLinks links={quickLinksByRole.ACADEMIC_OFFICE} />
+              </Card>
+            </div>
+            <div className="grid gap-6">
+              <SystemWindowCard settings={snapshot.settings} />
+              <RecentLogsCard
+                logs={logs}
+                title="Nhật ký điều phối"
+                description="Các bản ghi xử lý waitlist, mở lớp, phân công giảng viên và cập nhật lịch học."
+              />
+            </div>
           </div>
         </>
       ) : null}
@@ -1058,20 +1060,21 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid items-start gap-6 xl:grid-cols-[0.54fr_0.46fr]">
-            <AdminTeamCard team={adminTeam} />
-            <SystemWindowCard settings={snapshot.settings} />
-          </div>
-
-          <div className="grid items-start gap-6 xl:grid-cols-[0.56fr_0.44fr]">
-            <Card title="Lối tắt quản trị" description="Đi tới các màn quan trọng để quản lý người dùng và cấu hình hệ thống.">
-              <DashboardQuickLinks links={quickLinksByRole.ADMIN} />
-            </Card>
-            <RecentLogsCard
-              logs={logs}
-              title="Nhật ký vận hành"
-              description="Các bản ghi gần nhất liên quan đến tài khoản, phân quyền, cấu hình và audit."
-            />
+          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.55fr_0.45fr]">
+            <div className="grid gap-6">
+              {adminTeam.length > 0 && <AdminTeamCard team={adminTeam} />}
+              <Card title="Lối tắt quản trị" description="Đi tới các màn quan trọng để quản lý người dùng và cấu hình hệ thống.">
+                <DashboardQuickLinks links={quickLinksByRole.ADMIN} />
+              </Card>
+            </div>
+            <div className="grid gap-6">
+              <SystemWindowCard settings={snapshot.settings} />
+              <RecentLogsCard
+                logs={logs}
+                title="Nhật ký vận hành"
+                description="Các bản ghi gần nhất liên quan đến tài khoản, phân quyền, cấu hình và audit."
+              />
+            </div>
           </div>
         </>
       ) : null}
