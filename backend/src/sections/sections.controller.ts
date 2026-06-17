@@ -25,14 +25,16 @@ export class SectionsController {
 
   @ApiOperation({ summary: 'Danh sách lớp học phần' })
   @Get()
-  async findAll(@CurrentUser() user: RequestUser, @Query() query: SectionQueryDto) {
-    const isPrivileged = user.roles.some((role) => ['ADMIN', 'ACADEMIC_OFFICE'].includes(role))
-
-    if (!isPrivileged && user.roles.includes('LECTURER')) {
-      return this.sectionsService.findAll({ ...query, lecturerId: user.userId })
-    }
-
+  async findAll(@Query() query: SectionQueryDto) {
     return this.sectionsService.findAll(query)
+  }
+
+  @ApiOperation({ summary: 'Danh sách lớp giảng dạy của giảng viên' })
+  @UseGuards(RolesGuard)
+  @Roles('LECTURER', 'ADMIN', 'ACADEMIC_OFFICE')
+  @Get('my-teaching')
+  async findMyTeaching(@CurrentUser() user: RequestUser, @Query() query: SectionQueryDto) {
+    return this.sectionsService.findAll({ ...query, lecturerId: user.userId })
   }
 
   @ApiOperation({ summary: 'Danh sách sinh viên trong lớp học phần' })

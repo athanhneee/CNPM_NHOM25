@@ -37,7 +37,7 @@ function useLecturerContext() {
 
     Promise.all([
       courseService.listCourses(),
-      sectionService.listSections({ lecturerId: currentUser.id }),
+      sectionService.listMyTeachingSections(),
     ])
       .then(() => {
         if (!mounted) return

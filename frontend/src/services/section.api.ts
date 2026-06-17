@@ -252,6 +252,18 @@ export const sectionService = {
     return sections
   },
 
+  async listMyTeachingSections(query: SectionQuery = {}) {
+    const sections = normalizeSections(
+      await apiRequest<BackendSection[] | PaginatedResponse<BackendSection>>(queryPath('/sections/my-teaching', query)),
+    )
+    if (Object.values(query).some(Boolean)) {
+      sections.forEach(upsertSection)
+    } else {
+      syncSections(sections)
+    }
+    return sections
+  },
+
   async getSectionDetail(sectionId: string) {
     try {
       const section = normalizeSection(await apiRequest<BackendSection>(`/sections/${sectionId}`))

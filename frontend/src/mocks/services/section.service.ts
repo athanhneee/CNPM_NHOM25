@@ -10,6 +10,10 @@ export const sectionService = {
     await sleep(getRandomDelay())
     return useDataStore.getState().sections
   },
+  async listMyTeachingSections() {
+    await sleep(getRandomDelay())
+    return useDataStore.getState().sections
+  },
   async getSectionDetail(sectionId: string) {
     await sleep(120)
     return useDataStore.getState().sections.find((section) => section.id === sectionId) ?? null
