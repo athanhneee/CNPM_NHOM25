@@ -28,7 +28,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
-import { ApiError } from '@/lib/api-client'
 import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -1094,7 +1093,6 @@ export function DashboardPage() {
 
 export function ProfilePage() {
   const currentUser = useAuthStore((state) => state.currentUser)
-  const updateUser = useDataStore((state) => state.updateUser)
   const pushToast = useUiStore((state) => state.pushToast)
   const [isEditing, setIsEditing] = useState(false)
   const [email, setEmail] = useState(currentUser?.email ?? '')
@@ -1196,30 +1194,16 @@ export function ProfilePage() {
 
   async function handleSave() {
     try {
-      let source: 'backend' | 'local' = 'backend'
-      let updatedUser: User
+      const updatedUser = await authApiService.updateProfile({ email, secondaryEmail, phone, address })
 
-      try {
-        updatedUser = await authApiService.updateProfile({ email, secondaryEmail, phone, address })
-        useDataStore.setState((state) => {
-          const users = state.users.some((item) => item.id === updatedUser.id)
-            ? state.users.map((item) => (item.id === updatedUser.id ? updatedUser : item))
-            : [...state.users, updatedUser]
+      useDataStore.setState((state) => {
+        const users = state.users.some((item) => item.id === updatedUser.id)
+          ? state.users.map((item) => (item.id === updatedUser.id ? updatedUser : item))
+          : [...state.users, updatedUser]
 
-          return { users }
-        })
-      } catch (error) {
-        if (error instanceof ApiError) {
-          throw error
-        }
+        return { users }
+      })
 
-        source = 'local'
-        updatedUser = updateUser(
-          user.id,
-          { email, secondaryEmail, phone, address },
-          { actorId: user.id, actorRole: user.roles[0] ?? 'STUDENT' },
-        )
-      }
       useAuthStore.setState((state) => ({
         ...state,
         currentUser: state.currentUser?.id === updatedUser.id ? updatedUser : state.currentUser,
@@ -1228,10 +1212,7 @@ export function ProfilePage() {
       pushToast({
         tone: 'success',
         title: 'Cập nhật hồ sơ thành công',
-        description:
-          source === 'backend'
-            ? 'Thông tin liên hệ đã được đồng bộ với backend.'
-            : 'Chưa kết nối được backend, thông tin tạm thời được lưu cục bộ trên trình duyệt.',
+        description: 'Thông tin liên hệ đã được lưu.',
       })
     } catch (error) {
       pushToast({
