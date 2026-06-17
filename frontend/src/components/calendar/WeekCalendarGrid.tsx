@@ -56,12 +56,12 @@ export function WeekCalendarGrid({
 
   return (
     <Card
-      title="Lịch môn học trong tuần"
-      description="Theo dõi toàn bộ buổi học và buổi giảng dạy theo khung giờ, phòng học và giảng viên phụ trách."
+      title="Lịch dạng tuần theo học kỳ"
+      description="Theo dõi các buổi học theo thứ, khung tiết, phòng học và dải tuần học trong học kỳ."
       actions={
         <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
           <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-teal-700">
-            {entries.length} buổi trong tuần
+            {entries.length} buổi theo khung tuần
           </span>
           <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-cyan-700">
             {uniqueDays || 0} ngày có lịch
@@ -192,7 +192,7 @@ export function WeekCalendarGrid({
           <div className="max-w-xl space-y-3">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-700">Lịch trống</p>
             <h3 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
-              Chưa có buổi học nào để hiển thị trong tuần này.
+              Chưa có buổi học nào trong lịch dạng tuần.
             </h3>
             <p className="text-sm leading-7 text-slate-600">{emptyMessage}</p>
           </div>

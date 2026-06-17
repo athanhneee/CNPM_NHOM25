@@ -1,5 +1,5 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
-import { FileSpreadsheet, Upload, UserPlus } from 'lucide-react'
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { FileSpreadsheet, KeyRound, Upload, UserPlus } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -16,11 +16,14 @@ import { PermissionMatrix } from '@/components/shared/PermissionMatrix'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { adminService } from '@/mocks/services/admin.service'
+import { adminService } from '@/services/admin.api'
+import { logService } from '@/services/log.api'
+import { settingsService } from '@/services/settings.api'
 import { getMajorMappingFromStudentCode } from '@/mocks/seed/ptit-helpers'
 import { ExportButtons } from '@/components/shared/ExportButtons'
 import { SystemWindowCard } from '@/components/shared/SystemWindowCard'
 import { formatDateTime } from '@/lib/date'
+import type { SystemSettings } from '@/types/settings'
 import {
   parseStudentImportFile,
   parseStudentText,
@@ -34,6 +37,16 @@ function useAdminContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
   const pushToast = useUiStore((state) => state.pushToast)
+
+  useEffect(() => {
+    if (!currentUser?.roles.includes('ADMIN')) {
+      return
+    }
+
+    void adminService.listUsers()
+    void settingsService.loadSettings().catch(() => undefined)
+  }, [currentUser?.id, currentUser?.roles])
+
   return {
     currentUser,
     snapshot,
@@ -41,6 +54,30 @@ function useAdminContext() {
     actor: currentUser ? { actorId: currentUser.id, actorRole: currentUser.roles[0] ?? 'ADMIN' } : null,
   }
 }
+
+function toValidIsoDate(value: string) {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+function settingsToForm(settings: SystemSettings) {
+  return {
+    simulationNow: settings.simulationNow,
+    registrationStart: settings.registrationStart,
+    registrationEnd: settings.registrationEnd,
+    adjustmentStart: settings.adjustmentStart,
+    adjustmentEnd: settings.adjustmentEnd,
+    withdrawalDeadline: settings.withdrawalDeadline,
+    maxCredits: String(settings.maxCredits),
+    minCredits: String(settings.minCredits),
+    maintenanceMode: settings.maintenanceMode ? 'true' : 'false',
+    allowWaitlist: settings.allowWaitlist ? 'true' : 'false',
+    sessionTimeoutMinutes: String(settings.sessionTimeoutMinutes),
+    warningBeforeLogoutSeconds: String(settings.warningBeforeLogoutSeconds),
+  }
+}
+
+type SettingsForm = ReturnType<typeof settingsToForm>
 
 export function UserAccountsPage() {
   const { currentUser, snapshot, pushToast, actor } = useAdminContext()
@@ -50,6 +87,9 @@ export function UserAccountsPage() {
   const [manualName, setManualName] = useState('')
   const [manualCode, setManualCode] = useState('')
   const [manualSubmitting, setManualSubmitting] = useState(false)
+  const [resetPasswordId, setResetPasswordId] = useState('')
+  const [resetPasswordValue, setResetPasswordValue] = useState(STUDENT_IMPORT_DEFAULT_PASSWORD)
+  const [resetSubmitting, setResetSubmitting] = useState(false)
   const [studentImportText, setStudentImportText] = useState('')
   const [preview, setPreview] = useState<StudentImportPreview | null>(null)
   const [lastImportSummary, setLastImportSummary] = useState<StudentImportSummary | null>(null)
@@ -86,6 +126,7 @@ export function UserAccountsPage() {
 
   const totalStudents = snapshot.users.filter((user) => user.roles.includes('STUDENT')).length
   const totalStaff = snapshot.users.filter((user) => !user.roles.includes('STUDENT')).length
+  const resetPasswordUser = snapshot.users.find((user) => user.id === resetPasswordId)
 
   const resetImportDraft = () => {
     setStudentImportText('')
@@ -238,6 +279,45 @@ export function UserAccountsPage() {
     }
   }
 
+  const handleResetPassword = async () => {
+    if (!resetPasswordId) {
+      return
+    }
+
+    if (resetPasswordValue.length < 8) {
+      pushToast({
+        tone: 'warning',
+        title: 'Mật khẩu quá ngắn',
+        description: 'Mật khẩu đặt lại cần có tối thiểu 8 ký tự.',
+      })
+      return
+    }
+
+    setResetSubmitting(true)
+
+    try {
+      const updatedUser = await adminService.resetPassword(resetPasswordId, resetPasswordValue, resolvedActor)
+      pushToast({
+        tone: 'success',
+        title: 'Đã đặt lại mật khẩu',
+        description: `Tài khoản ${updatedUser.username} đã được mở khóa và cấp mật khẩu mới.`,
+      })
+      setResetPasswordId('')
+      setResetPasswordValue(STUDENT_IMPORT_DEFAULT_PASSWORD)
+    } catch (error) {
+      pushToast({
+        tone: 'error',
+        title: 'Không thể đặt lại mật khẩu',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Hệ thống không thể đặt lại mật khẩu cho tài khoản này.',
+      })
+    } finally {
+      setResetSubmitting(false)
+    }
+  }
+
   const columns: TableColumn<(typeof rows)[number]>[] = [
     {
       key: 'account',
@@ -292,6 +372,17 @@ export function UserAccountsPage() {
               Khóa
             </Button>
           )}
+          <Button
+            leftIcon={<KeyRound className="size-4" />}
+            onClick={() => {
+              setResetPasswordId(row.id)
+              setResetPasswordValue(STUDENT_IMPORT_DEFAULT_PASSWORD)
+            }}
+            type="button"
+            variant="secondary"
+          >
+            Reset MK
+          </Button>
         </div>
       ),
     },
@@ -527,6 +618,25 @@ export function UserAccountsPage() {
           setLockId('')
         }}
       />
+      <ConfirmDialog
+        open={Boolean(resetPasswordId)}
+        title="Đặt lại mật khẩu"
+        description={`Tài khoản ${resetPasswordUser?.username ?? ''} sẽ được mở khóa, xóa refresh token cũ và cấp mật khẩu mới.`}
+        confirmLabel="Đặt lại mật khẩu"
+        loading={resetSubmitting}
+        onClose={() => {
+          setResetPasswordId('')
+          setResetPasswordValue(STUDENT_IMPORT_DEFAULT_PASSWORD)
+        }}
+        onConfirm={() => void handleResetPassword()}
+      >
+        <Input
+          label="Mật khẩu mới"
+          type="password"
+          value={resetPasswordValue}
+          onChange={(event) => setResetPasswordValue(event.target.value)}
+        />
+      </ConfirmDialog>
     </div>
   )
 }
@@ -585,18 +695,60 @@ export function RolesPage() {
 
 export function SettingsPage() {
   const { currentUser, snapshot, pushToast, actor } = useAdminContext()
-  const [form, setForm] = useState({
-    registrationStart: snapshot.settings.registrationStart,
-    registrationEnd: snapshot.settings.registrationEnd,
-    adjustmentStart: snapshot.settings.adjustmentStart,
-    adjustmentEnd: snapshot.settings.adjustmentEnd,
-    withdrawalDeadline: snapshot.settings.withdrawalDeadline,
-    maxCredits: String(snapshot.settings.maxCredits),
-    minCredits: String(snapshot.settings.minCredits),
-    maintenanceMode: snapshot.settings.maintenanceMode ? 'true' : 'false',
-    allowWaitlist: snapshot.settings.allowWaitlist ? 'true' : 'false',
-  })
+  const backendForm = useMemo(() => settingsToForm(snapshot.settings), [snapshot.settings])
+  const [draftForm, setDraftForm] = useState<SettingsForm | null>(null)
+  const form = draftForm ?? backendForm
+  const updateForm = (updater: (value: SettingsForm) => SettingsForm) => {
+    setDraftForm((value) => updater(value ?? backendForm))
+  }
   const [importText, setImportText] = useState('')
+  const [snapshotAction, setSnapshotAction] = useState<'reset' | 'import' | null>(null)
+  const [snapshotSubmitting, setSnapshotSubmitting] = useState(false)
+
+  const handleConfirmSnapshotAction = async () => {
+    if (!snapshotAction) {
+      return
+    }
+
+    if (snapshotAction === 'import' && !importText.trim()) {
+      pushToast({
+        tone: 'warning',
+        title: 'Chưa có dữ liệu snapshot',
+        description: 'Hãy dán JSON snapshot trước khi xác nhận nhập dữ liệu.',
+      })
+      return
+    }
+
+    setSnapshotSubmitting(true)
+
+    try {
+      if (snapshotAction === 'reset') {
+        await adminService.resetDemoData()
+        setDraftForm(null)
+        setSnapshotAction(null)
+        pushToast({
+          tone: 'success',
+          title: 'Đã reset dữ liệu demo',
+          description: 'Dữ liệu đã trở về bộ seed mặc định từ backend.',
+        })
+        return
+      }
+
+      const result = await adminService.importDemoData(importText)
+      pushToast({
+        tone: result.ok ? 'success' : 'error',
+        title: result.ok ? 'Nhập thành công' : 'Nhập thất bại',
+        description: result.ok ? 'Dữ liệu demo hiện tại đã được thay thế từ snapshot JSON.' : result.error,
+      })
+
+      if (result.ok) {
+        setImportText('')
+        setSnapshotAction(null)
+      }
+    } finally {
+      setSnapshotSubmitting(false)
+    }
+  }
 
   if (!currentUser || !actor) {
     return <EmptyState title="Không tìm thấy quản trị viên" description="Vui lòng đăng nhập lại." />
@@ -608,15 +760,21 @@ export function SettingsPage() {
       <div className="grid gap-6 lg:grid-cols-[0.56fr_0.44fr]">
         <Card title="Tham số hệ thống" description="Thay đổi các tham số tác động trực tiếp lên logic đăng ký">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Thời gian mở đăng ký" value={form.registrationStart} onChange={(event) => setForm((value) => ({ ...value, registrationStart: event.target.value }))} />
-            <Input label="Thời gian đóng đăng ký" value={form.registrationEnd} onChange={(event) => setForm((value) => ({ ...value, registrationEnd: event.target.value }))} />
-            <Input label="Bắt đầu điều chỉnh" value={form.adjustmentStart} onChange={(event) => setForm((value) => ({ ...value, adjustmentStart: event.target.value }))} />
-            <Input label="Kết thúc điều chỉnh" value={form.adjustmentEnd} onChange={(event) => setForm((value) => ({ ...value, adjustmentEnd: event.target.value }))} />
-            <Input label="Hạn rút học phần" value={form.withdrawalDeadline} onChange={(event) => setForm((value) => ({ ...value, withdrawalDeadline: event.target.value }))} />
-            <Input label="Tín chỉ tối đa" value={form.maxCredits} onChange={(event) => setForm((value) => ({ ...value, maxCredits: event.target.value }))} />
-            <Input label="Tín chỉ tối thiểu" value={form.minCredits} onChange={(event) => setForm((value) => ({ ...value, minCredits: event.target.value }))} />
-            <Input label="Bật bảo trì" value={form.maintenanceMode} onChange={(event) => setForm((value) => ({ ...value, maintenanceMode: event.target.value }))} list="boolean-options" />
-            <Input label="Cho phép danh sách chờ" value={form.allowWaitlist} onChange={(event) => setForm((value) => ({ ...value, allowWaitlist: event.target.value }))} list="boolean-options" />
+            <p className="md:col-span-2 rounded-2xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900">
+              Thời điểm mô phỏng hiện tại: {formatDateTime(snapshot.settings.simulationNow)}
+            </p>
+            <Input label="Thời điểm mô phỏng" value={form.simulationNow} onChange={(event) => updateForm((value) => ({ ...value, simulationNow: event.target.value }))} />
+            <Input label="Thời gian mở đăng ký" value={form.registrationStart} onChange={(event) => updateForm((value) => ({ ...value, registrationStart: event.target.value }))} />
+            <Input label="Thời gian đóng đăng ký" value={form.registrationEnd} onChange={(event) => updateForm((value) => ({ ...value, registrationEnd: event.target.value }))} />
+            <Input label="Bắt đầu điều chỉnh" value={form.adjustmentStart} onChange={(event) => updateForm((value) => ({ ...value, adjustmentStart: event.target.value }))} />
+            <Input label="Kết thúc điều chỉnh" value={form.adjustmentEnd} onChange={(event) => updateForm((value) => ({ ...value, adjustmentEnd: event.target.value }))} />
+            <Input label="Hạn rút học phần" value={form.withdrawalDeadline} onChange={(event) => updateForm((value) => ({ ...value, withdrawalDeadline: event.target.value }))} />
+            <Input label="Tín chỉ tối đa" value={form.maxCredits} onChange={(event) => updateForm((value) => ({ ...value, maxCredits: event.target.value }))} />
+            <Input label="Tín chỉ tối thiểu" value={form.minCredits} onChange={(event) => updateForm((value) => ({ ...value, minCredits: event.target.value }))} />
+            <Input label="Timeout phiên (phút)" value={form.sessionTimeoutMinutes} onChange={(event) => updateForm((value) => ({ ...value, sessionTimeoutMinutes: event.target.value }))} />
+            <Input label="Cảnh báo trước logout (giây)" value={form.warningBeforeLogoutSeconds} onChange={(event) => updateForm((value) => ({ ...value, warningBeforeLogoutSeconds: event.target.value }))} />
+            <Input label="Bật bảo trì" value={form.maintenanceMode} onChange={(event) => updateForm((value) => ({ ...value, maintenanceMode: event.target.value }))} list="boolean-options" />
+            <Input label="Cho phép danh sách chờ" value={form.allowWaitlist} onChange={(event) => updateForm((value) => ({ ...value, allowWaitlist: event.target.value }))} list="boolean-options" />
             <datalist id="boolean-options">
               <option value="true" />
               <option value="false" />
@@ -625,17 +783,60 @@ export function SettingsPage() {
           <div className="mt-4 flex flex-wrap gap-3">
             <Button
               onClick={async () => {
+                const simulationNow = toValidIsoDate(form.simulationNow)
+                const registrationStart = toValidIsoDate(form.registrationStart)
+                const registrationEnd = toValidIsoDate(form.registrationEnd)
+                const adjustmentStart = toValidIsoDate(form.adjustmentStart)
+                const adjustmentEnd = toValidIsoDate(form.adjustmentEnd)
+                const withdrawalDeadline = toValidIsoDate(form.withdrawalDeadline)
+
+                if (
+                  !simulationNow ||
+                  !registrationStart ||
+                  !registrationEnd ||
+                  !adjustmentStart ||
+                  !adjustmentEnd ||
+                  !withdrawalDeadline
+                ) {
+                  pushToast({
+                    tone: 'error',
+                    title: 'Thời gian không hợp lệ',
+                    description: 'Vui lòng nhập ngày giờ theo định dạng ISO, ví dụ 2026-04-10T08:00:00.000Z.',
+                  })
+                  return
+                }
+
+                const sessionTimeoutMinutes = Number(form.sessionTimeoutMinutes)
+                const warningBeforeLogoutSeconds = Number(form.warningBeforeLogoutSeconds)
+                if (
+                  !Number.isFinite(sessionTimeoutMinutes) ||
+                  sessionTimeoutMinutes <= 0 ||
+                  !Number.isFinite(warningBeforeLogoutSeconds) ||
+                  warningBeforeLogoutSeconds < 0
+                ) {
+                  pushToast({
+                    tone: 'error',
+                    title: 'Timeout phiên không hợp lệ',
+                    description: 'Timeout phiên phải lớn hơn 0 phút và thời gian cảnh báo không được âm.',
+                  })
+                  return
+                }
+
                 await adminService.updateSettings({
-                  registrationStart: form.registrationStart,
-                  registrationEnd: form.registrationEnd,
-                  adjustmentStart: form.adjustmentStart,
-                  adjustmentEnd: form.adjustmentEnd,
-                  withdrawalDeadline: form.withdrawalDeadline,
+                  simulationNow,
+                  registrationStart,
+                  registrationEnd,
+                  adjustmentStart,
+                  adjustmentEnd,
+                  withdrawalDeadline,
                   maxCredits: Number(form.maxCredits),
                   minCredits: Number(form.minCredits),
+                  sessionTimeoutMinutes,
+                  warningBeforeLogoutSeconds,
                   maintenanceMode: form.maintenanceMode === 'true',
                   allowWaitlist: form.allowWaitlist === 'true',
                 }, actor)
+                setDraftForm(null)
                 pushToast({ tone: 'success', title: 'Đã cập nhật tham số', description: 'Các tham số mới đã có hiệu lực ngay trên giao diện.' })
               }}
               type="button"
@@ -644,10 +845,7 @@ export function SettingsPage() {
             </Button>
             <Button
               variant="secondary"
-              onClick={async () => {
-                await adminService.resetDemoData()
-                pushToast({ tone: 'success', title: 'Đã reset dữ liệu demo', description: 'Dữ liệu đã trở về bộ seed mặc định.' })
-              }}
+              onClick={() => setSnapshotAction('reset')}
               type="button"
             >
               Reset dữ liệu demo
@@ -657,7 +855,7 @@ export function SettingsPage() {
 
         <div className="grid gap-6">
           <SystemWindowCard settings={snapshot.settings} />
-          <Card title="Xuất / nhập dữ liệu" description="Hỗ trợ sao lưu dữ liệu mock trong localStorage">
+          <Card title="Xuất / nhập dữ liệu" description="Sao lưu snapshot từ backend; import sẽ thay thế dữ liệu demo hiện tại">
             <div className="grid gap-4">
               <ExportButtons
                 fileName="campus-demo-data.json"
@@ -669,10 +867,7 @@ export function SettingsPage() {
               />
               <Textarea label="Dán JSON để nhập" value={importText} onChange={(event) => setImportText(event.target.value)} />
               <Button
-                onClick={async () => {
-                  const result = await adminService.importDemoData(importText)
-                  pushToast({ tone: result.ok ? 'success' : 'error', title: result.ok ? 'Nhập thành công' : 'Nhập thất bại', description: result.ok ? 'Dữ liệu đã được thay thế từ JSON.' : result.error })
-                }}
+                onClick={() => setSnapshotAction('import')}
                 type="button"
               >
                 Nhập snapshot
@@ -681,6 +876,28 @@ export function SettingsPage() {
           </Card>
         </div>
       </div>
+      <ConfirmDialog
+        danger
+        loading={snapshotSubmitting}
+        open={snapshotAction !== null}
+        title={snapshotAction === 'reset' ? 'Xác nhận reset dữ liệu demo' : 'Xác nhận nhập snapshot'}
+        description={
+          snapshotAction === 'reset'
+            ? 'Thao tác này gọi backend reset snapshot và có thể xóa hoặc thay thế dữ liệu demo hiện tại.'
+            : 'Thao tác này sẽ import snapshot JSON và có thể thay thế dữ liệu demo hiện tại trong backend.'
+        }
+        confirmLabel={snapshotAction === 'reset' ? 'Reset dữ liệu' : 'Nhập và thay thế'}
+        onClose={() => {
+          if (!snapshotSubmitting) {
+            setSnapshotAction(null)
+          }
+        }}
+        onConfirm={() => void handleConfirmSnapshotAction()}
+      >
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+          Hãy export snapshot trước nếu cần giữ lại dữ liệu đang demo. Không dùng thao tác này trên dữ liệu thật khi chưa được xác nhận.
+        </div>
+      </ConfirmDialog>
     </div>
   )
 }
@@ -688,6 +905,17 @@ export function SettingsPage() {
 export function AuditLogsPage() {
   const { currentUser, snapshot } = useAdminContext()
   const [query, setQuery] = useState('')
+  const currentUserId = currentUser?.id
+
+  useEffect(() => {
+    if (!currentUserId) {
+      return
+    }
+
+    void logService
+      .listLogs()
+      .catch(() => undefined)
+  }, [currentUserId])
 
   const rows = useMemo(
     () =>
@@ -717,7 +945,7 @@ export function AuditLogsPage() {
     <div className="grid gap-6">
       <PageTitleBlock title="Quản trị - Nhật ký hệ thống" subtitle="Theo dõi nhật ký cho các thao tác đăng nhập, đăng ký, danh sách chờ, can thiệp đặc biệt, cập nhật tham số và phân quyền." />
       <div className="grid gap-4 lg:grid-cols-4">
-        <StatCard label="Tổng log" value={String(snapshot.logs.length)} hint="Toàn bộ nhật ký cục bộ" />
+        <StatCard label="Tổng log" value={String(snapshot.logs.length)} hint="Ưu tiên backend, fallback local" />
         <StatCard label="Đăng ký" value={String(snapshot.logs.filter((log) => log.action.includes('REGISTER')).length)} hint="Bao gồm danh sách chờ và can thiệp" />
         <StatCard label="Phân quyền" value={String(snapshot.logs.filter((log) => log.action.includes('ROLE') || log.action.includes('USER')).length)} hint="Tác động tới người dùng và vai trò" />
         <StatCard label="Tham số" value={String(snapshot.logs.filter((log) => log.action.includes('SETTINGS')).length)} hint="Thay đổi cấu hình hệ thống" />

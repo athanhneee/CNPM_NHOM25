@@ -15,6 +15,7 @@ const segmentLabels: Record<string, string> = {
   history: 'Lịch sử đăng ký',
   prerequisites: 'Môn tiên quyết',
   wish: 'Nguyện vọng',
+  wishes: 'Duyệt nguyện vọng',
   registered: 'Kết quả đăng ký',
   lecturer: 'Giảng viên',
   sections: 'Lớp phân công',

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { ROLE_PERMISSIONS, type PermissionKey } from '@/app/config/permissions'
 import { removeStorageKey, STORAGE_KEYS } from '@/lib/storage'
-import { authService } from '@/mocks/services/auth.service'
+import { authApiService as authService } from '@/services/auth.api'
 import type { AuthCredentials, AuthSession } from '@/types/auth'
 import type { User } from '@/types/user'
 

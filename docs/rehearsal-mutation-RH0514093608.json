@@ -1,0 +1,226 @@
+{
+  "runId": "RH0514093608",
+  "timestamp": "2026-05-14T09:36:44.079Z",
+  "baseUrl": "http://localhost:3000/api",
+  "results": [
+    {
+      "id": "AUTH-RH-01",
+      "role": "Admin",
+      "flow": "Dang nhap admin",
+      "status": "Pass",
+      "evidence": "{\"userId\":\"AD001\",\"username\":\"admin\"}"
+    },
+    {
+      "id": "AUTH-RH-02",
+      "role": "Academic",
+      "flow": "Dang nhap academic.office",
+      "status": "Pass",
+      "evidence": "{\"userId\":\"AO001\",\"username\":\"academic.office\"}"
+    },
+    {
+      "id": "AUTH-RH-03",
+      "role": "Lecturer",
+      "flow": "Dang nhap minh.tuan",
+      "status": "Pass",
+      "evidence": "{\"userId\":\"LEC001\",\"username\":\"minh.tuan\"}"
+    },
+    {
+      "id": "SET-RH-00",
+      "role": "Admin",
+      "flow": "Doc settings hien tai",
+      "status": "Pass",
+      "evidence": "{\"simulationNow\":\"2026-04-10T08:00:00.000Z\",\"currentSemesterId\":\"sem-2026-1\",\"allowWaitlist\":true}"
+    },
+    {
+      "id": "ADM-RH-01",
+      "role": "Admin",
+      "flow": "Import sinh vien",
+      "status": "Pass",
+      "evidence": "{\"requested\":6,\"created\":6,\"skipped\":0,\"defaultPassword\":\"ptithcm2026\"}"
+    },
+    {
+      "id": "AUTH-RH-04",
+      "role": "Student",
+      "flow": "Dang nhap sinh vien import",
+      "status": "Pass",
+      "evidence": "{\"userId\":\"0bec0a6a-e1e2-40b9-a81c-3e0447a225f1\",\"username\":\"N26RH05140936081\"}"
+    },
+    {
+      "id": "ACD-RH-01",
+      "role": "Academic",
+      "flow": "Tao lop rehearsal chinh",
+      "status": "Pass",
+      "evidence": "{\"id\":\"1872687b-e2fc-409b-afeb-c73e300db35b\",\"sectionCode\":\"RH0514093608-MAIN\",\"lecturerId\":\"LEC001\",\"room\":\"A1-101\"}"
+    },
+    {
+      "id": "ACD-RH-02",
+      "role": "Academic",
+      "flow": "Phan cong giang vien",
+      "status": "Pass",
+      "evidence": "{\"id\":\"1872687b-e2fc-409b-afeb-c73e300db35b\",\"sectionCode\":\"RH0514093608-MAIN\",\"lecturerId\":\"LEC002\"}"
+    },
+    {
+      "id": "ACD-RH-03",
+      "role": "Academic",
+      "flow": "Doi phong lich",
+      "status": "Pass",
+      "evidence": "{\"id\":\"1872687b-e2fc-409b-afeb-c73e300db35b\",\"sectionCode\":\"RH0514093608-MAIN\",\"room\":\"A1-301\",\"weekday\":7,\"startPeriod\":1}"
+    },
+    {
+      "id": "STU-RH-01",
+      "role": "Student",
+      "flow": "Dang ky lop thanh cong",
+      "status": "Pass",
+      "evidence": "{\"success\":true,\"status\":\"REGISTERED\",\"sectionId\":\"1872687b-e2fc-409b-afeb-c73e300db35b\",\"enrollmentId\":\"43bfc1b7-411a-4e0a-88ad-3cd55d545b87\"}"
+    },
+    {
+      "id": "LEC-RH-01",
+      "role": "Lecturer",
+      "flow": "Giang vien xem lop duoc phan cong",
+      "status": "Fail",
+      "evidence": "POST /auth/login -> 401: \"Sai tài khoản hoặc mật khẩu.\""
+    },
+    {
+      "id": "LEC-RH-02",
+      "role": "Lecturer",
+      "flow": "Giang vien xem danh sach sinh vien",
+      "status": "Fail",
+      "evidence": "Cannot read properties of undefined (reading 'accessToken')"
+    },
+    {
+      "id": "ADM-RH-02",
+      "role": "Admin",
+      "flow": "Update settings sang cua so huy",
+      "status": "Pass",
+      "evidence": "{\"simulationNow\":\"2026-05-02T08:00:00.000Z\"}"
+    },
+    {
+      "id": "STU-RH-02",
+      "role": "Student",
+      "flow": "Huy dang ky trong cua so dieu chinh",
+      "status": "Pass",
+      "evidence": "{\"enrollmentId\":\"43bfc1b7-411a-4e0a-88ad-3cd55d545b87\",\"status\":\"CANCELLED\",\"reasonCode\":\"Rehearsal cancel RH0514093608\"}"
+    },
+    {
+      "id": "ADM-RH-03",
+      "role": "Admin",
+      "flow": "Restore settings ve moc ban dau",
+      "status": "Pass",
+      "evidence": "{\"simulationNow\":\"2026-04-10T08:00:00.000Z\"}"
+    },
+    {
+      "id": "ACD-RH-04",
+      "role": "Academic",
+      "flow": "Tao lop waitlist",
+      "status": "Pass",
+      "evidence": "{\"id\":\"89e00e4c-6e49-412d-9e8b-7fb54082b865\",\"sectionCode\":\"RH0514093608-WL\",\"capacity\":1}"
+    },
+    {
+      "id": "STU-RH-03",
+      "role": "Student",
+      "flow": "Dang ky lop waitlist - slot dau",
+      "status": "Pass",
+      "evidence": "{\"success\":true,\"status\":\"REGISTERED\",\"enrollmentId\":\"e3cb4ae0-d111-4589-829d-b16010bf3bfa\"}"
+    },
+    {
+      "id": "STU-RH-04",
+      "role": "Student",
+      "flow": "Vao danh sach doi khi lop full",
+      "status": "Pass",
+      "evidence": "{\"success\":true,\"status\":\"WAITLISTED\",\"waitlistOrder\":1,\"enrollmentId\":\"311cd451-3186-403f-82af-3a1395798570\"}"
+    },
+    {
+      "id": "ACD-RH-05",
+      "role": "Academic",
+      "flow": "Mo suc chua de process waitlist",
+      "status": "Pass",
+      "evidence": "{\"sectionCode\":\"RH0514093608-WL\",\"capacity\":2,\"registeredCount\":1,\"waitlistCount\":1}"
+    },
+    {
+      "id": "ACD-RH-06",
+      "role": "Academic",
+      "flow": "Process waitlist",
+      "status": "Pass",
+      "evidence": "{\"sectionCode\":\"RH0514093608-WL\",\"promoted\":1,\"statuses\":[\"REGISTERED\"]}"
+    },
+    {
+      "id": "ACD-RH-07",
+      "role": "Academic",
+      "flow": "Tao lop override",
+      "status": "Pass",
+      "evidence": "{\"id\":\"e40976a4-deb2-45c8-af26-e2dbd75ba0bd\",\"sectionCode\":\"RH0514093608-OVR\",\"courseCode\":\"CSE201\"}"
+    },
+    {
+      "id": "ACD-RH-08",
+      "role": "Academic",
+      "flow": "Override dang ky",
+      "status": "Pass",
+      "evidence": "{\"enrollmentId\":\"3ef3c843-f22b-4bee-afcb-3c497be99fe1\",\"studentId\":\"34ec5b1b-b491-4c7c-84f4-5bd023715f06\",\"status\":\"REGISTERED\",\"reasonCode\":\"Rehearsal override prerequisite RH0514093608\"}"
+    },
+    {
+      "id": "STU-RH-05",
+      "role": "Student",
+      "flow": "Gui nguyen vong 1",
+      "status": "Pass",
+      "evidence": "{\"id\":\"9f6d6536-874f-44d7-950e-d7a84da53199\",\"status\":\"PENDING\",\"courseCode\":\"CSE301\"}"
+    },
+    {
+      "id": "ACD-RH-09",
+      "role": "Academic",
+      "flow": "Duyet nguyen vong",
+      "status": "Pass",
+      "evidence": "{\"id\":\"9f6d6536-874f-44d7-950e-d7a84da53199\",\"status\":\"APPROVED\"}"
+    },
+    {
+      "id": "STU-RH-06",
+      "role": "Student",
+      "flow": "Gui nguyen vong 2",
+      "status": "Pass",
+      "evidence": "{\"id\":\"41a6279b-9832-452e-aaac-d50a1956c178\",\"status\":\"PENDING\",\"courseCode\":\"CSE301\"}"
+    },
+    {
+      "id": "ACD-RH-10",
+      "role": "Academic",
+      "flow": "Tu choi nguyen vong co ly do",
+      "status": "Pass",
+      "evidence": "{\"id\":\"41a6279b-9832-452e-aaac-d50a1956c178\",\"status\":\"REJECTED\"}"
+    },
+    {
+      "id": "ADM-RH-04",
+      "role": "Admin",
+      "flow": "Xac minh audit/logs rehearsal",
+      "status": "Fail",
+      "evidence": "GET /logs?search=RH0514093608&limit=20 -> 400: \"Dữ liệu gửi lên không hợp lệ.\""
+    },
+    {
+      "id": "ADM-RH-05",
+      "role": "Admin",
+      "flow": "Settings final check",
+      "status": "Pass",
+      "evidence": "{\"restored\":false,\"simulationNow\":\"2026-04-10T08:00:00.000Z\"}"
+    }
+  ],
+  "context": {
+    "studentCodes": [
+      "N26RH05140936081",
+      "N26RH05140936082",
+      "N26RH05140936083",
+      "N26RH05140936084",
+      "N26RH05140936085",
+      "N26RH05140936086"
+    ],
+    "mainSection": {
+      "id": "1872687b-e2fc-409b-afeb-c73e300db35b",
+      "sectionCode": "RH0514093608-MAIN"
+    },
+    "waitlistSection": {
+      "id": "89e00e4c-6e49-412d-9e8b-7fb54082b865",
+      "sectionCode": "RH0514093608-WL"
+    },
+    "overrideSection": {
+      "id": "e40976a4-deb2-45c8-af26-e2dbd75ba0bd",
+      "sectionCode": "RH0514093608-OVR"
+    },
+    "backupHint": "Snapshot backup was exported before this script in docs/demo-snapshot-rehearsal-backup-*.json"
+  }
+}

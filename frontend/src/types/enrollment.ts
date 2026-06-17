@@ -10,6 +10,8 @@ export type EnrollmentStatus =
   | 'WAITLISTED'
   | 'DROPPED'
 
+export type EnrollmentConventionCode = 'DK_TC' | 'HUY_DK' | 'KHONG_DU_DK' | 'NGOAI_TGDK'
+
 export interface EnrollmentTimelineItem {
   status: EnrollmentStatus
   timestamp: string
@@ -24,6 +26,7 @@ export interface Enrollment {
   sectionId: string
   semesterId: string
   status: EnrollmentStatus
+  pdfStatusCode?: EnrollmentConventionCode
   createdAt: string
   updatedAt: string
   cancelledAt?: string
@@ -36,6 +39,7 @@ export interface Enrollment {
 export interface EligibilityCheckResult {
   canRegister: boolean
   finalStatus: EnrollmentStatus | null
+  pdfStatusCode?: EnrollmentConventionCode
   errorCode?: string | undefined
   message: string
   checks: Array<{

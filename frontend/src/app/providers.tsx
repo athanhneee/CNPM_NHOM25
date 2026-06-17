@@ -5,6 +5,20 @@ import { useDataStore } from '@/app/store/data.store'
 import { useSessionStore } from '@/app/store/session.store'
 import { useUiStore } from '@/app/store/ui.store'
 import { ToastProvider } from '@/components/ui/ToastProvider'
+import { settingsService } from '@/services/settings.api'
+import type { AuthSession } from '@/types/auth'
+
+function getLocalSessionExpiryMs(session: AuthSession, sessionTimeoutMinutes: number) {
+  const refreshExpiryMs = new Date(session.expiresAt).getTime()
+  const lastActivityMs = new Date(session.lastActivityAt).getTime()
+
+  if (!Number.isFinite(lastActivityMs) || sessionTimeoutMinutes <= 0) {
+    return refreshExpiryMs
+  }
+
+  const idleExpiryMs = lastActivityMs + sessionTimeoutMinutes * 60_000
+  return Number.isFinite(refreshExpiryMs) ? Math.min(refreshExpiryMs, idleExpiryMs) : idleExpiryMs
+}
 
 function AppBootstrapper() {
   const initialize = useAuthStore((state) => state.initialize)
@@ -28,13 +42,22 @@ function AppBootstrapper() {
   }, [resetMaintenance, settings.maintenanceMode])
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+
+    void settingsService.loadSettings().catch(() => undefined)
+  }, [isAuthenticated])
+
+  useEffect(() => {
     if (!isAuthenticated || !session) {
       hideWarning()
       return
     }
 
     const interval = window.setInterval(() => {
-      const secondsLeft = Math.max(0, Math.round((new Date(session.expiresAt).getTime() - Date.now()) / 1000))
+      const localExpiryMs = getLocalSessionExpiryMs(session, settings.sessionTimeoutMinutes)
+      const secondsLeft = Math.max(0, Math.round((localExpiryMs - Date.now()) / 1000))
       if (secondsLeft <= 0) {
         hideWarning()
         pushToast({
@@ -60,6 +83,7 @@ function AppBootstrapper() {
     logout,
     pushToast,
     session,
+    settings.sessionTimeoutMinutes,
     settings.warningBeforeLogoutSeconds,
     showWarning,
   ])

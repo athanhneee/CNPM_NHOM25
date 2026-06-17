@@ -1,0 +1,27 @@
+{
+  "runId": "RH0514093608",
+  "timestamp": "2026-05-14T09:37:19.917Z",
+  "results": [
+    {
+      "id": "LEC-RH-01B",
+      "role": "Lecturer",
+      "flow": "Giang vien LEC002 xem lop duoc phan cong",
+      "status": "Pass",
+      "evidence": "{\"username\":\"thu.ha\",\"visible\":true,\"sectionId\":\"1872687b-e2fc-409b-afeb-c73e300db35b\"}"
+    },
+    {
+      "id": "LEC-RH-02B",
+      "role": "Lecturer",
+      "flow": "Giang vien LEC002 xem danh sach sinh vien",
+      "status": "Pass",
+      "evidence": "{\"rows\":1,\"statuses\":[\"CANCELLED\"]}"
+    },
+    {
+      "id": "ADM-RH-04B",
+      "role": "Admin",
+      "flow": "Xem audit log theo targetId section rehearsal",
+      "status": "Pass",
+      "evidence": "{\"matchingLogs\":4,\"actions\":[\"REGISTER_COURSE\",\"UPDATE_SECTION\",\"UPDATE_SECTION\",\"CREATE_SECTION\"]}"
+    }
+  ]
+}

@@ -16,9 +16,10 @@ function buildReportRows() {
         sectionCode: section.sectionCode,
         courseCode: section.courseCode,
         courseName: course?.name ?? section.sectionCode,
-        lecturerName: lecturer?.fullName ?? 'Chua phan cong',
+        lecturerName: lecturer?.fullName ?? 'Chưa phân công',
         capacity: section.capacity,
         registeredCount: section.registeredCount,
+        waitlistCount: section.waitlistCount,
         utilizationRate: section.capacity ? section.registeredCount / section.capacity : 0,
         status: section.status,
       } satisfies ReportRow
@@ -36,11 +37,13 @@ export const reportService = {
     const totalSections = rows.length
     const totalCapacity = rows.reduce((sum, row) => sum + row.capacity, 0)
     const totalRegistered = rows.reduce((sum, row) => sum + row.registeredCount, 0)
+    const totalWaitlisted = rows.reduce((sum, row) => sum + row.waitlistCount, 0)
     const fullSections = rows.filter((row) => row.status === 'FULL').length
     return {
       totalSections,
       totalCapacity,
       totalRegistered,
+      totalWaitlisted,
       averageUtilization: totalCapacity ? totalRegistered / totalCapacity : 0,
       fullSections,
     }
@@ -54,6 +57,7 @@ export const reportService = {
       giang_vien: row.lecturerName,
       si_so_toi_da: row.capacity,
       da_dang_ky: row.registeredCount,
+      danh_sach_cho: row.waitlistCount,
       ty_le_lap_day: `${Math.round(row.utilizationRate * 100)}%`,
       trang_thai: row.status,
     }))

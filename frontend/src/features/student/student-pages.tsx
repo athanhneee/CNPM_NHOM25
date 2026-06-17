@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
 import { formatDateTime } from '@/lib/date'
@@ -28,15 +28,31 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { TimelineList } from '@/components/shared/TimelineList'
 import { WeekCalendarGrid } from '@/components/calendar/WeekCalendarGrid'
 import { SemesterScheduleTable } from '@/components/calendar/SemesterScheduleTable'
-import { enrollmentService } from '@/mocks/services/enrollment.service'
+import { enrollmentService } from '@/services/enrollment.api'
+import { courseService } from '@/services/course.api'
+import { sectionService } from '@/services/section.api'
+import { scheduleService } from '@/services/schedule.api'
+import { wishService } from '@/services/wish.api'
 import { getStudentScheduleEntries } from '@/lib/selectors'
 import type { Course } from '@/types/course'
+import type { ScheduleEntry } from '@/types/schedule'
 import type { User } from '@/types/user'
 
 function useStudentContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
   const pushToast = useUiStore((state) => state.pushToast)
+
+  useEffect(() => {
+    if (!currentUser?.roles.includes('STUDENT')) {
+      return
+    }
+
+    void courseService.listCourses().catch(() => undefined)
+    void sectionService.listSections().catch(() => undefined)
+    void enrollmentService.listHistory(currentUser.id).catch(() => undefined)
+    void wishService.listWishes({ studentId: currentUser.id }).catch(() => undefined)
+  }, [currentUser?.id, currentUser?.roles])
 
   return {
     currentUser,
@@ -227,7 +243,6 @@ export function OpenSectionsPage() {
         <option value="OPEN" />
         <option value="FULL" />
         <option value="CLOSED" />
-        <option value="CANCELLED" />
       </datalist>
 
       {rows.length ? <Table columns={columns} rows={rows} rowKey={(row) => row.section.id} /> : <EmptyState title="Không có lớp phù hợp" description="Hãy đổi bộ lọc hoặc tìm kiếm bằng mã môn học, tên môn học." />}
@@ -325,6 +340,7 @@ export function RegisterPage() {
   const [facultyFilter, setFacultyFilter] = useState('')
   const [selectedSectionId, setSelectedSectionId] = useState('')
   const [checkResult, setCheckResult] = useState<ReturnType<typeof evaluateEnrollmentEligibility> | null>(null)
+  const [checkingId, setCheckingId] = useState('')
   const [loadingId, setLoadingId] = useState('')
 
   if (!currentUser || !actor) {
@@ -366,7 +382,7 @@ export function RegisterPage() {
   const currentCredits = getStudentCurrentCredits(snapshot, student.id)
   const currentEnrollments = getStudentSemesterEnrollments(snapshot, student.id)
 
-  function handleCheck(sectionId: string) {
+  async function handleCheck(sectionId: string) {
     const section = snapshot.sections.find((item) => item.id === sectionId)
     const targetCourse = snapshot.courses.find((item) => item.code === section?.courseCode)
     if (!section || !targetCourse) {
@@ -385,6 +401,11 @@ export function RegisterPage() {
     })
     setSelectedSectionId(sectionId)
     setCheckResult(result)
+
+    setCheckingId(sectionId)
+    const apiResult = await enrollmentService.checkEligibility(student.id, sectionId)
+    setCheckingId('')
+    setCheckResult(apiResult)
   }
 
   return (
@@ -396,8 +417,8 @@ export function RegisterPage() {
 
       <div className="grid gap-4 lg:grid-cols-4">
         <CreditMeter current={currentCredits} min={snapshot.settings.minCredits} max={snapshot.settings.maxCredits} />
-        <StatCard label="Lớp đang học" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'REGISTERED').length)} hint="REGISTERED trong học kỳ hiện tại" />
-        <StatCard label="Đang ở danh sách chờ" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'WAITLISTED').length)} hint="Cần theo dõi để chuyển lớp" />
+        <StatCard label="Lớp đang học" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'REGISTERED').length)} hint="DK_TC trong học kỳ hiện tại" />
+        <StatCard label="Đang ở danh sách chờ" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'WAITLISTED').length)} hint="Theo dõi nội bộ, khi đối chiếu PDF quy về KHONG_DU_DK" />
         <StatCard label="Cảnh báo" value={checkResult?.checks.filter((item) => !item.passed).length ? String(checkResult.checks.filter((item) => !item.passed).length) : '0'} hint="Số rule fail của section đang xem" />
       </div>
 
@@ -459,7 +480,12 @@ export function RegisterPage() {
                     <SectionCapacityBar capacity={row.section.capacity} registeredCount={row.section.registeredCount} waitlistCount={row.section.waitlistCount} />
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button variant="secondary" onClick={() => handleCheck(row.section.id)} type="button">
+                    <Button
+                      loading={checkingId === row.section.id}
+                      variant="secondary"
+                      onClick={() => void handleCheck(row.section.id)}
+                      type="button"
+                    >
                       Kiểm tra điều kiện
                     </Button>
                     <Button
@@ -473,7 +499,7 @@ export function RegisterPage() {
                           title: result.success ? 'Đã cập nhật đăng ký' : 'Đăng ký thất bại',
                           description: result.message,
                         })
-                        handleCheck(row.section.id)
+                        void handleCheck(row.section.id)
                       }}
                       type="button"
                     >
@@ -530,7 +556,7 @@ export function CancelRegistrationPage() {
       <PageTitleBlock title="Sinh viên - Hủy đăng ký học phần" subtitle="Chỉ cho phép thao tác trong cửa sổ điều chỉnh và cập nhật lại sĩ số lớp học phần." />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <StatCard label="Có thể hủy" value={String(rows.length)} hint="REGISTERED hoặc WAITLISTED" />
+        <StatCard label="Có thể hủy" value={String(rows.length)} hint="DK_TC hoặc bản ghi chờ nội bộ" />
         <StatCard label="Hạn điều chỉnh" value={snapshot.settings.adjustmentEnd.slice(0, 10)} hint="Hạn cuối hiện tại" />
         <StatCard label="Tín chỉ đang ảnh hưởng" value={String(rows.reduce((sum, item) => sum + (item.course?.credits ?? 0), 0))} hint="Tổng tín chỉ của danh sách hủy" />
       </div>
@@ -557,7 +583,7 @@ export function CancelRegistrationPage() {
           </div>
         </Card>
       ) : (
-        <EmptyState title="Không có học phần để hủy" description="Danh sách hiện tại không có REGISTERED hoặc WAITLISTED để thực hiện hủy." />
+        <EmptyState title="Không có học phần để hủy" description="Danh sách hiện tại không có bản ghi đăng ký hợp lệ hoặc đang chờ xử lý để hủy." />
       )}
 
       <ConfirmDialog
@@ -578,7 +604,7 @@ export function CancelRegistrationPage() {
           setLoading(true)
           try {
             await enrollmentService.cancelEnrollment(selected.enrollment.id, auditActor, reason || undefined)
-            pushToast({ tone: 'success', title: 'Đã hủy đăng ký', description: 'Bản ghi đăng ký đã chuyển sang CANCELLED.' })
+            pushToast({ tone: 'success', title: 'Đã hủy đăng ký', description: 'Bản ghi đăng ký đã chuyển sang HUY_DK.' })
             setSelectedEnrollmentId('')
             setReason('')
           } catch (error) {
@@ -612,10 +638,10 @@ export function WithdrawPage() {
 
   return (
     <div className="grid gap-6">
-      <PageTitleBlock title="Sinh viên - Rút học phần" subtitle="Rút học phần sau giai đoạn điều chỉnh và trước hạn rút học phần, trạng thái sẽ chuyển thành DROPPED." />
+      <PageTitleBlock title="Sinh viên - Rút học phần" subtitle="Rút học phần sau giai đoạn điều chỉnh và trước hạn rút học phần; khi hiển thị theo PDF sẽ quy về HUY_DK." />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <StatCard label="Có thể rút" value={String(rows.length)} hint="Chỉ áp dụng cho REGISTERED" />
+        <StatCard label="Có thể rút" value={String(rows.length)} hint="Chỉ áp dụng cho DK_TC" />
         <StatCard label="Hạn rút học phần" value={snapshot.settings.withdrawalDeadline.slice(0, 10)} hint="Hạn cuối hệ thống" />
         <StatCard label="Tín chỉ ảnh hưởng" value={String(rows.reduce((sum, item) => sum + (item.course?.credits ?? 0), 0))} hint="Tổng tín chỉ có thể bị giảm" />
       </div>
@@ -640,13 +666,13 @@ export function WithdrawPage() {
           </div>
         </Card>
       ) : (
-        <EmptyState title="Không có học phần để rút" description="Chỉ những bản ghi REGISTERED mới có thể chuyển sang DROPPED." />
+        <EmptyState title="Không có học phần để rút" description="Chỉ những bản ghi DK_TC mới có thể rút." />
       )}
 
       <ConfirmDialog
         open={Boolean(selected)}
         title="Xác nhận rút học phần"
-        description="Trạng thái sẽ chuyển thành DROPPED và vẫn được lưu trong lịch sử đăng ký."
+        description="Trạng thái nội bộ sẽ được lưu lịch sử và hiển thị theo quy ước PDF là HUY_DK."
         confirmLabel="Rút học phần"
         danger
         loading={loading}
@@ -662,7 +688,7 @@ export function WithdrawPage() {
           setLoading(true)
           try {
             await enrollmentService.withdrawEnrollment(selected.enrollment.id, reason, auditActor)
-            pushToast({ tone: 'success', title: 'Rút học phần thành công', description: 'Bản ghi đã được cập nhật sang DROPPED.' })
+            pushToast({ tone: 'success', title: 'Rút học phần thành công', description: 'Bản ghi đã được hiển thị theo quy ước HUY_DK.' })
             setSelectedEnrollmentId('')
             setReason('')
           } catch (error) {
@@ -680,21 +706,54 @@ export function WithdrawPage() {
 
 export function WeekSchedulePage() {
   const { currentUser, snapshot } = useStudentContext()
+  const studentId = currentUser?.id
+  const semesterId = snapshot.settings.currentSemesterId
+  const scheduleKey = studentId ? `${studentId}:${semesterId}:week` : ''
+  const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
+
+  useEffect(() => {
+    if (!studentId) {
+      return
+    }
+
+    let active = true
+    void scheduleService
+      .getStudentWeekSchedule(studentId, semesterId)
+      .then((entries) => {
+        if (active) {
+          setApiSchedule({ key: scheduleKey, entries })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setApiSchedule(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [studentId, semesterId, scheduleKey])
+
   if (!currentUser) {
     return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
   const student = currentUser
-  const entries = getStudentScheduleEntries(snapshot, student.id)
+  const entries = apiEntries ?? getStudentScheduleEntries(snapshot, student.id)
   const morning = entries.filter((entry) => entry.startPeriod <= 4).length
   const afternoon = entries.filter((entry) => entry.startPeriod >= 5 && entry.startPeriod <= 8).length
   const evening = entries.filter((entry) => entry.startPeriod > 8).length
 
   return (
     <div className="grid gap-6">
-      <PageTitleBlock title="Sinh viên - Thời khóa biểu dạng tuần" subtitle="Hiển thị lịch học theo ngày và khung giờ, ưu tiên bố cục trực quan để đối chiếu nhanh trong tuần." />
+      <PageTitleBlock
+        title="Sinh viên - Thời khóa biểu dạng tuần"
+        subtitle="Hiển thị lịch theo thứ, tiết và dải tuần học trong học kỳ hiện tại; màn này chưa lọc theo một tuần lịch cụ thể."
+      />
       <div className="grid gap-4 lg:grid-cols-4">
-        <StatCard label="Tổng buổi" value={String(entries.length)} hint="Tất cả buổi học trong học kỳ hiện tại" />
+        <StatCard label="Tổng buổi" value={String(entries.length)} hint="Các buổi học theo khung tuần của học kỳ" />
         <StatCard label="Buổi sáng" value={String(morning)} hint="Tiết 1-4" />
         <StatCard label="Buổi chiều" value={String(afternoon)} hint="Tiết 5-8" />
         <StatCard label="Buổi tối" value={String(evening)} hint="Tiết 9-10" />
@@ -706,18 +765,48 @@ export function WeekSchedulePage() {
 
 export function SemesterSchedulePage() {
   const { currentUser, snapshot } = useStudentContext()
+  const studentId = currentUser?.id
+  const semesterId = snapshot.settings.currentSemesterId
+  const scheduleKey = studentId ? `${studentId}:${semesterId}:semester` : ''
+  const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
+
+  useEffect(() => {
+    if (!studentId) {
+      return
+    }
+
+    let active = true
+    void scheduleService
+      .getStudentSemesterSchedule(studentId, semesterId)
+      .then((entries) => {
+        if (active) {
+          setApiSchedule({ key: scheduleKey, entries })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setApiSchedule(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [studentId, semesterId, scheduleKey])
+
   if (!currentUser) {
     return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
   const student = currentUser
-  const entries = getStudentScheduleEntries(snapshot, student.id)
+  const entries = apiEntries ?? getStudentScheduleEntries(snapshot, student.id)
 
   return (
     <div className="grid gap-6">
       <PageTitleBlock title="Sinh viên - Thời khóa biểu dạng học kỳ" subtitle="Bảng tổng hợp học phần đang học để đối chiếu lịch, in ấn và rà soát phòng học trong toàn học kỳ." />
       <Card title="Bảng lịch học kỳ" description="Tổng hợp theo môn học, lớp học phần, tiết học, phòng và giảng viên phụ trách">
-        {entries.length ? <SemesterScheduleTable entries={entries} /> : <EmptyState title="Chưa có lịch học" description="Không có buổi học REGISTERED nào để hiển thị." />}
+        {entries.length ? <SemesterScheduleTable entries={entries} /> : <EmptyState title="Chưa có lịch học" description="Không có buổi học DK_TC nào để hiển thị." />}
       </Card>
     </div>
   )
@@ -770,11 +859,11 @@ export function HistoryPage() {
       </FilterBar>
       <datalist id="enrollment-status-list">
         <option value="ALL" />
-        <option value="REGISTERED" />
-        <option value="WAITLISTED" />
-        <option value="CANCELLED" />
-        <option value="DROPPED" />
-        <option value="REJECTED" />
+        <option value="REGISTERED">DK_TC</option>
+        <option value="WAITLISTED">KHONG_DU_DK</option>
+        <option value="CANCELLED">HUY_DK</option>
+        <option value="DROPPED">HUY_DK</option>
+        <option value="REJECTED">KHONG_DU_DK</option>
       </datalist>
       <Table columns={columns} rows={rows} rowKey={(row) => row.enrollment.id} />
       <Dialog open={Boolean(selected)} title="Timeline đăng ký" description="Chỉ để tra cứu, không cho phép chỉnh sửa." onClose={() => setSelectedId('')}>
@@ -817,40 +906,46 @@ export function PrerequisitePage() {
 }
 
 export function WishPage() {
-  const { currentUser, snapshot, pushToast, actor } = useStudentContext()
-  const createWishRequest = useDataStore((state) => state.createWishRequest)
-  const cancelWishRequest = useDataStore((state) => state.cancelWishRequest)
+  const { currentUser, snapshot, pushToast } = useStudentContext()
   const [courseCode, setCourseCode] = useState(snapshot.courses[0]?.code ?? '')
   const [preferredGroup, setPreferredGroup] = useState('01')
   const [reason, setReason] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  if (!currentUser || !actor) {
+  if (!currentUser) {
     return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
   const student = currentUser
-  const auditActor = actor
   const wishes = snapshot.wishes.filter((wish) => wish.studentId === student.id)
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!reason.trim()) {
       pushToast({ tone: 'warning', title: 'Thiếu lý do', description: 'Vui lòng nhập lý do để gửi nguyện vọng.' })
       return
     }
 
-    createWishRequest(
-      {
+    try {
+      setIsSubmitting(true)
+      await wishService.createWishRequest({
         studentId: student.id,
         semesterId: snapshot.settings.currentSemesterId,
         courseCode,
         preferredGroup,
         reason,
-      },
-      auditActor,
-    )
-    setReason('')
-    pushToast({ tone: 'success', title: 'Đã gửi nguyện vọng', description: 'Nguyện vọng mới đã được lưu vào dữ liệu demo trên trình duyệt.' })
+      })
+      setReason('')
+      pushToast({ tone: 'success', title: 'Đã gửi nguyện vọng', description: 'Nguyện vọng mới đã được lưu qua API backend.' })
+    } catch (error) {
+      pushToast({
+        tone: 'error',
+        title: 'Không thể gửi nguyện vọng',
+        description: error instanceof Error ? error.message : 'Hệ thống không thể xử lý yêu cầu.',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -862,7 +957,9 @@ export function WishPage() {
             <Input label="Mã môn học" value={courseCode} onChange={(event) => setCourseCode(event.target.value)} list="course-code-list" />
             <Input label="Nhóm / tổ mong muốn" value={preferredGroup} onChange={(event) => setPreferredGroup(event.target.value)} />
             <Textarea label="Lý do" value={reason} onChange={(event) => setReason(event.target.value)} />
-            <Button type="submit">Gửi nguyện vọng</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              Gửi nguyện vọng
+            </Button>
           </form>
           <datalist id="course-code-list">
             {snapshot.courses.map((course) => (
@@ -890,9 +987,17 @@ export function WishPage() {
                       {wish.status === 'PENDING' ? (
                         <Button
                           variant="ghost"
-                          onClick={() => {
-                            cancelWishRequest(wish.id, auditActor)
-                            pushToast({ tone: 'info', title: 'Đã hủy nguyện vọng', description: 'Yêu cầu đã chuyển sang CANCELLED.' })
+                          onClick={async () => {
+                            try {
+                              await wishService.cancelWishRequest(wish.id)
+                              pushToast({ tone: 'info', title: 'Đã hủy nguyện vọng', description: 'Yêu cầu đã chuyển sang CANCELLED.' })
+                            } catch (error) {
+                              pushToast({
+                                tone: 'error',
+                                title: 'Không thể hủy nguyện vọng',
+                                description: error instanceof Error ? error.message : 'Hệ thống không thể xử lý yêu cầu.',
+                              })
+                            }
                           }}
                           type="button"
                         >
@@ -956,10 +1061,10 @@ export function RegisteredPage() {
       </FilterBar>
       <datalist id="registered-status-list">
         <option value="ALL" />
-        <option value="REGISTERED" />
-        <option value="WAITLISTED" />
-        <option value="CANCELLED" />
-        <option value="DROPPED" />
+        <option value="REGISTERED">DK_TC</option>
+        <option value="WAITLISTED">KHONG_DU_DK</option>
+        <option value="CANCELLED">HUY_DK</option>
+        <option value="DROPPED">HUY_DK</option>
       </datalist>
       <Table columns={columns} rows={rows} rowKey={(row) => row.enrollment.id} />
     </div>

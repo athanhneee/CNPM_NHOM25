@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cnpm_backend
+    ports:
+      - "3000:3000"
+    # Đọc trực tiếp file .env của backend
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cnpm_frontend
+    ports:
+      - "5173:5173"
+    # Đọc trực tiếp file .env của frontend
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    restart: unless-stopped
