@@ -91,8 +91,8 @@ export function WeekCalendarGrid({
 
           <div className="overflow-x-auto pb-2">
             <div className="min-w-[1180px] space-y-3">
-              <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3">
-                <div className="flex flex-col justify-center border-b-2 border-slate-200 pb-4 pt-2">
+              <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3 relative">
+                <div className="sticky left-0 z-20 flex flex-col justify-center border-b-2 border-slate-200 bg-white pb-4 pt-2 shadow-[8px_0_16px_-4px_rgba(0,0,0,0.05)]">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Khung giờ</p>
                   <p className="mt-1 text-xs font-medium text-slate-500">Tiết học</p>
                 </div>
@@ -110,8 +110,8 @@ export function WeekCalendarGrid({
                 ))}
               </div>
 
-              <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3">
-                <div className="grid auto-rows-[90px]">
+              <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3 relative">
+                <div className="sticky left-0 z-20 grid auto-rows-[90px] bg-white shadow-[8px_0_16px_-4px_rgba(0,0,0,0.05)]">
                   {periodSlots.map((slot) => (
                     <div
                       key={slot.period}
