@@ -330,7 +330,11 @@ export class SectionsService {
     return this.prisma.$transaction(async (tx) => {
       const currentSection = await tx.section.findUnique({ where: { id } })
       if (!currentSection) {
-        throw new NotFoundException('Khong tim thay lop hoc phan.')
+        throw new NotFoundException('Không tìm thấy lớp học phần.')
+      }
+
+      if (currentSection.status === SectionStatus.CANCELLED) {
+        throw new BadRequestException('Lớp học phần này đã bị hủy trước đó.')
       }
 
       const settings = await tx.systemSetting.findUnique({ where: { id: 1 } })
@@ -342,6 +346,7 @@ export class SectionsService {
         },
       })
       const cancellationSummary = summarizeSectionCancellation(activeEnrollments)
+      const cancellationReason = `Lớp học phần ${currentSection.sectionCode} bị hủy.`
 
       await Promise.all(
         activeEnrollments.map((enrollment) =>
@@ -350,6 +355,7 @@ export class SectionsService {
             data: {
               status: EnrollmentStatus.CANCELLED,
               cancelledAt: now,
+              reasonCode: cancellationReason,
               timeline: [
                 ...timelineArray(enrollment.timeline),
                 {
@@ -357,7 +363,7 @@ export class SectionsService {
                   timestamp: now.toISOString(),
                   actorId: actor.actorId,
                   actorRole: actor.actorRole,
-                  note: `Section ${currentSection.sectionCode} was cancelled.`,
+                  note: cancellationReason,
                 },
               ],
             },
@@ -380,7 +386,7 @@ export class SectionsService {
         'CANCEL_SECTION',
         id,
         'WARNING',
-        `Hủy lớp học phần ${section.sectionCode}.`,
+        `Hủy lớp học phần ${section.sectionCode}. Đã hủy ${cancellationSummary.cancelledEnrollmentCount} bản ghi đăng ký.`,
         cancellationSummary,
       )
 

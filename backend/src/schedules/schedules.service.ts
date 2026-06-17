@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { EnrollmentStatus } from '@prisma/client'
+import { EnrollmentStatus, SectionStatus } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
@@ -34,7 +34,7 @@ export class SchedulesService {
 
   async findSemesterSchedule(semesterId: string) {
     return this.prisma.section.findMany({
-      where: { semesterId },
+      where: { semesterId, status: { not: SectionStatus.CANCELLED } },
       orderBy: [{ weekday: 'asc' }, { startPeriod: 'asc' }],
       include: {
         course: true,
@@ -57,7 +57,7 @@ export class SchedulesService {
 
   async getLecturerSchedule(lecturerId: string, semesterId: string) {
     const sections = await this.prisma.section.findMany({
-      where: { lecturerId, semesterId },
+      where: { lecturerId, semesterId, status: { not: SectionStatus.CANCELLED } },
       select: { id: true },
     })
 
