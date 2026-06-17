@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
 import { formatDateTime } from '@/lib/date'
@@ -48,10 +48,28 @@ function useStudentContext() {
       return
     }
 
-    void courseService.listCourses().catch(() => undefined)
-    void sectionService.listSections().catch(() => undefined)
-    void enrollmentService.listHistory(currentUser.id).catch(() => undefined)
-    void wishService.listWishes({ studentId: currentUser.id }).catch(() => undefined)
+    let mounted = true
+    useDataStore.getState().setApiStatus('loading')
+
+    Promise.all([
+      courseService.listCourses(),
+      sectionService.listSections(),
+      enrollmentService.listHistory(currentUser.id),
+      wishService.listWishes({ studentId: currentUser.id }),
+    ])
+      .then(() => {
+        if (!mounted) return
+        useDataStore.getState().setApiStatus('ready')
+        useDataStore.getState().setLastSyncedAt(new Date().toISOString())
+      })
+      .catch((err) => {
+        if (!mounted) return
+        useDataStore.getState().setApiStatus('error', err instanceof Error ? err.message : 'Unknown error')
+      })
+
+    return () => {
+      mounted = false
+    }
   }, [currentUser?.id, currentUser?.roles])
 
   return {

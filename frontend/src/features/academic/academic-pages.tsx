@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -78,9 +78,27 @@ function useAcademicContext() {
       return
     }
 
-    void courseService.listCourses().catch(() => undefined)
-    void sectionService.listSections().catch(() => undefined)
-    void enrollmentService.listEnrollments().catch(() => undefined)
+    let mounted = true
+    useDataStore.getState().setApiStatus('loading')
+
+    Promise.all([
+      courseService.listCourses(),
+      sectionService.listSections(),
+      enrollmentService.listEnrollments(),
+    ])
+      .then(() => {
+        if (!mounted) return
+        useDataStore.getState().setApiStatus('ready')
+        useDataStore.getState().setLastSyncedAt(new Date().toISOString())
+      })
+      .catch((err) => {
+        if (!mounted) return
+        useDataStore.getState().setApiStatus('error', err instanceof Error ? err.message : 'Unknown error')
+      })
+
+    return () => {
+      mounted = false
+    }
   }, [currentUser?.id, currentUser?.roles])
 
   return {

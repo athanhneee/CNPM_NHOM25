@@ -37,7 +37,7 @@ export function ToastProvider() {
         return (
           <div
             key={toast.id}
-            className={`pointer-events-auto rounded-3xl border px-4 py-3 shadow-lg ${toneMap[toast.tone]}`}
+            className={`app-panel-enter pointer-events-auto rounded-3xl border px-4 py-3 shadow-lg ${toneMap[toast.tone]}`}
           >
             <div className="flex items-start gap-3">
               <Icon className="mt-0.5 h-5 w-5 shrink-0" />

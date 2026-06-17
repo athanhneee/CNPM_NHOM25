@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+import { create } from 'zustand'
 import {
   canCancelEnrollment,
   canWithdrawEnrollment,
@@ -164,6 +164,20 @@ function shouldResetLegacyDemoData() {
 }
 
 function createInitialSnapshot() {
+  const isDemoMode = import.meta.env.VITE_APP_MODE === 'demo'
+
+  if (!isDemoMode) {
+    return {
+      users: [],
+      courses: [],
+      sections: [],
+      enrollments: [],
+      logs: [],
+      settings: seedSettings,
+      wishes: [],
+    } satisfies DemoSnapshot
+  }
+
   if (shouldResetLegacyDemoData()) {
     const snapshot = createSeedSnapshot()
     persistSnapshot(snapshot)
@@ -197,6 +211,11 @@ export interface DataStoreState {
   courseRelations: typeof seedCourseRelations
   reportPresets: ReportPreset[]
   demoAccounts: typeof demoAccounts
+  apiStatus: 'idle' | 'loading' | 'ready' | 'error'
+  apiError: string | null
+  lastSyncedAt: string | null
+  setApiStatus: (status: 'idle' | 'loading' | 'ready' | 'error', error?: string | null) => void
+  setLastSyncedAt: (iso: string) => void
   resetDemoData: () => void
   exportDemoData: () => string
   importDemoData: (rawData: string) => { ok: true } | { ok: false; error: string }
@@ -287,6 +306,11 @@ export const useDataStore = create<DataStoreState>((set, get) => ({
   courseRelations: seedCourseRelations,
   reportPresets,
   demoAccounts,
+  apiStatus: 'idle',
+  apiError: null,
+  lastSyncedAt: null,
+  setApiStatus: (status, error = null) => set({ apiStatus: status, apiError: error }),
+  setLastSyncedAt: (iso) => set({ lastSyncedAt: iso }),
   resetDemoData: () => {
     const snapshot = createSeedSnapshot()
     persistSnapshot(snapshot)

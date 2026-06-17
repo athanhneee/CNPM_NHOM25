@@ -840,6 +840,7 @@ export function SettingsPage() {
                 pushToast({ tone: 'success', title: 'Đã cập nhật tham số', description: 'Các tham số mới đã có hiệu lực ngay trên giao diện.' })
               }}
               type="button"
+              ignoreMaintenance={true}
             >
               Lưu thay đổi
             </Button>

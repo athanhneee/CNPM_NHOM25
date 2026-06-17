@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { useDataStore } from '@/app/store/data.store'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
@@ -8,6 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: ReactNode
   rightIcon?: ReactNode
   loading?: boolean
+  ignoreMaintenance?: boolean
 }
 
 const variantClassMap: Record<ButtonVariant, string> = {
@@ -28,9 +30,17 @@ export function Button({
   leftIcon,
   rightIcon,
   loading = false,
+  ignoreMaintenance = false,
   disabled,
   ...props
 }: ButtonProps) {
+  const isDemoMode = import.meta.env.VITE_APP_MODE === 'demo'
+  const apiStatus = useDataStore((state) => state.apiStatus)
+  const maintenanceMode = useDataStore((state) => state.settings.maintenanceMode)
+  const isApiError = apiStatus === 'error' && !isDemoMode
+  const isWriteAction = !props.type || props.type === 'submit' || (props.type === 'button' && (variant === 'primary' || variant === 'danger'))
+  const shouldDisable = disabled || loading || (isWriteAction && (isApiError || (maintenanceMode && !ignoreMaintenance && !isDemoMode)))
+
   return (
     <button
       className={cn(
@@ -38,7 +48,7 @@ export function Button({
         variantClassMap[variant],
         className,
       )}
-      disabled={disabled || loading}
+      disabled={shouldDisable}
       {...props}
     >
       {leftIcon}

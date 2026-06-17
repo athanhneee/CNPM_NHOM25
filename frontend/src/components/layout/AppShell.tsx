@@ -1,4 +1,4 @@
-﻿import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useDataStore } from '@/app/store/data.store'
 import { useSessionStore } from '@/app/store/session.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -9,11 +9,15 @@ import { Button } from '@/components/ui/Button'
 
 export function AppShell() {
   const settings = useDataStore((state) => state.settings)
+  const apiStatus = useDataStore((state) => state.apiStatus)
+  const apiError = useDataStore((state) => state.apiError)
   const maintenanceDismissed = useSessionStore((state) => state.maintenanceDismissed)
   const dismissMaintenance = useSessionStore((state) => state.dismissMaintenance)
   const warningVisible = useSessionStore((state) => state.warningVisible)
   const remainingSeconds = useSessionStore((state) => state.remainingSeconds)
   const sidebarOpen = useUiStore((state) => state.sidebarOpen)
+  const location = useLocation()
+  const isDemoMode = import.meta.env.VITE_APP_MODE === 'demo'
 
   return (
     <div className="min-h-screen bg-transparent text-slate-900">
@@ -22,6 +26,19 @@ export function AppShell() {
         <TopHeader />
         <main className="px-4 py-6 xl:px-6">
           <div className="mx-auto max-w-[1600px] space-y-6">
+            {isDemoMode && (
+              <div className="flex items-center justify-center rounded-3xl bg-teal-100 px-5 py-2 text-sm font-medium text-teal-800">
+                Chế độ Demo (Offline) - Không kết nối với backend thực.
+              </div>
+            )}
+
+            {apiStatus === 'error' && !isDemoMode && (
+              <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-800">
+                <p className="font-semibold">Mất kết nối backend hoặc phiên đăng nhập đã hết hạn</p>
+                {apiError && <p className="text-sm mt-1">{apiError}</p>}
+              </div>
+            )}
+
             {settings.maintenanceMode && !maintenanceDismissed ? (
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900">
                 <div>
@@ -41,7 +58,9 @@ export function AppShell() {
             ) : null}
 
             <Breadcrumbs />
-            <Outlet />
+            <div key={location.pathname} className="app-route-enter">
+              <Outlet />
+            </div>
           </div>
         </main>
       </div>

@@ -225,7 +225,7 @@ function upsertEnrollments(enrollments: Enrollment[]) {
 }
 
 async function refreshSections() {
-  await sectionService.listSections().catch(() => undefined)
+  await sectionService.listSections()
 }
 
 function normalizeEligibility(result: EligibilityCheckResult): EligibilityCheckResult {

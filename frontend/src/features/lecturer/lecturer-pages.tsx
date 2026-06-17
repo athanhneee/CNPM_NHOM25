@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
@@ -31,8 +31,26 @@ function useLecturerContext() {
       return
     }
 
-    void courseService.listCourses().catch(() => undefined)
-    void sectionService.listSections({ lecturerId: currentUser.id }).catch(() => undefined)
+    let mounted = true
+    useDataStore.getState().setApiStatus('loading')
+
+    Promise.all([
+      courseService.listCourses(),
+      sectionService.listSections({ lecturerId: currentUser.id }),
+    ])
+      .then(() => {
+        if (!mounted) return
+        useDataStore.getState().setApiStatus('ready')
+        useDataStore.getState().setLastSyncedAt(new Date().toISOString())
+      })
+      .catch((err) => {
+        if (!mounted) return
+        useDataStore.getState().setApiStatus('error', err instanceof Error ? err.message : 'Unknown error')
+      })
+
+    return () => {
+      mounted = false
+    }
   }, [currentUser?.id, currentUser?.roles])
 
   return { currentUser, snapshot }
