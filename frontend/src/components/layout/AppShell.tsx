@@ -20,9 +20,9 @@ export function AppShell() {
   const isDemoMode = import.meta.env.VITE_APP_MODE === 'demo'
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-900">
+    <div className="min-h-screen bg-transparent text-slate-900 overflow-x-hidden">
       <SidebarNav />
-      <div className={`transition-all xl:ml-[300px] ${sidebarOpen ? 'xl:ml-[300px]' : 'xl:ml-[300px]'}`}>
+      <div className="transition-all xl:ml-[312px]">
         <TopHeader />
         <main className="px-4 py-6 xl:px-6">
           <div className="mx-auto max-w-[1600px] space-y-6">

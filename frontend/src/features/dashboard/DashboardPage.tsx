@@ -285,11 +285,13 @@ function StudentPerformanceCard({ user }: { user: User }) {
 function StudentInstructorCard({ instructors }: { instructors: User[] }) {
   return (
     <Card
+      className="flex flex-col h-full"
+      contentClassName="flex-1 flex flex-col justify-center"
       title="Giảng viên phụ trách"
       description="Danh bạ nhanh các giảng viên đang phụ trách lớp học phần của bạn."
     >
       {instructors.length ? (
-        <div className="grid gap-3">
+        <div className="grid gap-3 flex-1 justify-start">
           {instructors.map((lecturer) => (
             <div
               className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3"
@@ -311,6 +313,7 @@ function StudentInstructorCard({ instructors }: { instructors: User[] }) {
         </div>
       ) : (
         <EmptyState
+          className="bg-transparent border-none shadow-none py-6"
           title="Chưa có giảng viên hiển thị"
           description="Danh bạ giảng viên sẽ xuất hiện khi bạn có lớp học phần đang theo học."
         />
@@ -329,9 +332,14 @@ function RecentLogsCard({
   description?: string
 }) {
   return (
-    <Card title={title} description={description}>
+    <Card
+      className="flex flex-col h-full"
+      contentClassName="flex-1 flex flex-col justify-center"
+      title={title}
+      description={description}
+    >
       {logs.length ? (
-        <div className="grid gap-3">
+        <div className="grid gap-3 flex-1 justify-start">
           {logs.map((log) => (
             <div
               className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
@@ -347,6 +355,7 @@ function RecentLogsCard({
         </div>
       ) : (
         <EmptyState
+          className="bg-transparent border-none shadow-none py-6"
           title="Chưa có bản ghi nổi bật"
           description="Nhật ký liên quan sẽ xuất hiện tại đây sau khi có thao tác mới."
         />
@@ -356,42 +365,50 @@ function RecentLogsCard({
 }
 
 function StudentProfileCard({ user }: { user: User }) {
+  const hasInterests = user.interests && user.interests.length > 0
+
   return (
     <Card
+      className="flex flex-col h-full"
+      contentClassName="flex-1 flex flex-col justify-between"
       title="Hồ sơ học tập"
       description="Thông tin nhanh để bạn theo dõi học kỳ và định hướng học tập."
     >
-      <div className="grid gap-3">
-        <div className="rounded-2xl bg-slate-50 px-4 py-3">
-          <p className="text-sm font-medium text-slate-500">Sinh viên</p>
-          <p className="mt-1 text-xl font-semibold text-slate-950">{user.fullName}</p>
-          <p className="mt-1 text-sm text-slate-500">{user.code}</p>
+      <div className="grid gap-3 flex-1 justify-between">
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+            <p className="text-sm font-medium text-slate-500">Sinh viên</p>
+            <p className="mt-1 text-xl font-semibold text-slate-950">{user.fullName}</p>
+            <p className="mt-1 text-sm text-slate-500">{user.code}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-sm text-slate-500">Chuyên ngành</p>
+              <p className="mt-1 font-semibold text-slate-900">{user.program ?? user.department}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-sm text-slate-500">Khóa học</p>
+              <p className="mt-1 font-semibold text-slate-900">{user.cohort ?? 'K23'}</p>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
-            <p className="text-sm text-slate-500">Chuyên ngành</p>
-            <p className="mt-1 font-semibold text-slate-900">{user.program ?? user.department}</p>
+        {hasInterests && (
+          <div className="rounded-2xl border border-cyan-100 bg-cyan-50/60 px-4 py-3 mt-3">
+            <p className="text-sm font-medium text-slate-700">Mối quan tâm</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {user.interests?.map((interest) => (
+                <span
+                  className="rounded-full bg-white px-3 py-2 text-sm font-semibold text-cyan-700 shadow-sm"
+                  key={interest}
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
-            <p className="text-sm text-slate-500">Khóa học</p>
-            <p className="mt-1 font-semibold text-slate-900">{user.cohort ?? 'K23'}</p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-cyan-100 bg-cyan-50/60 px-4 py-3">
-          <p className="text-sm font-medium text-slate-700">Mối quan tâm</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(user.interests ?? []).map((interest) => (
-              <span
-                className="rounded-full bg-white px-3 py-2 text-sm font-semibold text-cyan-700 shadow-sm"
-                key={interest}
-              >
-                {interest}
-              </span>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </Card>
   )
@@ -641,29 +658,32 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.4fr_0.6fr]">
+          <div className="grid items-stretch gap-6 lg:grid-cols-2">
             <StudentAttendanceCard user={currentUser} />
             <StudentPerformanceCard user={currentUser} />
           </div>
 
-          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.55fr_0.45fr]">
-            <div className="grid gap-6">
-              <StudentProfileCard user={currentUser} />
-              <Card
-                title="Lối tắt dành cho sinh viên"
-                description="Đi thẳng tới các màn hình quan trọng nhất trong quá trình đăng ký tín chỉ."
-              >
-                <DashboardQuickLinks links={quickLinksByRole.STUDENT} />
-              </Card>
+          <div className="grid items-stretch gap-6 lg:grid-cols-2">
+            <StudentProfileCard user={currentUser} />
+            <StudentInstructorCard instructors={studentInstructors} />
+            
+            <Card
+              className="flex flex-col h-full"
+              contentClassName="flex-1 flex flex-col justify-between"
+              title="Lối tắt dành cho sinh viên"
+              description="Đi thẳng tới các màn hình quan trọng nhất trong quá trình đăng ký tín chỉ."
+            >
+              <DashboardQuickLinks links={quickLinksByRole.STUDENT} />
+            </Card>
+            
+            <RecentLogsCard
+              logs={logs}
+              title="Nhật ký học vụ"
+              description="Các thao tác đăng ký, chờ xếp lớp và cập nhật gần đây của bạn."
+            />
+            
+            <div className="lg:col-span-2">
               <SystemWindowCard settings={snapshot.settings} />
-            </div>
-            <div className="grid gap-6">
-              <StudentInstructorCard instructors={studentInstructors} />
-              <RecentLogsCard
-                logs={logs}
-                title="Nhật ký học vụ"
-                description="Các thao tác đăng ký, chờ xếp lớp và cập nhật gần đây của bạn."
-              />
             </div>
           </div>
         </>
@@ -718,8 +738,13 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.55fr_0.45fr]">
-            <Card title="Lối tắt dành cho giảng viên" description="Đi tới lớp được phân công, lịch dạy và danh sách sinh viên.">
+          <div className="grid items-stretch gap-6 lg:grid-cols-2">
+            <Card
+              className="flex flex-col h-full"
+              contentClassName="flex-1 flex flex-col justify-between"
+              title="Lối tắt dành cho giảng viên"
+              description="Đi tới lớp được phân công, lịch dạy và danh sách sinh viên."
+            >
               <DashboardQuickLinks links={quickLinksByRole.LECTURER} />
             </Card>
             <RecentLogsCard
@@ -768,7 +793,7 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.55fr_0.45fr]">
+          <div className="grid items-start gap-6 lg:grid-cols-2">
             <div className="grid gap-6">
               {academicLeadership.length > 0 && <AcademicLeadershipCard leaders={academicLeadership} />}
               <Card title="Lối tắt điều phối" description="Chuyển nhanh tới các khu vực quản trị học vụ quan trọng.">
@@ -838,7 +863,7 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-[0.55fr_0.45fr]">
+          <div className="grid items-start gap-6 lg:grid-cols-2">
             <div className="grid gap-6">
               {adminTeam.length > 0 && <AdminTeamCard team={adminTeam} />}
               <Card title="Lối tắt quản trị" description="Đi tới các màn quan trọng để quản lý người dùng và cấu hình hệ thống.">

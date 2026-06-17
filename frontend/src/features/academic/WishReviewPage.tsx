@@ -323,7 +323,7 @@ export function WishReviewPage() {
         title="Phòng đào tạo - Duyệt nguyện vọng"
         subtitle="Theo dõi nhu cầu mở lớp, đổi nhóm và cập nhật trạng thái xử lý trực tiếp từ backend."
       />
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Tổng nguyện vọng" value={String(snapshot.wishes.filter((wish) => wish.semesterId === currentSemesterId).length)} hint="Học kỳ hiện tại" />
         <StatCard label="Chờ xử lý" value={String(pendingCount)} hint="Cần phòng đào tạo xem" />
         <StatCard label="Đã duyệt" value={String(approvedCount)} hint="Có thể mở lớp/đổi nhóm" />

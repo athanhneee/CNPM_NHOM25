@@ -408,7 +408,7 @@ export function UserAccountsPage() {
         title="Quản trị - Quản lý tài khoản người dùng"
         subtitle="Theo dõi tài khoản, thêm sinh viên thủ công hoặc nhập danh sách từ Excel/tab-delimited ngay trên giao diện quản trị."
       />
-      <div className="grid gap-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         <StatCard label="Tổng người dùng" value={String(snapshot.users.length)} hint="Toàn bộ hệ thống mô phỏng" />
         <StatCard label="Sinh viên" value={String(totalStudents)} hint="Đăng nhập bằng MSSV" />
         <StatCard label="Nhân sự" value={String(totalStaff)} hint="Giảng viên, phòng đào tạo, quản trị" />
@@ -577,7 +577,7 @@ export function UserAccountsPage() {
 
       {lastImportSummary ? (
         <Card title="Kết quả lần nhập gần nhất" description="Tóm tắt các bản ghi vừa được thêm hoặc bị bỏ qua.">
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-3">
             <StatCard label="Đã thêm mới" value={String(lastImportSummary.created.length)} hint="Sinh viên đã ghi vào hệ thống" />
             <StatCard label="Bị bỏ qua" value={String(lastImportSummary.skipped.length)} hint="Thường do trùng MSSV" />
             <StatCard label="Lỗi dữ liệu" value={String(lastImportSummary.issues.length)} hint="Cần chỉnh lại trước khi nhập" />

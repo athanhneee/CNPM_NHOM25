@@ -220,7 +220,7 @@ export function WeekSchedulePage() {
         title="Sinh viên - Thời khóa biểu dạng tuần"
         subtitle="Hiển thị lịch theo thứ, tiết và dải tuần học trong học kỳ hiện tại; màn này chưa lọc theo một tuần lịch cụ thể."
       />
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Tổng buổi" value={String(entries.length)} hint="Các buổi học theo khung tuần của học kỳ" />
         <StatCard label="Buổi sáng" value={String(morning)} hint="Tiết 1-4" />
         <StatCard label="Buổi chiều" value={String(afternoon)} hint="Tiết 5-8" />

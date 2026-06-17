@@ -232,7 +232,7 @@ export function OpenSectionsPage() {
         subtitle="Tra cứu các lớp học phần đang mở trong học kỳ hiện tại, kèm sĩ số, danh sách chờ và thao tác đăng ký nhanh."
       />
 
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Tổng lớp mở" value={String(rows.length)} hint="Sau khi đã lọc" />
         <StatCard label="Còn chỗ" value={String(rows.filter((row) => row.availableSeats > 0).length)} hint="Có thể đăng ký trực tiếp" />
         <StatCard label="Có danh sách chờ" value={String(rows.filter((row) => row.section.allowWaitlist).length)} hint="Cho phép vào danh sách chờ" />

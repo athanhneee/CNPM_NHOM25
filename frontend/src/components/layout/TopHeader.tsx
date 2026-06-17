@@ -13,15 +13,15 @@ export function TopHeader() {
     <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-white/60 bg-white/70 px-4 py-4 backdrop-blur xl:px-6">
       <div className="flex items-center gap-3">
         <button
-          className="brand-ring interactive-press inline-flex h-12 w-12 items-center justify-center rounded-[24px] border border-slate-200 bg-white shadow-sm"
+          className="brand-ring interactive-press inline-flex h-12 w-12 items-center justify-center rounded-[24px] border border-slate-200 bg-white shadow-sm xl:hidden"
           onClick={toggleSidebar}
           type="button"
         >
           <Menu className="h-5 w-5 text-slate-700" />
         </button>
         <div>
-          <p className="text-sm text-slate-500">Học kỳ đang xem</p>
-          <p className="text-base font-semibold text-slate-900">
+          <p className="text-xs text-slate-500 sm:text-sm">Học kỳ đang xem</p>
+          <p className="text-sm font-semibold text-slate-900 sm:text-base">
             {getCurrentSemesterLabel(settings, semesters)}
           </p>
         </div>

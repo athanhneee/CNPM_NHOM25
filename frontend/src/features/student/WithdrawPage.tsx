@@ -177,7 +177,7 @@ export function WithdrawPage() {
     <div className="grid gap-6">
       <PageTitleBlock title="Sinh viên - Rút học phần" subtitle="Rút học phần sau giai đoạn điều chỉnh và trước hạn rút học phần; khi hiển thị theo PDF sẽ quy về HUY_DK." />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-3">
         <StatCard label="Có thể rút" value={String(rows.length)} hint="Chỉ áp dụng cho DK_TC" />
         <StatCard label="Hạn rút học phần" value={snapshot.settings.withdrawalDeadline.slice(0, 10)} hint="Hạn cuối hệ thống" />
         <StatCard label="Tín chỉ ảnh hưởng" value={String(rows.reduce((sum, item) => sum + (item.course?.credits ?? 0), 0))} hint="Tổng tín chỉ có thể bị giảm" />

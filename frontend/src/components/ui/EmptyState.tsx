@@ -1,15 +1,17 @@
 import type { ReactNode } from 'react'
 import { Inbox } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface EmptyStateProps {
   title: string
   description: string
   action?: ReactNode
+  className?: string
 }
 
-export function EmptyState({ title, description, action }: EmptyStateProps) {
+export function EmptyState({ title, description, action, className }: EmptyStateProps) {
   return (
-    <div className="surface-panel grid place-items-center gap-4 px-6 py-12 text-center">
+    <div className={cn("surface-panel grid place-items-center gap-4 px-6 py-12 text-center", className)}>
       <div className="rounded-full bg-cyan-50 p-4 text-cyan-700">
         <Inbox className="h-7 w-7" />
       </div>
@@ -23,3 +25,4 @@ export function EmptyState({ title, description, action }: EmptyStateProps) {
 }
 
 export default EmptyState
+

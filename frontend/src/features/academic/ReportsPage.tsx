@@ -231,7 +231,7 @@ export function ReportsPage() {
         subtitle="Tổng hợp tỷ lệ lấp đầy, section full và tình hình phân bổ giảng viên trong học kỳ."
         actions={<ExportButtons fileName="academic-reports.csv" onExportCsv={() => void reportService.exportReportCsv('academic-reports.csv', currentSemesterId)} />}
       />
-      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         <StatCard label="Tổng lớp" value={String(stats.totalSections)} hint="Học kỳ hiện tại" />
         <StatCard label="Tổng sức chứa" value={String(stats.totalCapacity)} hint="Tất cả lớp đang mở" />
         <StatCard label="Đã đăng ký" value={String(stats.totalRegistered)} hint="Sinh viên DK_TC" />
