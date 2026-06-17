@@ -678,48 +678,60 @@ export class EnrollmentsService {
           throw new BadRequestException('Sinh viên không tồn tại hoặc tài khoản không có vai trò sinh viên.')
         }
 
-        if (!section || section.status === SectionStatus.CANCELLED) {
-          throw new BadRequestException('Lớp học phần không tồn tại hoặc đã bị hủy.')
+        if (!section) {
+          throw new BadRequestException('Lớp học phần không tồn tại.')
         }
 
-        const currentEnrollment = await tx.enrollment.findFirst({
+        if (section.status === SectionStatus.CANCELLED) {
+          throw new BadRequestException('Lớp học phần đã bị hủy, không thể override.')
+        }
+
+        if (section.semesterId !== settings.currentSemesterId) {
+          throw new BadRequestException('Lớp học phần không thuộc học kỳ hiện tại.')
+        }
+
+        const duplicateSection = await tx.enrollment.findFirst({
           where: {
             studentId: body.studentId,
             sectionId: body.sectionId,
-            semesterId: settings.currentSemesterId,
+            semesterId: section.semesterId,
             status: { in: ACTIVE_ENROLLMENT_STATUSES },
           },
         })
 
-        const now = settings.simulationNow
-        const enrollment = currentEnrollment
-          ? await tx.enrollment.update({
-              where: { id: currentEnrollment.id },
-              data: {
-                status: EnrollmentStatus.REGISTERED,
-                waitlistOrder: null,
-                reasonCode: body.reason,
-                timeline: [
-                  ...timelineArray(currentEnrollment.timeline),
-                  buildTimelineItem(actor, EnrollmentStatus.REGISTERED, `Override: ${body.reason}`, now),
-                ],
-              },
-            })
-          : await tx.enrollment.create({
-              data: {
-                studentId: body.studentId,
-                sectionId: body.sectionId,
-                semesterId: settings.currentSemesterId,
-                status: EnrollmentStatus.REGISTERED,
-                reasonCode: body.reason,
-                timeline: [buildTimelineItem(actor, EnrollmentStatus.REGISTERED, `Override: ${body.reason}`, now)],
-              },
-            })
+        if (duplicateSection) {
+          throw new BadRequestException('Sinh viên đã có bản ghi đăng ký cho lớp này.')
+        }
 
-        const registeredDelta = currentEnrollment?.status === EnrollmentStatus.REGISTERED ? 0 : 1
-        const waitlistDelta = currentEnrollment?.status === EnrollmentStatus.WAITLISTED ? -1 : 0
-        const registeredCount = section.registeredCount + registeredDelta
-        const waitlistCount = Math.max(section.waitlistCount + waitlistDelta, 0)
+        const duplicateCourse = await tx.enrollment.findFirst({
+          where: {
+            studentId: body.studentId,
+            sectionId: { not: body.sectionId },
+            semesterId: section.semesterId,
+            status: { in: ACTIVE_ENROLLMENT_STATUSES },
+            section: { is: { courseCode: section.courseCode } },
+          },
+        })
+
+        if (duplicateCourse) {
+          throw new BadRequestException('Sinh viên đã đăng ký hoặc vào danh sách chờ một lớp khác của cùng học phần trong học kỳ này.')
+        }
+
+        const capacityOverride = section.registeredCount >= section.capacity
+        const now = settings.simulationNow
+        const enrollment = await tx.enrollment.create({
+          data: {
+            studentId: body.studentId,
+            sectionId: body.sectionId,
+            semesterId: section.semesterId,
+            status: EnrollmentStatus.REGISTERED,
+            reasonCode: body.reason,
+            timeline: [buildTimelineItem(actor, EnrollmentStatus.REGISTERED, `Override: ${body.reason}`, now)],
+          },
+        })
+
+        const registeredCount = section.registeredCount + 1
+        const waitlistCount = section.waitlistCount
 
         await tx.section.update({
           where: { id: section.id },
@@ -732,6 +744,7 @@ export class EnrollmentsService {
 
         await appendAuditLog(tx, actor, 'OVERRIDE_ENROLLMENT', enrollment.id, 'SUCCESS', 'Override đăng ký học phần.', {
           reason: body.reason,
+          capacityOverride,
         })
 
         return enrollment
