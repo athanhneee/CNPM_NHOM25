@@ -125,7 +125,7 @@ interface QuickLink {
 
 function DashboardQuickLinks({ links }: { links: QuickLink[] }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid grid-cols-2 gap-3">
       {links.map((link) => (
         <Link
           key={`${link.to}-${link.label}`}
@@ -242,7 +242,7 @@ function StudentPerformanceCard({ user }: { user: User }) {
           ))}
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl bg-slate-50 px-4 py-3.5">
             <p className="text-xs font-medium text-slate-500">GPA hiện tại</p>
             <p className="mt-1.5 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
@@ -347,7 +347,7 @@ function StudentProfileCard({ user }: { user: User }) {
           <p className="mt-1 text-sm text-slate-500">{user.code}</p>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl bg-slate-50 px-4 py-3">
             <p className="text-sm text-slate-500">Chuyên ngành</p>
             <p className="mt-1 font-semibold text-slate-900">{user.program ?? user.department}</p>
@@ -651,7 +651,6 @@ export function LoginPage() {
 export function DashboardPage() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
-  const announcements = useDataStore((state) => state.announcements)
   const stats = useMemo(
     () => (currentUser ? getRoleDashboardMetrics(snapshot, currentUser) : []),
     [currentUser, snapshot],
@@ -799,7 +798,7 @@ export function DashboardPage() {
                   {formatLongDate(snapshot.settings.simulationNow)}
                 </div>
                 <div>
-                  <h2 className="text-3xl font-semibold tracking-[-0.05em] text-white lg:text-4xl">
+                  <h2 className="text-2xl font-semibold tracking-[-0.05em] text-white lg:text-3xl">
                     Chào mừng quay lại, {currentUser.fullName}!
                   </h2>
                   <p className="mt-3 max-w-3xl text-base leading-8 text-white/82">
@@ -819,7 +818,7 @@ export function DashboardPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white/14 px-4 py-3 backdrop-blur">
                   <p className="text-sm text-white/72">Mã sinh viên</p>
                   <p className="mt-1 text-xl font-semibold">{currentUser.code}</p>
@@ -840,7 +839,7 @@ export function DashboardPage() {
             </div>
           </section>
 
-          <div className="grid gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {stats.map((stat, index) => (
               <StatCard
                 hint={stat.hint}
@@ -888,14 +887,14 @@ export function DashboardPage() {
                   <Clock3 className="h-4 w-4" />
                   Lịch dạy học kỳ hiện tại
                 </p>
-                <h2 className="text-3xl font-semibold tracking-[-0.05em]">
+                <h2 className="text-2xl font-semibold tracking-[-0.05em] lg:text-3xl">
                   Xin chào {currentUser.fullName}, đây là bức tranh giảng dạy của bạn hôm nay.
                 </h2>
                 <p className="max-w-3xl text-base leading-8 text-white/82">
                   Theo dõi nhanh số lớp phụ trách, sĩ số, phòng dạy và các hoạt động mới nhất của từng lớp học phần được phân công.
                 </p>
               </div>
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white/14 px-4 py-3">
                   <p className="text-sm text-white/72">Giảng viên</p>
                   <p className="mt-1 font-semibold">{currentUser.fullName}</p>
@@ -916,7 +915,7 @@ export function DashboardPage() {
             </div>
           </section>
 
-          <div className="grid gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {stats.map((stat, index) => (
               <StatCard
                 hint={stat.hint}
@@ -950,7 +949,7 @@ export function DashboardPage() {
                   <UsersRound className="h-4 w-4" />
                   Điều phối đào tạo học kỳ hiện tại
                 </p>
-                <h2 className="text-3xl font-semibold tracking-[-0.05em]">
+                <h2 className="text-2xl font-semibold tracking-[-0.05em] lg:text-3xl">
                   Khu vực điều hành dành cho phòng đào tạo PTIT HCM.
                 </h2>
                 <p className="max-w-3xl text-base leading-8 text-white/82">
@@ -966,7 +965,7 @@ export function DashboardPage() {
             </div>
           </section>
 
-          <div className="grid gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {stats.map((stat, index) => (
               <StatCard
                 hint={stat.hint}
@@ -1005,14 +1004,14 @@ export function DashboardPage() {
                   <ShieldAlert className="h-4 w-4" />
                   Trung tâm điều phối hệ thống
                 </p>
-                <h2 className="text-3xl font-semibold tracking-[-0.05em]">
+                <h2 className="text-2xl font-semibold tracking-[-0.05em] lg:text-3xl">
                   Quản trị toàn bộ nền tảng học vụ PTIT HCM từ một bảng điều khiển tập trung.
                 </h2>
                 <p className="max-w-3xl text-base leading-8 text-white/78">
                   Theo dõi người dùng, phân quyền, cửa sổ đăng ký, trạng thái bảo trì và các bản ghi audit quan trọng để hệ thống luôn ổn định trong mùa đăng ký cao điểm.
                 </p>
               </div>
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white/12 px-4 py-3">
                   <p className="text-sm text-white/70">Quản trị viên hiện tại</p>
                   <p className="mt-1 font-semibold">{currentUser.fullName}</p>
@@ -1035,7 +1034,7 @@ export function DashboardPage() {
             </div>
           </section>
 
-          <div className="grid gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {stats.map((stat, index) => (
               <StatCard
                 hint={stat.hint}
@@ -1064,29 +1063,6 @@ export function DashboardPage() {
           </div>
         </>
       ) : null}
-
-      <Card
-        title="Thông báo hệ thống"
-        description="Banner học vụ và ghi chú vận hành đang áp dụng cho học kỳ hiện tại."
-      >
-        <div className="grid gap-3">
-          {announcements.map((announcement) => (
-            <div
-              key={announcement.id}
-              className={`rounded-2xl border px-4 py-3 ${
-                announcement.tone === 'warning'
-                  ? 'border-amber-200 bg-amber-50'
-                  : announcement.tone === 'success'
-                    ? 'border-teal-200 bg-teal-50'
-                    : 'border-cyan-200 bg-cyan-50'
-              }`}
-            >
-              <p className="font-semibold text-slate-900">{announcement.title}</p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">{announcement.description}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   )
 }
@@ -1889,6 +1865,7 @@ export function NotFoundPage() {
     </main>
   )
 }
+
 
 
 
