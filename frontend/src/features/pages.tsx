@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   ArrowRight,
   BadgeCheck,
-  BellDot,
   BookOpenText,
   Building2,
   CalendarDays,
@@ -42,7 +41,6 @@ import { authApiService } from '@/services/auth.api'
 import {
   getRelevantLogs,
   getRoleDashboardMetrics,
-  getRoleHomePath,
   ROLE_LABELS,
   getStudentAttendanceBreakdown,
   getStudentInstructorContacts,
@@ -106,15 +104,40 @@ function getCodeLabelByRole(role: UserRole) {
   }
 }
 
-function getDashboardIcon(index: number) {
-  const icons = [
-    <GraduationCap className="h-5 w-5" key="graduation" />,
-    <ChartColumnBig className="h-5 w-5" key="chart" />,
-    <BellDot className="h-5 w-5" key="bell" />,
-    <Sparkles className="h-5 w-5" key="sparkles" />,
-  ]
-
-  return icons[index % icons.length]
+function getDashboardIcon(role: string, index: number) {
+  if (role === 'STUDENT') {
+    return [
+      <GraduationCap className="h-5 w-5" key="1" />,
+      <BookOpenText className="h-5 w-5" key="2" />,
+      <Clock3 className="h-5 w-5" key="3" />,
+      <CalendarDays className="h-5 w-5" key="4" />,
+    ][index]
+  }
+  if (role === 'LECTURER') {
+    return [
+      <School className="h-5 w-5" key="1" />,
+      <UsersRound className="h-5 w-5" key="2" />,
+      <Clock3 className="h-5 w-5" key="3" />,
+      <MapPinHouse className="h-5 w-5" key="4" />,
+    ][index]
+  }
+  if (role === 'ACADEMIC_OFFICE') {
+    return [
+      <BookOpenText className="h-5 w-5" key="1" />,
+      <ChartColumnBig className="h-5 w-5" key="2" />,
+      <UsersRound className="h-5 w-5" key="3" />,
+      <Building2 className="h-5 w-5" key="4" />,
+    ][index]
+  }
+  if (role === 'ADMIN') {
+    return [
+      <UserRound className="h-5 w-5" key="1" />,
+      <ShieldAlert className="h-5 w-5" key="2" />,
+      <LockKeyhole className="h-5 w-5" key="3" />,
+      <ChartColumnBig className="h-5 w-5" key="4" />,
+    ][index]
+  }
+  return <Sparkles className="h-5 w-5" key="fallback" />
 }
 
 interface QuickLink {
@@ -775,17 +798,6 @@ export function DashboardPage() {
 
   return (
     <div className="grid gap-6">
-      <PageTitleBlock
-        title="Dashboard theo vai trò"
-        subtitle="Tổng quan học vụ được cá nhân hóa theo tài khoản hiện tại, ưu tiên dữ liệu cần theo dõi ngay trong ngày."
-        actions={
-          <Link to={getRoleHomePath(primaryRole)}>
-            <Button leftIcon={<ArrowRight className="h-4 w-4" />} type="button">
-              Mở module chính
-            </Button>
-          </Link>
-        }
-      />
 
       {primaryRole === 'STUDENT' ? (
         <>
@@ -843,7 +855,7 @@ export function DashboardPage() {
             {stats.map((stat, index) => (
               <StatCard
                 hint={stat.hint}
-                icon={getDashboardIcon(index)}
+                icon={getDashboardIcon(primaryRole, index)}
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}
@@ -919,7 +931,7 @@ export function DashboardPage() {
             {stats.map((stat, index) => (
               <StatCard
                 hint={stat.hint}
-                icon={getDashboardIcon(index)}
+                icon={getDashboardIcon(primaryRole, index)}
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}
@@ -969,7 +981,7 @@ export function DashboardPage() {
             {stats.map((stat, index) => (
               <StatCard
                 hint={stat.hint}
-                icon={getDashboardIcon(index)}
+                icon={getDashboardIcon(primaryRole, index)}
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}
@@ -1038,7 +1050,7 @@ export function DashboardPage() {
             {stats.map((stat, index) => (
               <StatCard
                 hint={stat.hint}
-                icon={getDashboardIcon(index)}
+                icon={getDashboardIcon(primaryRole, index)}
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}
@@ -1865,6 +1877,9 @@ export function NotFoundPage() {
     </main>
   )
 }
+
+
+
 
 
 
