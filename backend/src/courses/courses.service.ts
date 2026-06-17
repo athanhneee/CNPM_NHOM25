@@ -35,7 +35,8 @@ export class CoursesService {
     }
   }
 
-  private async syncCourseConditions(
+  private async validateAndSyncConditions(
+    client: Prisma.TransactionClient,
     courseCode: string,
     relations: {
       prerequisites?: string[]
@@ -43,6 +44,32 @@ export class CoursesService {
       corequisites?: string[]
     },
   ) {
+    const allCodes = [
+      ...(relations.prerequisites ?? []),
+      ...(relations.prestudy ?? []),
+      ...(relations.corequisites ?? []),
+    ]
+
+    for (const code of allCodes) {
+      if (code === courseCode) {
+        throw new BadRequestException(`Môn học không thể yêu cầu chính nó làm điều kiện (${code}).`)
+      }
+    }
+
+    if (allCodes.length > 0) {
+      const existingCourses = await client.course.findMany({
+        where: { code: { in: allCodes } },
+        select: { code: true },
+      })
+      const existingCodes = new Set(existingCourses.map((c) => c.code))
+      for (const code of allCodes) {
+        if (!existingCodes.has(code)) {
+          throw new BadRequestException(`Môn học điều kiện không tồn tại: ${code}.`)
+        }
+      }
+    }
+
+    const seen = new Set<string>()
     const data = [
       ...(relations.prerequisites ?? []).map((requiredCourseCode) => ({
         courseCode,
@@ -61,10 +88,18 @@ export class CoursesService {
       })),
     ]
 
-    await this.prisma.$transaction([
-      this.prisma.courseCondition.deleteMany({ where: { courseCode } }),
-      ...(data.length ? [this.prisma.courseCondition.createMany({ data, skipDuplicates: true })] : []),
-    ])
+    for (const entry of data) {
+      const key = `${entry.type}:${entry.requiredCourseCode}`
+      if (seen.has(key)) {
+        throw new BadRequestException(`Điều kiện trùng lặp: ${entry.type} - ${entry.requiredCourseCode}.`)
+      }
+      seen.add(key)
+    }
+
+    await client.courseCondition.deleteMany({ where: { courseCode } })
+    if (data.length) {
+      await client.courseCondition.createMany({ data, skipDuplicates: true })
+    }
   }
 
   private async assertUniqueCode(code: string, ignoredCourseId?: string) {
@@ -141,27 +176,31 @@ export class CoursesService {
   async create(createCourseDto: CreateCourseDto, actor: AuditActor) {
     await this.assertUniqueCode(createCourseDto.code)
 
-    const course = await this.prisma.course.create({
-      data: {
-        ...createCourseDto,
-        status: createCourseDto.status ?? CourseStatus.ACTIVE,
+    const course = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.course.create({
+        data: {
+          ...createCourseDto,
+          status: createCourseDto.status ?? CourseStatus.ACTIVE,
+          prerequisites: createCourseDto.prerequisites ?? [],
+          prestudy: createCourseDto.prestudy ?? [],
+          corequisites: createCourseDto.corequisites ?? [],
+          category: createCourseDto.category ?? 'CORE',
+          majorsSupported: createCourseDto.majorsSupported,
+          majorCodesSupported: createCourseDto.majorCodesSupported,
+          applicableSpecializations: createCourseDto.applicableSpecializations,
+        },
+      })
+
+      await this.validateAndSyncConditions(tx, created.code, {
         prerequisites: createCourseDto.prerequisites ?? [],
         prestudy: createCourseDto.prestudy ?? [],
         corequisites: createCourseDto.corequisites ?? [],
-        category: createCourseDto.category ?? 'CORE',
-        majorsSupported: createCourseDto.majorsSupported,
-        majorCodesSupported: createCourseDto.majorCodesSupported,
-        applicableSpecializations: createCourseDto.applicableSpecializations,
-      },
-    })
+      })
 
-    await this.syncCourseConditions(course.code, {
-      prerequisites: createCourseDto.prerequisites ?? [],
-      prestudy: createCourseDto.prestudy ?? [],
-      corequisites: createCourseDto.corequisites ?? [],
-    })
+      await appendAuditLog(tx, actor, 'CREATE_COURSE', created.id, 'SUCCESS', `Created course ${created.code}.`)
 
-    await appendAuditLog(this.prisma, actor, 'CREATE_COURSE', course.id, 'SUCCESS', `Created course ${course.code}.`)
+      return created
+    })
 
     return this.findOne(course.id)
   }
@@ -176,32 +215,36 @@ export class CoursesService {
       await this.assertUniqueCode(updateCourseDto.code, id)
     }
 
-    const course = await this.prisma.course.update({
-      where: { id },
-      data: {
-        ...updateCourseDto,
-        prerequisites: updateCourseDto.prerequisites,
-        prestudy: updateCourseDto.prestudy,
-        corequisites: updateCourseDto.corequisites,
-        majorsSupported: updateCourseDto.majorsSupported,
-        majorCodesSupported: updateCourseDto.majorCodesSupported,
-        applicableSpecializations: updateCourseDto.applicableSpecializations,
-      },
-    })
-
-    if (
-      updateCourseDto.prerequisites !== undefined ||
-      updateCourseDto.prestudy !== undefined ||
-      updateCourseDto.corequisites !== undefined
-    ) {
-      await this.syncCourseConditions(course.code, {
-        prerequisites: updateCourseDto.prerequisites ?? this.stringArray(currentCourse.prerequisites),
-        prestudy: updateCourseDto.prestudy ?? this.stringArray(currentCourse.prestudy),
-        corequisites: updateCourseDto.corequisites ?? this.stringArray(currentCourse.corequisites),
+    const course = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.course.update({
+        where: { id },
+        data: {
+          ...updateCourseDto,
+          prerequisites: updateCourseDto.prerequisites,
+          prestudy: updateCourseDto.prestudy,
+          corequisites: updateCourseDto.corequisites,
+          majorsSupported: updateCourseDto.majorsSupported,
+          majorCodesSupported: updateCourseDto.majorCodesSupported,
+          applicableSpecializations: updateCourseDto.applicableSpecializations,
+        },
       })
-    }
 
-    await appendAuditLog(this.prisma, actor, 'UPDATE_COURSE', course.id, 'SUCCESS', `Updated course ${course.code}.`)
+      if (
+        updateCourseDto.prerequisites !== undefined ||
+        updateCourseDto.prestudy !== undefined ||
+        updateCourseDto.corequisites !== undefined
+      ) {
+        await this.validateAndSyncConditions(tx, updated.code, {
+          prerequisites: updateCourseDto.prerequisites ?? this.stringArray(currentCourse.prerequisites),
+          prestudy: updateCourseDto.prestudy ?? this.stringArray(currentCourse.prestudy),
+          corequisites: updateCourseDto.corequisites ?? this.stringArray(currentCourse.corequisites),
+        })
+      }
+
+      await appendAuditLog(tx, actor, 'UPDATE_COURSE', updated.id, 'SUCCESS', `Updated course ${updated.code}.`)
+
+      return updated
+    })
 
     return this.findOne(course.id)
   }
