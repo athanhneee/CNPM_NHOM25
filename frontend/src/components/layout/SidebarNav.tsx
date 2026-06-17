@@ -32,6 +32,7 @@ import { NavLink } from 'react-router-dom'
 import { getNavigationForRoles } from '@/app/config/navigation'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useUiStore } from '@/app/store/ui.store'
+import { ROLE_LABELS } from '@/lib/selectors'
 
 const iconMap = {
   'layout-dashboard': LayoutDashboard,
@@ -118,8 +119,8 @@ export function SidebarNav() {
         <div className="mb-6 rounded-2xl border border-cyan-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4 shadow-[0_14px_34px_rgba(15,118,110,0.08)]">
           <p className="text-sm font-semibold text-slate-900">{user.fullName}</p>
           <p className="mt-1 text-xs text-slate-500">{user.email}</p>
-          <p className="mt-3 inline-flex rounded-full bg-teal-500/12 px-3 py-1 text-xs font-medium text-teal-700">
-            {user.roles.join(' • ')}
+          <p className="mt-3 inline-flex rounded-full bg-teal-500/12 px-3 py-1 text-xs font-medium text-teal-700 uppercase">
+            {user.roles.map((r) => ROLE_LABELS[r] || r).join(' • ')}
           </p>
         </div>
 
