@@ -1,0 +1,26 @@
+@keyframes smooth-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.app-route-enter,
+.app-panel-enter,
+.app-dialog-enter,
+.app-drawer-enter {
+  animation: smooth-enter 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-route-enter,
+  .app-panel-enter,
+  .app-dialog-enter,
+  .app-drawer-enter {
+    animation: none !important;
+  }
+}

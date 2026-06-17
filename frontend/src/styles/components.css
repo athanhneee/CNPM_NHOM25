@@ -1,0 +1,21 @@
+@layer components {
+  .surface-panel {
+    @apply rounded-3xl border border-white/70 bg-white/84 shadow-[0_24px_72px_rgba(15,23,42,0.09)] backdrop-blur;
+  }
+
+  .brand-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+
+  .interactive-press {
+    @apply transition duration-200 ease-out;
+  }
+
+  .interactive-press:hover {
+    transform: translateY(-1px);
+  }
+
+  .interactive-press:active {
+    transform: translateY(1px) scale(0.985);
+  }
+}
