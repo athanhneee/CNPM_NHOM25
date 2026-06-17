@@ -23,6 +23,7 @@ import { getMajorMappingFromStudentCode } from '@/mocks/seed/ptit-helpers'
 import { ExportButtons } from '@/components/shared/ExportButtons'
 import { SystemWindowCard } from '@/components/shared/SystemWindowCard'
 import { formatDateTime } from '@/lib/date'
+import { ApiError } from '@/lib/api-client'
 import type { SystemSettings } from '@/types/settings'
 import {
   parseStudentImportFile,
@@ -74,6 +75,7 @@ function settingsToForm(settings: SystemSettings) {
     allowWaitlist: settings.allowWaitlist ? 'true' : 'false',
     sessionTimeoutMinutes: String(settings.sessionTimeoutMinutes),
     warningBeforeLogoutSeconds: String(settings.warningBeforeLogoutSeconds),
+    currentSemesterId: settings.currentSemesterId,
   }
 }
 
@@ -775,6 +777,7 @@ export function SettingsPage() {
             <Input label="Cảnh báo trước logout (giây)" value={form.warningBeforeLogoutSeconds} onChange={(event) => updateForm((value) => ({ ...value, warningBeforeLogoutSeconds: event.target.value }))} />
             <Input label="Bật bảo trì" value={form.maintenanceMode} onChange={(event) => updateForm((value) => ({ ...value, maintenanceMode: event.target.value }))} list="boolean-options" />
             <Input label="Cho phép danh sách chờ" value={form.allowWaitlist} onChange={(event) => updateForm((value) => ({ ...value, allowWaitlist: event.target.value }))} list="boolean-options" />
+            <Input label="Học kỳ hiện tại (ID)" value={form.currentSemesterId} onChange={(event) => updateForm((value) => ({ ...value, currentSemesterId: event.target.value }))} />
             <datalist id="boolean-options">
               <option value="true" />
               <option value="false" />
@@ -822,22 +825,39 @@ export function SettingsPage() {
                   return
                 }
 
-                await adminService.updateSettings({
-                  simulationNow,
-                  registrationStart,
-                  registrationEnd,
-                  adjustmentStart,
-                  adjustmentEnd,
-                  withdrawalDeadline,
-                  maxCredits: Number(form.maxCredits),
-                  minCredits: Number(form.minCredits),
-                  sessionTimeoutMinutes,
-                  warningBeforeLogoutSeconds,
-                  maintenanceMode: form.maintenanceMode === 'true',
-                  allowWaitlist: form.allowWaitlist === 'true',
-                }, actor)
-                setDraftForm(null)
-                pushToast({ tone: 'success', title: 'Đã cập nhật tham số', description: 'Các tham số mới đã có hiệu lực ngay trên giao diện.' })
+                try {
+                  await adminService.updateSettings({
+                    simulationNow,
+                    registrationStart,
+                    registrationEnd,
+                    adjustmentStart,
+                    adjustmentEnd,
+                    withdrawalDeadline,
+                    maxCredits: Number(form.maxCredits),
+                    minCredits: Number(form.minCredits),
+                    sessionTimeoutMinutes,
+                    warningBeforeLogoutSeconds,
+                    maintenanceMode: form.maintenanceMode === 'true',
+                    allowWaitlist: form.allowWaitlist === 'true',
+                    currentSemesterId: form.currentSemesterId,
+                  }, actor)
+                  setDraftForm(null)
+                  pushToast({ tone: 'success', title: 'Đã cập nhật tham số', description: 'Các tham số mới đã có hiệu lực ngay trên giao diện.' })
+                } catch (error) {
+                  if (error instanceof ApiError) {
+                    pushToast({
+                      tone: 'error',
+                      title: 'Lỗi cập nhật tham số',
+                      description: error.message,
+                    })
+                  } else {
+                    pushToast({
+                      tone: 'error',
+                      title: 'Lỗi hệ thống',
+                      description: 'Không thể cập nhật cấu hình.',
+                    })
+                  }
+                }
               }}
               type="button"
               ignoreMaintenance={true}
