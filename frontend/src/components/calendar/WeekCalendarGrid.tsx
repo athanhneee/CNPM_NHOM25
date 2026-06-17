@@ -71,18 +71,29 @@ export function WeekCalendarGrid({
     >
       {entries.length ? (
         <div className="space-y-5">
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-3 sm:p-4 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-teal-600 sm:text-xs">Tổng buổi</p>
-              <p className="mt-1.5 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{entries.length}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[20px] border border-teal-100/60 bg-gradient-to-b from-teal-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(20,184,166,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(20,184,166,0.25)] sm:p-5">
+              <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125 group-hover:opacity-10">
+                <BookOpenText className="h-16 w-16 text-teal-700" />
+              </div>
+              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-teal-600 sm:text-xs">Tổng buổi</p>
+              <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-teal-950 sm:text-3xl">{entries.length}</p>
             </div>
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-cyan-100 bg-white p-3 sm:p-4 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-cyan-600 sm:text-xs">Ngày học</p>
-              <p className="mt-1.5 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{uniqueDays}</p>
+
+            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[20px] border border-cyan-100/60 bg-gradient-to-b from-cyan-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(6,182,212,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(6,182,212,0.25)] sm:p-5">
+              <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125 group-hover:opacity-10">
+                <CalendarDays className="h-16 w-16 text-cyan-700" />
+              </div>
+              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-cyan-600 sm:text-xs">Ngày học</p>
+              <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-cyan-950 sm:text-3xl">{uniqueDays}</p>
             </div>
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 sm:text-xs">Phòng học</p>
-              <p className="mt-1.5 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{uniqueRooms}</p>
+
+            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[20px] border border-indigo-100/60 bg-gradient-to-b from-indigo-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(99,102,241,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(99,102,241,0.25)] sm:p-5">
+              <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-125 group-hover:opacity-10">
+                <MapPin className="h-16 w-16 text-indigo-700" />
+              </div>
+              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-indigo-600 sm:text-xs">Phòng học</p>
+              <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-indigo-950 sm:text-3xl">{uniqueRooms}</p>
             </div>
           </div>
 
