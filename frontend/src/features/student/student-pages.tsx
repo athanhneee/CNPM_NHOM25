@@ -484,7 +484,7 @@ export function RegisterPage() {
           {sectionRows.length ? (
             <div className="space-y-3">
               {sectionRows.map((row) => (
-                <div key={row.section.id} className="rounded-3xl border border-slate-200 bg-white p-4">
+                <div key={row.section.id} className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold text-slate-900">{row.course?.name ?? row.section.sectionCode}</p>
@@ -1129,5 +1129,6 @@ export function RegisteredPage() {
     </div>
   )
 }
+
 
 

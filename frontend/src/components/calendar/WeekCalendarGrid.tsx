@@ -72,17 +72,17 @@ export function WeekCalendarGrid({
       {entries.length ? (
         <div className="space-y-5">
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-[28px] border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4">
+            <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-600">Tổng buổi học</p>
               <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{entries.length}</p>
               <p className="mt-2 text-sm text-slate-600">Các buổi học hợp lệ được hiển thị xuyên suốt học kỳ hiện tại.</p>
             </div>
-            <div className="rounded-[28px] border border-cyan-100 bg-white px-4 py-4">
+            <div className="rounded-2xl border border-cyan-100 bg-white px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-600">Phủ ngày học</p>
               <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{uniqueDays}</p>
               <p className="mt-2 text-sm text-slate-600">Số ngày trong tuần có ít nhất một lớp học hoặc buổi giảng dạy.</p>
             </div>
-            <div className="rounded-[28px] border border-slate-200 bg-white px-4 py-4">
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Phòng học sử dụng</p>
               <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{uniqueRooms}</p>
               <p className="mt-2 text-sm text-slate-600">Tổng số phòng học xuất hiện trong lịch đang xem.</p>
@@ -92,7 +92,7 @@ export function WeekCalendarGrid({
           <div className="overflow-x-auto pb-2">
             <div className="min-w-[1180px] space-y-3">
               <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3">
-                <div className="rounded-[28px] border border-slate-200 bg-slate-50 px-4 py-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Khung giờ</p>
                   <p className="mt-2 text-sm font-medium text-slate-700">Tiết học trong ngày</p>
                 </div>
@@ -100,7 +100,7 @@ export function WeekCalendarGrid({
                 {weekdays.map((day) => (
                   <div
                     key={day.weekday}
-                    className="rounded-[28px] border border-cyan-100 bg-gradient-to-br from-white via-cyan-50/60 to-teal-50 px-4 py-4"
+                    className="rounded-2xl border border-cyan-100 bg-gradient-to-br from-white via-cyan-50/60 to-teal-50 px-4 py-4"
                   >
                     <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
                       <CalendarDays className="h-3.5 w-3.5" />
@@ -140,7 +140,7 @@ export function WeekCalendarGrid({
                         <article
                           key={entry.id}
                           className={cn(
-                            'relative z-10 overflow-hidden rounded-[28px] border p-4 shadow-[0_20px_40px_-28px_rgba(13,148,136,0.45)]',
+                            'relative z-10 overflow-hidden rounded-2xl border p-4 shadow-[0_20px_40px_-28px_rgba(13,148,136,0.45)]',
                             getScheduleTone(entry.sectionStatus),
                           )}
                           style={{
@@ -188,7 +188,7 @@ export function WeekCalendarGrid({
           </div>
         </div>
       ) : (
-        <div className="grid min-h-72 place-items-center rounded-[32px] border border-dashed border-cyan-200 bg-gradient-to-br from-cyan-50/70 via-white to-teal-50/80 px-6 text-center">
+        <div className="grid min-h-72 place-items-center rounded-2xl border border-dashed border-cyan-200 bg-gradient-to-br from-cyan-50/70 via-white to-teal-50/80 px-6 text-center">
           <div className="max-w-xl space-y-3">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-700">Lịch trống</p>
             <h3 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
@@ -203,3 +203,4 @@ export function WeekCalendarGrid({
 }
 
 export default WeekCalendarGrid
+

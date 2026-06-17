@@ -16,7 +16,7 @@ export function Textarea({ label, hint, error, className, id, ...props }: Textar
       <textarea
         id={resolvedId}
         className={cn(
-          'brand-ring min-h-28 rounded-[28px] border border-slate-200 bg-white/96 px-5 py-4 text-sm text-slate-900 shadow-[0_12px_28px_rgba(15,23,42,0.04)] placeholder:text-slate-400',
+          'brand-ring min-h-28 rounded-2xl border border-slate-200 bg-white/96 px-5 py-4 text-sm text-slate-900 shadow-[0_12px_28px_rgba(15,23,42,0.04)] placeholder:text-slate-400',
           error ? 'border-rose-300 focus-visible:ring-rose-400' : 'focus-visible:ring-teal-500',
           className,
         )}
@@ -29,3 +29,4 @@ export function Textarea({ label, hint, error, className, id, ...props }: Textar
 }
 
 export default Textarea
+

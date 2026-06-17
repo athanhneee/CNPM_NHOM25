@@ -129,7 +129,7 @@ function DashboardQuickLinks({ links }: { links: QuickLink[] }) {
       {links.map((link) => (
         <Link
           key={`${link.to}-${link.label}`}
-          className="interactive-press rounded-[30px] border border-slate-200 bg-white/90 px-5 py-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)] transition hover:border-cyan-200 hover:bg-cyan-50/80"
+          className="interactive-press rounded-2xl border border-slate-200 bg-white/90 px-5 py-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)] transition hover:border-cyan-200 hover:bg-cyan-50/80"
           to={link.to}
         >
           <div className="flex items-start justify-between gap-3">
@@ -163,7 +163,7 @@ function StudentAttendanceCard({ user }: { user: User }) {
           >
             <div className="grid h-36 w-36 place-items-center rounded-full bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
               <div className="text-center">
-                <p className="text-4xl font-semibold tracking-[-0.05em] text-slate-950">
+                <p className="text-3xl font-semibold tracking-[-0.05em] text-slate-950">
                   {breakdown.present}%
                 </p>
                 <p className="mt-1 text-sm text-slate-500">Hiện diện</p>
@@ -173,7 +173,7 @@ function StudentAttendanceCard({ user }: { user: User }) {
         </div>
 
         <div className="space-y-3">
-          <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+          <div className="rounded-2xl bg-slate-50 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm font-medium text-slate-600">Có mặt</span>
               <span className="text-sm font-semibold text-teal-700">{breakdown.present}%</span>
@@ -186,7 +186,7 @@ function StudentAttendanceCard({ user }: { user: User }) {
             </div>
           </div>
 
-          <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+          <div className="rounded-2xl bg-slate-50 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm font-medium text-slate-600">Vắng mặt</span>
               <span className="text-sm font-semibold text-cyan-700">{breakdown.absent}%</span>
@@ -199,7 +199,7 @@ function StudentAttendanceCard({ user }: { user: User }) {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-cyan-100 bg-cyan-50/60 px-4 py-4 text-sm leading-7 text-slate-600">
+          <div className="rounded-2xl border border-cyan-100 bg-cyan-50/60 px-4 py-4 text-sm leading-7 text-slate-600">
             Hệ thống tổng hợp điểm danh từ các lớp đang học trong học kỳ hiện tại để bạn dễ theo
             dõi tiến độ và chủ động điều chỉnh lịch học.
           </div>
@@ -221,7 +221,7 @@ function StudentPerformanceCard({ user }: { user: User }) {
         <div className="grid h-[18rem] grid-cols-4 gap-4">
           {performance.map((point, index) => (
             <div className="flex h-full flex-col justify-end gap-3" key={point.courseLabel}>
-              <div className="relative flex flex-1 items-end rounded-[28px] bg-slate-50 px-3 py-3">
+              <div className="relative flex flex-1 items-end rounded-2xl bg-slate-50 px-3 py-3">
                 <div
                   className={`w-full rounded-[22px] ${
                     index % 2 === 0
@@ -243,13 +243,13 @@ function StudentPerformanceCard({ user }: { user: User }) {
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+          <div className="rounded-2xl bg-slate-50 px-4 py-4">
             <p className="text-sm font-medium text-slate-500">GPA hiện tại</p>
             <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">
               {(user.gpa ?? 3.1).toFixed(2)}
             </p>
           </div>
-          <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+          <div className="rounded-2xl bg-slate-50 px-4 py-4">
             <p className="text-sm font-medium text-slate-500">Tín chỉ đã tích lũy</p>
             <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">
               {user.completedCredits ?? 0}
@@ -271,7 +271,7 @@ function StudentInstructorCard({ instructors }: { instructors: User[] }) {
         <div className="grid gap-3">
           {instructors.map((lecturer) => (
             <div
-              className="flex items-start gap-4 rounded-[28px] border border-slate-200 bg-white px-4 py-4"
+              className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4"
               key={lecturer.id}
             >
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500 to-teal-500 text-sm font-semibold text-white">
@@ -313,7 +313,7 @@ function RecentLogsCard({
         <div className="grid gap-3">
           {logs.map((log) => (
             <div
-              className="rounded-[28px] border border-slate-200 bg-white px-4 py-4"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-4"
               key={log.id}
             >
               <div className="flex items-center justify-between gap-3">
@@ -341,24 +341,24 @@ function StudentProfileCard({ user }: { user: User }) {
       description="Thông tin nhanh để bạn theo dõi học kỳ và định hướng học tập."
     >
       <div className="grid gap-3">
-        <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+        <div className="rounded-2xl bg-slate-50 px-4 py-4">
           <p className="text-sm font-medium text-slate-500">Sinh viên</p>
           <p className="mt-1 text-xl font-semibold text-slate-950">{user.fullName}</p>
           <p className="mt-1 text-sm text-slate-500">{user.code}</p>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+          <div className="rounded-2xl bg-slate-50 px-4 py-4">
             <p className="text-sm text-slate-500">Chuyên ngành</p>
             <p className="mt-2 font-semibold text-slate-900">{user.program ?? user.department}</p>
           </div>
-          <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+          <div className="rounded-2xl bg-slate-50 px-4 py-4">
             <p className="text-sm text-slate-500">Khóa học</p>
             <p className="mt-2 font-semibold text-slate-900">{user.cohort ?? 'K23'}</p>
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-cyan-100 bg-cyan-50/60 px-4 py-4">
+        <div className="rounded-2xl border border-cyan-100 bg-cyan-50/60 px-4 py-4">
           <p className="text-sm font-medium text-slate-700">Mối quan tâm</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {(user.interests ?? []).map((interest) => (
@@ -385,7 +385,7 @@ function AdminTeamCard({ team }: { team: User[] }) {
       <div className="grid gap-3">
         {team.map((member) => (
           <div
-            className="flex items-start gap-4 rounded-[28px] border border-slate-200 bg-white px-4 py-4"
+            className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4"
             key={member.id}
           >
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-teal-600 to-cyan-500 text-sm font-semibold text-white">
@@ -412,7 +412,7 @@ function AcademicLeadershipCard({ leaders }: { leaders: User[] }) {
       <div className="grid gap-3">
         {leaders.map((leader) => (
           <div
-            className="rounded-[28px] border border-slate-200 bg-white px-4 py-4"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-4"
             key={leader.id}
           >
             <p className="font-semibold text-slate-900">{leader.fullName}</p>
@@ -477,7 +477,7 @@ export function LoginPage() {
               CỔNG HỌC VỤ PTIT HCM
             </div>
 
-            <div className="max-w-3xl space-y-5">
+            <div className="max-w-3xl space-y-3">
               <h1 className="text-5xl font-semibold leading-[1.05] tracking-[-0.04em] text-slate-950">
                 Đăng nhập để tiếp tục quản lý đăng ký tín chỉ tại Học Viện Công Nghệ Bưu Chính
                 Viễn Thông cơ sở Hồ Chí Minh.
@@ -511,7 +511,7 @@ export function LoginPage() {
                 'Audit log hỗ trợ đối chiếu sau demo',
               ].map((item) => (
                 <div
-                  className="rounded-[30px] border border-white/80 bg-white/80 px-4 py-4 text-sm font-medium text-slate-600 shadow-[0_16px_34px_rgba(15,23,42,0.05)]"
+                  className="rounded-2xl border border-white/80 bg-white/80 px-4 py-4 text-sm font-medium text-slate-600 shadow-[0_16px_34px_rgba(15,23,42,0.05)]"
                   key={item}
                 >
                   {item}
@@ -525,17 +525,17 @@ export function LoginPage() {
         <section className="surface-panel relative overflow-hidden border border-white/80 px-5 py-5 shadow-[0_30px_90px_rgba(8,145,178,0.16)] sm:px-7 sm:py-7 md:px-9 md:py-9">
           <div className="absolute inset-x-10 top-0 h-32 rounded-b-[44px] bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.14),_transparent_70%)]" />
           <div className="relative mx-auto max-w-xl space-y-7">
-            <div className="space-y-4 text-center">
+            <div className="space-y-3 text-center">
               <img
                 alt="Logo Học Viện Công Nghệ Bưu Chính Viễn Thông"
-                className="mx-auto h-24 w-24 rounded-[28px] border border-cyan-100 bg-white p-3 shadow-[0_18px_42px_rgba(8,145,178,0.12)]"
+                className="mx-auto h-24 w-24 rounded-2xl border border-cyan-100 bg-white p-3 shadow-[0_18px_42px_rgba(8,145,178,0.12)]"
                 src="/Logo-Hoc-Vien-Cong-Nghe-Buu-Chinh-Vien-Thong-PTIT.webp"
               />
               <div className="space-y-3">
                 <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-700">
                   PTIT HCM
                 </p>
-                <h2 className="text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-slate-950 sm:text-5xl">
+                <h2 className="text-3xl font-semibold leading-[1.02] tracking-[-0.04em] text-slate-950 sm:text-5xl">
                   Đăng nhập tài khoản
                 </h2>
                 <p className="mx-auto max-w-lg text-base leading-8 text-slate-500 sm:text-lg">
@@ -604,7 +604,7 @@ export function LoginPage() {
               ) : null}
 
               <Button
-                className="w-full rounded-[30px] py-4 text-base"
+                className="w-full rounded-2xl py-4 text-base"
                 loading={loading}
                 rightIcon={<ArrowRight className="h-5 w-5" />}
                 type="submit"
@@ -621,7 +621,7 @@ export function LoginPage() {
                 {demoAccounts.map((account) => (
                   <button
                     key={account.username}
-                    className="interactive-press rounded-[28px] border border-slate-200 bg-white px-4 py-4 text-left shadow-[0_14px_30px_rgba(15,23,42,0.04)] transition hover:border-cyan-200 hover:bg-cyan-50/70"
+                    className="interactive-press rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-[0_14px_30px_rgba(15,23,42,0.04)] transition hover:border-cyan-200 hover:bg-cyan-50/70"
                     onClick={() => {
                       setIdentifier(account.email)
                       setPassword(account.password)
@@ -790,16 +790,16 @@ export function DashboardPage() {
 
       {primaryRole === 'STUDENT' ? (
         <>
-          <section className="surface-panel relative overflow-hidden border border-cyan-100 bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 px-6 py-6 text-white shadow-[0_28px_70px_rgba(8,145,178,0.2)]">
+          <section className="surface-panel relative overflow-hidden border border-cyan-100 bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 px-6 py-5 text-white shadow-[0_28px_70px_rgba(8,145,178,0.2)]">
             <div className="pointer-events-none absolute -right-12 top-6 h-40 w-40 rounded-full bg-white/12 blur-2xl" />
             <div className="grid gap-6 lg:grid-cols-[0.62fr_0.38fr] lg:items-center">
-              <div className="space-y-5">
+              <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/12 px-4 py-2 text-sm font-medium text-white/90">
                   <CalendarDays className="h-4 w-4" />
                   {formatLongDate(snapshot.settings.simulationNow)}
                 </div>
                 <div>
-                  <h2 className="text-4xl font-semibold tracking-[-0.05em] text-white lg:text-5xl">
+                  <h2 className="text-3xl font-semibold tracking-[-0.05em] text-white lg:text-4xl">
                     Chào mừng quay lại, {currentUser.fullName}!
                   </h2>
                   <p className="mt-3 max-w-3xl text-base leading-8 text-white/82">
@@ -820,19 +820,19 @@ export function DashboardPage() {
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-[30px] bg-white/14 px-4 py-4 backdrop-blur">
+                <div className="rounded-2xl bg-white/14 px-4 py-4 backdrop-blur">
                   <p className="text-sm text-white/72">Mã sinh viên</p>
                   <p className="mt-2 text-xl font-semibold">{currentUser.code}</p>
                 </div>
-                <div className="rounded-[30px] bg-white/14 px-4 py-4 backdrop-blur">
+                <div className="rounded-2xl bg-white/14 px-4 py-4 backdrop-blur">
                   <p className="text-sm text-white/72">Chuyên ngành</p>
                   <p className="mt-2 text-base font-semibold">{currentUser.program ?? 'CNTT'}</p>
                 </div>
-                <div className="rounded-[30px] bg-white/14 px-4 py-4 backdrop-blur">
+                <div className="rounded-2xl bg-white/14 px-4 py-4 backdrop-blur">
                   <p className="text-sm text-white/72">Email học vụ</p>
                   <p className="mt-2 break-all text-sm font-semibold">{currentUser.email}</p>
                 </div>
-                <div className="rounded-[30px] bg-white/14 px-4 py-4 backdrop-blur">
+                <div className="rounded-2xl bg-white/14 px-4 py-4 backdrop-blur">
                   <p className="text-sm text-white/72">Cơ sở</p>
                   <p className="mt-2 text-base font-semibold">{currentUser.campus}</p>
                 </div>
@@ -852,12 +852,12 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[0.38fr_0.62fr]">
+          <div className="grid items-start gap-6 xl:grid-cols-[0.38fr_0.62fr]">
             <StudentAttendanceCard user={currentUser} />
             <StudentPerformanceCard user={currentUser} />
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[0.36fr_0.32fr_0.32fr]">
+          <div className="grid items-start gap-6 xl:grid-cols-[0.36fr_0.32fr_0.32fr]">
             <StudentProfileCard user={currentUser} />
             <StudentInstructorCard instructors={studentInstructors} />
             <RecentLogsCard
@@ -867,7 +867,7 @@ export function DashboardPage() {
             />
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[0.58fr_0.42fr]">
+          <div className="grid items-start gap-6 xl:grid-cols-[0.58fr_0.42fr]">
             <Card
               title="Lối tắt dành cho sinh viên"
               description="Đi thẳng tới các màn hình quan trọng nhất trong quá trình đăng ký tín chỉ."
@@ -881,14 +881,14 @@ export function DashboardPage() {
 
       {primaryRole === 'LECTURER' ? (
         <>
-          <section className="surface-panel overflow-hidden border border-cyan-100 bg-gradient-to-r from-cyan-600 via-cyan-500 to-teal-500 px-6 py-6 text-white shadow-[0_28px_70px_rgba(8,145,178,0.16)]">
+          <section className="surface-panel overflow-hidden border border-cyan-100 bg-gradient-to-r from-cyan-600 via-cyan-500 to-teal-500 px-6 py-5 text-white shadow-[0_28px_70px_rgba(8,145,178,0.16)]">
             <div className="grid gap-6 lg:grid-cols-[0.6fr_0.4fr]">
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <p className="inline-flex items-center gap-2 rounded-full bg-white/14 px-4 py-2 text-sm font-medium text-white/90">
                   <Clock3 className="h-4 w-4" />
                   Lịch dạy học kỳ hiện tại
                 </p>
-                <h2 className="text-4xl font-semibold tracking-[-0.05em]">
+                <h2 className="text-3xl font-semibold tracking-[-0.05em]">
                   Xin chào {currentUser.fullName}, đây là bức tranh giảng dạy của bạn hôm nay.
                 </h2>
                 <p className="max-w-3xl text-base leading-8 text-white/82">
@@ -896,19 +896,19 @@ export function DashboardPage() {
                 </p>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-[30px] bg-white/14 px-4 py-4">
+                <div className="rounded-2xl bg-white/14 px-4 py-4">
                   <p className="text-sm text-white/72">Giảng viên</p>
                   <p className="mt-2 font-semibold">{currentUser.fullName}</p>
                 </div>
-                <div className="rounded-[30px] bg-white/14 px-4 py-4">
+                <div className="rounded-2xl bg-white/14 px-4 py-4">
                   <p className="text-sm text-white/72">Học vị</p>
                   <p className="mt-2 font-semibold">{currentUser.title ?? 'Giảng viên'}</p>
                 </div>
-                <div className="rounded-[30px] bg-white/14 px-4 py-4">
+                <div className="rounded-2xl bg-white/14 px-4 py-4">
                   <p className="text-sm text-white/72">Đơn vị</p>
                   <p className="mt-2 font-semibold">{currentUser.department}</p>
                 </div>
-                <div className="rounded-[30px] bg-white/14 px-4 py-4">
+                <div className="rounded-2xl bg-white/14 px-4 py-4">
                   <p className="text-sm text-white/72">Email</p>
                   <p className="mt-2 break-all text-sm font-semibold">{currentUser.email}</p>
                 </div>
@@ -928,7 +928,7 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[0.58fr_0.42fr]">
+          <div className="grid items-start gap-6 xl:grid-cols-[0.58fr_0.42fr]">
             <Card title="Lối tắt dành cho giảng viên" description="Đi tới lớp được phân công, lịch dạy và danh sách sinh viên.">
               <DashboardQuickLinks links={quickLinksByRole.LECTURER} />
             </Card>
@@ -943,21 +943,21 @@ export function DashboardPage() {
 
       {primaryRole === 'ACADEMIC_OFFICE' ? (
         <>
-          <section className="surface-panel overflow-hidden border border-cyan-100 bg-gradient-to-r from-teal-700 via-teal-600 to-cyan-600 px-6 py-6 text-white shadow-[0_28px_70px_rgba(15,118,110,0.18)]">
+          <section className="surface-panel overflow-hidden border border-cyan-100 bg-gradient-to-r from-teal-700 via-teal-600 to-cyan-600 px-6 py-5 text-white shadow-[0_28px_70px_rgba(15,118,110,0.18)]">
             <div className="grid gap-6 lg:grid-cols-[0.58fr_0.42fr]">
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <p className="inline-flex items-center gap-2 rounded-full bg-white/14 px-4 py-2 text-sm font-medium text-white/90">
                   <UsersRound className="h-4 w-4" />
                   Điều phối đào tạo học kỳ hiện tại
                 </p>
-                <h2 className="text-4xl font-semibold tracking-[-0.05em]">
+                <h2 className="text-3xl font-semibold tracking-[-0.05em]">
                   Khu vực điều hành dành cho phòng đào tạo PTIT HCM.
                 </h2>
                 <p className="max-w-3xl text-base leading-8 text-white/82">
                   Theo dõi tình trạng mở lớp, sĩ số, waitlist, điều phối giảng viên và các thay đổi học vụ quan trọng trong một bức tranh tổng quan duy nhất.
                 </p>
               </div>
-              <div className="rounded-[32px] bg-white/14 px-5 py-5 backdrop-blur">
+              <div className="rounded-2xl bg-white/14 px-5 py-5 backdrop-blur">
                 <p className="text-sm font-medium text-white/76">Đầu mối hiện tại</p>
                 <p className="mt-3 text-2xl font-semibold">{currentUser.fullName}</p>
                 <p className="mt-2 text-sm text-white/82">{currentUser.position ?? 'Phòng Đào tạo'}</p>
@@ -978,12 +978,12 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[0.56fr_0.44fr]">
+          <div className="grid items-start gap-6 xl:grid-cols-[0.56fr_0.44fr]">
             <AcademicLeadershipCard leaders={academicLeadership} />
             <SystemWindowCard settings={snapshot.settings} />
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[0.56fr_0.44fr]">
+          <div className="grid items-start gap-6 xl:grid-cols-[0.56fr_0.44fr]">
             <Card title="Lối tắt điều phối" description="Chuyển nhanh tới các khu vực quản trị học vụ quan trọng.">
               <DashboardQuickLinks links={quickLinksByRole.ACADEMIC_OFFICE} />
             </Card>
@@ -998,14 +998,14 @@ export function DashboardPage() {
 
       {primaryRole === 'ADMIN' ? (
         <>
-          <section className="surface-panel overflow-hidden border border-cyan-100 bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-900 px-6 py-6 text-white shadow-[0_28px_70px_rgba(15,23,42,0.22)]">
+          <section className="surface-panel overflow-hidden border border-cyan-100 bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-900 px-6 py-5 text-white shadow-[0_28px_70px_rgba(15,23,42,0.22)]">
             <div className="grid gap-6 lg:grid-cols-[0.6fr_0.4fr]">
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <p className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-medium text-white/90">
                   <ShieldAlert className="h-4 w-4" />
                   Trung tâm điều phối hệ thống
                 </p>
-                <h2 className="text-4xl font-semibold tracking-[-0.05em]">
+                <h2 className="text-3xl font-semibold tracking-[-0.05em]">
                   Quản trị toàn bộ nền tảng học vụ PTIT HCM từ một bảng điều khiển tập trung.
                 </h2>
                 <p className="max-w-3xl text-base leading-8 text-white/78">
@@ -1013,21 +1013,21 @@ export function DashboardPage() {
                 </p>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-[30px] bg-white/12 px-4 py-4">
+                <div className="rounded-2xl bg-white/12 px-4 py-4">
                   <p className="text-sm text-white/70">Quản trị viên hiện tại</p>
                   <p className="mt-2 font-semibold">{currentUser.fullName}</p>
                 </div>
-                <div className="rounded-[30px] bg-white/12 px-4 py-4">
+                <div className="rounded-2xl bg-white/12 px-4 py-4">
                   <p className="text-sm text-white/70">Email quản trị</p>
                   <p className="mt-2 break-all text-sm font-semibold">{currentUser.email}</p>
                 </div>
-                <div className="rounded-[30px] bg-white/12 px-4 py-4">
+                <div className="rounded-2xl bg-white/12 px-4 py-4">
                   <p className="text-sm text-white/70">Trạng thái hệ thống</p>
                   <p className="mt-2 font-semibold">
                     {snapshot.settings.maintenanceMode ? 'Đang bảo trì' : 'Đang hoạt động'}
                   </p>
                 </div>
-                <div className="rounded-[30px] bg-white/12 px-4 py-4">
+                <div className="rounded-2xl bg-white/12 px-4 py-4">
                   <p className="text-sm text-white/70">Mốc thời gian</p>
                   <p className="mt-2 font-semibold">{formatLongDate(snapshot.settings.simulationNow)}</p>
                 </div>
@@ -1047,12 +1047,12 @@ export function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[0.54fr_0.46fr]">
+          <div className="grid items-start gap-6 xl:grid-cols-[0.54fr_0.46fr]">
             <AdminTeamCard team={adminTeam} />
             <SystemWindowCard settings={snapshot.settings} />
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[0.56fr_0.44fr]">
+          <div className="grid items-start gap-6 xl:grid-cols-[0.56fr_0.44fr]">
             <Card title="Lối tắt quản trị" description="Đi tới các màn quan trọng để quản lý người dùng và cấu hình hệ thống.">
               <DashboardQuickLinks links={quickLinksByRole.ADMIN} />
             </Card>
@@ -1073,7 +1073,7 @@ export function DashboardPage() {
           {announcements.map((announcement) => (
             <div
               key={announcement.id}
-              className={`rounded-[28px] border px-4 py-4 ${
+              className={`rounded-2xl border px-4 py-4 ${
                 announcement.tone === 'warning'
                   ? 'border-amber-200 bg-amber-50'
                   : announcement.tone === 'success'
@@ -1183,7 +1183,7 @@ export function ProfilePage() {
       ]
 
   const profileBadgeClass =
-    'inline-flex min-h-[88px] min-w-[152px] items-center justify-center rounded-[32px] px-6 py-4 text-center text-sm font-medium leading-6'
+    'inline-flex min-h-[88px] min-w-[152px] items-center justify-center rounded-2xl px-6 py-4 text-center text-sm font-medium leading-6'
 
   function resetContactDraft() {
     setEmail(user.email)
@@ -1236,11 +1236,11 @@ export function ProfilePage() {
         actions={
           isEditing ? (
             <>
-              <Button className="rounded-[28px] px-5" onClick={handleSave} type="button">
+              <Button className="rounded-2xl px-5" onClick={handleSave} type="button">
                 Lưu
               </Button>
               <Button
-                className="rounded-[28px] px-5"
+                className="rounded-2xl px-5"
                 variant="ghost"
                 onClick={() => {
                   setIsEditing(false)
@@ -1252,17 +1252,17 @@ export function ProfilePage() {
               </Button>
             </>
           ) : (
-            <Button className="rounded-[28px] px-5" onClick={handleStartEditing} type="button">
+            <Button className="rounded-2xl px-5" onClick={handleStartEditing} type="button">
               Chỉnh sửa
             </Button>
           )
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[0.72fr_0.28fr]">
+      <div className="grid items-start gap-6 xl:grid-cols-[0.72fr_0.28fr]">
         <div className="grid gap-6">
           <section className="surface-panel overflow-hidden border border-teal-100">
-            <div className="bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 px-6 py-6 text-white">
+            <div className="bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 px-6 py-5 text-white">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/14 px-4 py-2 text-sm font-medium text-white/90">
                 <BadgeCheck className="h-4 w-4" />
                 Hồ sơ định danh PTIT HCM
@@ -1274,9 +1274,9 @@ export function ProfilePage() {
               </p>
             </div>
 
-            <div className="grid gap-6 px-6 py-6 lg:grid-cols-[170px_1fr] lg:items-center">
-              <div className="rounded-[32px] bg-gradient-to-br from-teal-50 via-cyan-50 to-white p-4">
-                <div className="grid h-36 place-items-center rounded-[28px] border border-white/80 bg-white text-4xl font-semibold tracking-[-0.06em] text-teal-700 shadow-[0_24px_60px_-36px_rgba(8,145,178,0.45)]">
+            <div className="grid gap-6 px-6 py-5 lg:grid-cols-[170px_1fr] lg:items-center">
+              <div className="rounded-2xl bg-gradient-to-br from-teal-50 via-cyan-50 to-white p-4">
+                <div className="grid h-36 place-items-center rounded-2xl border border-white/80 bg-white text-3xl font-semibold tracking-[-0.06em] text-teal-700 shadow-[0_24px_60px_-36px_rgba(8,145,178,0.45)]">
                   {getInitials(user.fullName)}
                 </div>
                 <div className="mt-4 space-y-2 text-center">
@@ -1311,11 +1311,11 @@ export function ProfilePage() {
           </section>
 
           <Card title="Thông tin cá nhân" description="Bộ hồ sơ định danh đầy đủ theo dữ liệu đang lưu trong hệ thống">
-            <div className="grid gap-6 xl:grid-cols-3">
+            <div className="grid items-start gap-6 xl:grid-cols-3">
               {personalColumns.map((column, columnIndex) => (
                 <div
                   key={`personal-column-${columnIndex}`}
-                  className={`space-y-4 ${columnIndex < personalColumns.length - 1 ? 'xl:border-r xl:border-slate-200 xl:pr-6' : ''}`}
+                  className={`space-y-3 ${columnIndex < personalColumns.length - 1 ? 'xl:border-r xl:border-slate-200 xl:pr-6' : ''}`}
                 >
                   {column.map((item) => (
                     <div key={item.label} className="space-y-1">
@@ -1336,11 +1336,11 @@ export function ProfilePage() {
                 : 'Thông tin chuyên môn và đơn vị công tác của cán bộ đang đăng nhập.'
             }
           >
-            <div className="grid gap-6 xl:grid-cols-2">
+            <div className="grid items-start gap-6 xl:grid-cols-2">
               {profileColumns.map((column, columnIndex) => (
                 <div
                   key={`profile-column-${columnIndex}`}
-                  className={`space-y-4 ${columnIndex < profileColumns.length - 1 ? 'xl:border-r xl:border-slate-200 xl:pr-6' : ''}`}
+                  className={`space-y-3 ${columnIndex < profileColumns.length - 1 ? 'xl:border-r xl:border-slate-200 xl:pr-6' : ''}`}
                 >
                   {column.map((item) => (
                     <div key={item.label} className="grid gap-1 md:grid-cols-[190px_1fr] md:items-start">
@@ -1388,7 +1388,7 @@ export function ProfilePage() {
 
         <div className="grid gap-6">
           <Card title="Trạng thái tài khoản" description="Thông tin vai trò, phiên đăng nhập và trạng thái truy cập hiện tại">
-            <div className="space-y-4 text-sm text-slate-600">
+            <div className="space-y-3 text-sm text-slate-600">
               <div className="flex items-center justify-between gap-3">
                 <span className="inline-flex items-center gap-2">
                   <UserRound className="h-4 w-4 text-teal-600" />
@@ -1435,7 +1435,7 @@ export function ProfilePage() {
               {overviewItems.map((item, index) => (
                 <div
                   key={item.label}
-                  className={`rounded-[28px] px-4 py-4 ${index === 0 ? 'border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-50' : 'border border-slate-200 bg-white'}`}
+                  className={`rounded-2xl px-4 py-4 ${index === 0 ? 'border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-50' : 'border border-slate-200 bg-white'}`}
                 >
                   <p className="text-sm font-medium text-slate-500">{item.label}</p>
                   <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950">{item.value}</p>
@@ -1453,21 +1453,21 @@ export function ProfilePage() {
             }
           >
             <div className="grid gap-3">
-              <div className="rounded-[28px] border border-slate-200 bg-white px-4 py-4">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
                 <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
                   <IdCard className="h-4 w-4 text-teal-600" />
                   Căn cước công dân
                 </p>
                 <p className="mt-2 text-lg font-semibold text-slate-900">{formatProfileValue(user.citizenId)}</p>
               </div>
-              <div className="rounded-[28px] border border-slate-200 bg-white px-4 py-4">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
                 <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
                   <PhoneCall className="h-4 w-4 text-cyan-600" />
                   Liên hệ nhanh
                 </p>
                 <p className="mt-2 text-lg font-semibold text-slate-900">{formatProfileValue(user.phone)}</p>
               </div>
-              <div className="rounded-[28px] border border-slate-200 bg-white px-4 py-4">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
                 <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
                   <MapPinHouse className="h-4 w-4 text-slate-500" />
                   Địa chỉ hiện tại
@@ -1481,8 +1481,8 @@ export function ProfilePage() {
             title={isStudent ? 'Mối quan tâm học tập' : 'Giới thiệu chuyên môn'}
             description={isStudent ? 'Sở thích và định hướng học tập của sinh viên.' : 'Mô tả ngắn gọn về vai trò chuyên môn hiện tại.'}
           >
-            <div className="space-y-4">
-              <p className="rounded-[28px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600">
+            <div className="space-y-3">
+              <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600">
                 {user.bio ??
                   'Chưa có phần giới thiệu. Bạn có thể bổ sung thêm nội dung này trong các phiên bản tiếp theo của hệ thống.'}
               </p>
@@ -1632,9 +1632,9 @@ export function ChangePasswordPage() {
         subtitle="Cập nhật mật khẩu đăng nhập cho tài khoản PTIT HCM qua backend và ghi nhận thao tác vào nhật ký hệ thống."
       />
 
-      <div className="grid gap-6 xl:grid-cols-[0.62fr_0.38fr]">
+      <div className="grid items-start gap-6 xl:grid-cols-[0.62fr_0.38fr]">
         <section className="surface-panel overflow-hidden border border-cyan-100">
-          <div className="bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 px-6 py-6 text-white">
+          <div className="bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 px-6 py-5 text-white">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/14 px-4 py-2 text-sm font-medium text-white/90">
               <ShieldAlert className="h-4 w-4" />
               Bảo mật tài khoản PTIT HCM
@@ -1648,7 +1648,7 @@ export function ChangePasswordPage() {
             </p>
           </div>
 
-          <form className="grid gap-4 px-6 py-6" onSubmit={handleSubmit}>
+          <form className="grid gap-4 px-6 py-5" onSubmit={handleSubmit}>
             <Input
               label="Mật khẩu hiện tại"
               hint="Mật khẩu mặc định hiện tại là ptithcm2026."
@@ -1672,11 +1672,11 @@ export function ChangePasswordPage() {
             />
 
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button className="rounded-[30px] px-6 py-3" loading={loading} type="submit">
+              <Button className="rounded-2xl px-6 py-3" loading={loading} type="submit">
                 Cập nhật mật khẩu
               </Button>
               <Button
-                className="rounded-[30px] px-6 py-3"
+                className="rounded-2xl px-6 py-3"
                 variant="ghost"
                 onClick={() => {
                   setCurrentPassword('')
@@ -1694,15 +1694,15 @@ export function ChangePasswordPage() {
         <div className="grid gap-6">
           <Card title="Tài khoản đang thao tác" description="Thông tin hiện tại của phiên đăng nhập">
             <div className="grid gap-3 text-sm text-slate-600">
-              <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
                 <p className="text-slate-500">Tài khoản</p>
                 <p className="mt-2 font-semibold text-slate-900">{currentUser.username}</p>
               </div>
-              <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
                 <p className="text-slate-500">Email</p>
                 <p className="mt-2 break-all font-semibold text-slate-900">{currentUser.email}</p>
               </div>
-              <div className="rounded-[28px] bg-slate-50 px-4 py-4">
+              <div className="rounded-2xl bg-slate-50 px-4 py-4">
                 <p className="text-slate-500">Vai trò</p>
                 <p className="mt-2 font-semibold text-slate-900">{currentUser.roles.join(' • ')}</p>
               </div>
@@ -1785,10 +1785,10 @@ export function NotFoundPage() {
           <div className="absolute bottom-6 right-6 hidden h-56 w-56 rounded-full bg-teal-200/35 blur-3xl md:block" />
 
           <div className="relative mx-auto w-full max-w-[640px]">
-            <div className="absolute left-0 top-16 hidden h-[74%] w-[68%] rounded-[32px] bg-teal-950/88 shadow-[0_32px_60px_rgba(13,148,136,0.18)] md:block" />
+            <div className="absolute left-0 top-16 hidden h-[74%] w-[68%] rounded-2xl bg-teal-950/88 shadow-[0_32px_60px_rgba(13,148,136,0.18)] md:block" />
             <div className="absolute left-8 top-6 hidden h-[78%] w-[72%] rounded-[34px] bg-gradient-to-br from-cyan-500 to-teal-500 shadow-[0_34px_70px_rgba(6,182,212,0.18)] md:block" />
 
-            <div className="surface-panel relative min-h-[520px] rounded-[38px] border-[5px] border-cyan-400 bg-white/92 px-6 py-6 shadow-[0_32px_84px_rgba(8,145,178,0.16)] sm:px-8">
+            <div className="surface-panel relative min-h-[520px] rounded-[38px] border-[5px] border-cyan-400 bg-white/92 px-6 py-5 shadow-[0_32px_84px_rgba(8,145,178,0.16)] sm:px-8">
               <div className="flex items-center gap-3">
                 <span className="h-4 w-4 rounded-full bg-cyan-400" />
                 <span className="h-4 w-4 rounded-full bg-cyan-200" />
@@ -1839,7 +1839,7 @@ export function NotFoundPage() {
             404 / ĐIỀU HƯỚNG LẠC NHỊP
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-3">
             <h1 className="max-w-4xl text-5xl font-semibold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl">
               Xin lỗi, chúng tôi không tìm thấy trang bạn cần.
             </h1>
@@ -1852,12 +1852,12 @@ export function NotFoundPage() {
 
           <div className="flex flex-wrap gap-3">
             <Link to="/">
-              <Button className="rounded-[30px] px-7 py-4" leftIcon={<Home className="h-4 w-4" />} type="button">
+              <Button className="rounded-2xl px-7 py-4" leftIcon={<Home className="h-4 w-4" />} type="button">
                 Về trang chủ
               </Button>
             </Link>
             <Button
-              className="rounded-[30px] px-7 py-4"
+              className="rounded-2xl px-7 py-4"
               leftIcon={<ArrowLeft className="h-4 w-4" />}
               onClick={() => window.history.back()}
               type="button"
@@ -1889,3 +1889,7 @@ export function NotFoundPage() {
     </main>
   )
 }
+
+
+
+

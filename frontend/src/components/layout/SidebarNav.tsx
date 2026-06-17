@@ -115,7 +115,7 @@ export function SidebarNav() {
           </button>
         </div>
 
-        <div className="mb-6 rounded-[30px] border border-cyan-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4 shadow-[0_14px_34px_rgba(15,118,110,0.08)]">
+        <div className="mb-6 rounded-2xl border border-cyan-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4 shadow-[0_14px_34px_rgba(15,118,110,0.08)]">
           <p className="text-sm font-semibold text-slate-900">{user.fullName}</p>
           <p className="mt-1 text-xs text-slate-500">{user.email}</p>
           <p className="mt-3 inline-flex rounded-full bg-teal-500/12 px-3 py-1 text-xs font-medium text-teal-700">
@@ -139,17 +139,16 @@ export function SidebarNav() {
                         key={item.to}
                         to={item.to}
                         className={({ isActive }) =>
-                          `interactive-press group flex items-start gap-3 rounded-[26px] px-3 py-3 transition ${
+                          `interactive-press group flex items-center gap-3 rounded-xl px-3 py-2.5 transition ${
                             isActive
                               ? 'bg-gradient-to-r from-teal-50 via-cyan-50 to-white text-teal-700 ring-1 ring-teal-100 shadow-[0_12px_26px_rgba(13,148,136,0.10)]'
                               : 'text-slate-600 hover:bg-cyan-50/80 hover:text-slate-900'
                           }`
                         }
                       >
-                        <Icon className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={1.65} />
+                        <Icon className="h-5 w-5 shrink-0" strokeWidth={1.65} />
                         <span className="min-w-0">
-                          <span className="block text-sm font-semibold">{item.label}</span>
-                          <span className="mt-1 block text-xs opacity-80">{item.description}</span>
+                          <span className="block text-sm font-medium">{item.label}</span>
                         </span>
                       </NavLink>
                     )
@@ -165,3 +164,4 @@ export function SidebarNav() {
 }
 
 export default SidebarNav
+

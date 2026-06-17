@@ -1123,7 +1123,7 @@ export function WishReviewPage() {
         <label className="grid gap-2">
           <span className="text-sm font-medium text-slate-700">Lọc trạng thái</span>
           <select
-            className="brand-ring rounded-[28px] border border-slate-200 bg-white/96 px-5 py-4 text-sm text-slate-900"
+            className="brand-ring rounded-2xl border border-slate-200 bg-white/96 px-5 py-4 text-sm text-slate-900"
             onChange={(event) => setStatusFilter(event.target.value as WishRequest['status'] | 'ALL')}
             value={statusFilter}
           >
@@ -1275,4 +1275,5 @@ export function WaitlistOverridePage() {
     </div>
   )
 }
+
 

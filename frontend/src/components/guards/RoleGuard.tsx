@@ -17,7 +17,7 @@ export function RoleGuard({ roles, children }: RoleGuardProps) {
 
   if (isBootstrapping) {
     return (
-      <div className="mx-auto mt-20 max-w-2xl rounded-[28px] bg-white p-8 shadow-soft">
+      <div className="mx-auto mt-20 max-w-2xl rounded-2xl bg-white p-8 shadow-soft">
         <LoadingSkeleton lines={8} />
       </div>
     )
@@ -35,3 +35,4 @@ export function RoleGuard({ roles, children }: RoleGuardProps) {
 }
 
 export default RoleGuard
+
