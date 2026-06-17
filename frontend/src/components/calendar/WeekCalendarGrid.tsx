@@ -71,21 +71,18 @@ export function WeekCalendarGrid({
     >
       {entries.length ? (
         <div className="space-y-5">
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-600">Tổng buổi học</p>
-              <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{entries.length}</p>
-              <p className="mt-2 text-sm text-slate-600">Các buổi học hợp lệ được hiển thị xuyên suốt học kỳ hiện tại.</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-3 sm:p-4 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-teal-600 sm:text-xs">Tổng buổi</p>
+              <p className="mt-1.5 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{entries.length}</p>
             </div>
-            <div className="rounded-2xl border border-cyan-100 bg-white px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-600">Phủ ngày học</p>
-              <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{uniqueDays}</p>
-              <p className="mt-2 text-sm text-slate-600">Số ngày trong tuần có ít nhất một lớp học hoặc buổi giảng dạy.</p>
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-cyan-100 bg-white p-3 sm:p-4 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-cyan-600 sm:text-xs">Ngày học</p>
+              <p className="mt-1.5 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{uniqueDays}</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Phòng học sử dụng</p>
-              <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{uniqueRooms}</p>
-              <p className="mt-2 text-sm text-slate-600">Tổng số phòng học xuất hiện trong lịch đang xem.</p>
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 sm:text-xs">Phòng học</p>
+              <p className="mt-1.5 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{uniqueRooms}</p>
             </div>
           </div>
 
