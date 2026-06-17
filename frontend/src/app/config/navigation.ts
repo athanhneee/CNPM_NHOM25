@@ -102,7 +102,7 @@ export const navigationGroups: NavigationGroup[] = [
       {
         label: 'Nguyện vọng',
         to: '/student/wish',
-        icon: 'sparkles',
+        icon: 'clipboard-list',
         roles: ['STUDENT'],
         description: 'Gửi nhu cầu mở thêm lớp hoặc đăng ký đặc biệt.',
       },
@@ -196,7 +196,7 @@ export const navigationGroups: NavigationGroup[] = [
       {
         label: 'Duyệt nguyện vọng',
         to: '/academic/wishes',
-        icon: 'sparkles',
+        icon: 'clipboard-list',
         roles: ['ACADEMIC_OFFICE'],
         description: 'Theo dõi và cập nhật trạng thái nguyện vọng học phần.',
       },
@@ -236,7 +236,7 @@ export const navigationGroups: NavigationGroup[] = [
       {
         label: 'Duyệt nguyện vọng',
         to: '/admin/wishes',
-        icon: 'sparkles',
+        icon: 'clipboard-list',
         roles: ['ADMIN'],
         description: 'Theo dõi và cập nhật trạng thái nguyện vọng học phần.',
       },

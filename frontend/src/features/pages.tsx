@@ -19,7 +19,7 @@ import {
   PhoneCall,
   School,
   ShieldAlert,
-  Sparkles,
+  CircleHelp,
   UserRound,
   UsersRound,
 } from 'lucide-react'
@@ -137,7 +137,7 @@ function getDashboardIcon(role: string, index: number) {
       <ChartColumnBig className="h-5 w-5" key="4" />,
     ][index]
   }
-  return <Sparkles className="h-5 w-5" key="fallback" />
+  return <CircleHelp className="h-5 w-5" key="fallback" />
 }
 
 interface QuickLink {
@@ -496,7 +496,7 @@ export function LoginPage() {
           <div className="absolute bottom-4 right-12 h-60 w-60 rounded-full bg-teal-200/30 blur-3xl" />
           <div className="relative space-y-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-white/88 px-5 py-2 text-sm font-semibold tracking-[0.22em] text-cyan-700 shadow-[0_18px_40px_rgba(8,145,178,0.12)]">
-              <Sparkles className="h-4 w-4" />
+              <GraduationCap className="h-4 w-4" />
               CỔNG HỌC VỤ PTIT HCM
             </div>
 
