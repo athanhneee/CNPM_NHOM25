@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 interface PageTitleBlockProps {
   title: string
-  subtitle: string
+  subtitle?: string
   actions?: ReactNode
 }
 
