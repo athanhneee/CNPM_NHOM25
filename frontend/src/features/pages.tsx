@@ -1174,7 +1174,7 @@ export function ProfilePage() {
       ]
 
   const profileBadgeClass =
-    'inline-flex min-h-[88px] min-w-[152px] items-center justify-center rounded-2xl px-6 py-4 text-center text-sm font-medium leading-6'
+    'inline-flex min-h-[48px] px-6 py-2 items-center justify-center rounded-full text-center text-sm font-medium leading-6'
 
   function resetContactDraft() {
     setEmail(user.email)
@@ -1250,7 +1250,7 @@ export function ProfilePage() {
         }
       />
 
-      <div className="grid items-start gap-6 xl:grid-cols-[0.72fr_0.28fr]">
+      <div className="grid items-start gap-6 lg:grid-cols-[0.65fr_0.35fr] xl:grid-cols-[0.7fr_0.3fr]">
         <div className="grid gap-6">
           <section className="surface-panel overflow-hidden border border-teal-100">
             <div className="bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 px-6 py-5 text-white">
@@ -1258,16 +1258,12 @@ export function ProfilePage() {
                 <BadgeCheck className="h-4 w-4" />
                 Hồ sơ định danh PTIT HCM
               </div>
-              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">Thông tin cá nhân và học vụ tổng hợp</h2>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-white/82">
-                Mọi thông tin quan trọng của người dùng được gom vào một nơi để bạn dễ đối chiếu khi đăng ký học phần,
-                xem lịch học, quản trị tài khoản hoặc kiểm tra dữ liệu học vụ.
-              </p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">Hồ sơ cá nhân và học vụ</h2>
             </div>
 
             <div className="grid gap-6 px-6 py-5 lg:grid-cols-[170px_1fr] lg:items-center">
-              <div className="rounded-2xl bg-gradient-to-br from-teal-50 via-cyan-50 to-white p-4">
-                <div className="grid h-36 place-items-center rounded-2xl border border-white/80 bg-white text-3xl font-semibold tracking-[-0.06em] text-teal-700 shadow-[0_24px_60px_-36px_rgba(8,145,178,0.45)]">
+              <div className="rounded-3xl bg-gradient-to-br from-teal-50 via-cyan-50 to-white p-4">
+                <div className="grid h-36 place-items-center rounded-[2rem] border border-white/80 bg-white text-3xl font-semibold tracking-[-0.06em] text-teal-700 shadow-[0_24px_60px_-36px_rgba(8,145,178,0.45)]">
                   {getInitials(user.fullName)}
                 </div>
                 <div className="mt-4 space-y-2 text-center">
@@ -1280,10 +1276,6 @@ export function ProfilePage() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-600">{roleLabel}</p>
                   <h3 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{user.fullName}</h3>
-                  <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-                    {user.bio ??
-                      'Hồ sơ này được dùng để mô phỏng thông tin cá nhân, học vụ và phiên sử dụng trong hệ thống đăng ký tín chỉ.'}
-                  </p>
                 </div>
 
                 <div className="flex flex-wrap items-stretch gap-3">
@@ -1301,7 +1293,7 @@ export function ProfilePage() {
             </div>
           </section>
 
-          <Card title="Thông tin cá nhân" description="Bộ hồ sơ định danh đầy đủ theo dữ liệu đang lưu trong hệ thống">
+          <Card title="Thông tin cá nhân">
             <div className="grid items-start gap-6 xl:grid-cols-3">
               {personalColumns.map((column, columnIndex) => (
                 <div
@@ -1319,14 +1311,7 @@ export function ProfilePage() {
             </div>
           </Card>
 
-          <Card
-            title={isStudent ? 'Thông tin khóa học' : 'Thông tin công tác'}
-            description={
-              isStudent
-                ? 'Thông tin lớp, ngành, khoa và niên khóa để phục vụ tra cứu học vụ.'
-                : 'Thông tin chuyên môn và đơn vị công tác của cán bộ đang đăng nhập.'
-            }
-          >
+          <Card title={isStudent ? 'Thông tin khóa học' : 'Thông tin công tác'}>
             <div className="grid items-start gap-6 xl:grid-cols-2">
               {profileColumns.map((column, columnIndex) => (
                 <div
@@ -1344,10 +1329,7 @@ export function ProfilePage() {
             </div>
           </Card>
 
-          <Card
-            title="Thông tin liên hệ có thể cập nhật"
-            description="Bạn có thể chỉnh sửa email phụ, số điện thoại và địa chỉ liên hệ ngay trong bản demo này."
-          >
+          <Card title="Thông tin liên hệ">
             <div className="grid gap-4 md:grid-cols-2">
               <Input
                 label="Email chính"
@@ -1378,7 +1360,7 @@ export function ProfilePage() {
         </div>
 
         <div className="grid gap-6">
-          <Card title="Trạng thái tài khoản" description="Thông tin vai trò, phiên đăng nhập và trạng thái truy cập hiện tại">
+          <Card title="Trạng thái tài khoản">
             <div className="space-y-3 text-sm text-slate-600">
               <div className="flex items-center justify-between gap-3">
                 <span className="inline-flex items-center gap-2">
@@ -1414,14 +1396,7 @@ export function ProfilePage() {
             </div>
           </Card>
 
-          <Card
-            title={isStudent ? 'Tổng quan học tập' : 'Tổng quan công việc'}
-            description={
-              isStudent
-                ? 'Các chỉ số học tập nhanh để đối chiếu với tiến độ đăng ký học phần.'
-                : 'Tóm tắt nhanh về vai trò và phạm vi công việc trong hệ thống.'
-            }
-          >
+          <Card title={isStudent ? 'Tổng quan học tập' : 'Tổng quan công việc'}>
             <div className="grid gap-3">
               {overviewItems.map((item, index) => (
                 <div
@@ -1435,14 +1410,7 @@ export function ProfilePage() {
             </div>
           </Card>
 
-          <Card
-            title={isStudent ? 'Dấu mốc hồ sơ' : 'Thông tin chuyên môn'}
-            description={
-              isStudent
-                ? 'Các nhãn nhận diện học vụ quan trọng để bạn rà soát nhanh.'
-                : 'Thông tin đơn vị và chuyên môn được hiển thị gọn trong cùng một khu vực.'
-            }
-          >
+          <Card title={isStudent ? 'Dấu mốc hồ sơ' : 'Thông tin chuyên môn'}>
             <div className="grid gap-3">
               <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                 <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
