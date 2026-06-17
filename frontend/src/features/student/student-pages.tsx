@@ -33,7 +33,6 @@ import { courseService } from '@/services/course.api'
 import { sectionService } from '@/services/section.api'
 import { scheduleService } from '@/services/schedule.api'
 import { wishService } from '@/services/wish.api'
-import { getStudentScheduleEntries } from '@/lib/selectors'
 import type { Course } from '@/types/course'
 import type { ScheduleEntry } from '@/types/schedule'
 import type { User } from '@/types/user'
@@ -728,6 +727,8 @@ export function WeekSchedulePage() {
   const semesterId = snapshot.settings.currentSemesterId
   const scheduleKey = studentId ? `${studentId}:${semesterId}:week` : ''
   const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
 
   useEffect(() => {
@@ -741,11 +742,13 @@ export function WeekSchedulePage() {
       .then((entries) => {
         if (active) {
           setApiSchedule({ key: scheduleKey, entries })
+          setLoading(false)
         }
       })
-      .catch(() => {
+      .catch((err) => {
         if (active) {
-          setApiSchedule(null)
+          setError(err instanceof Error ? err.message : 'Không thể tải lịch học từ hệ thống.')
+          setLoading(false)
         }
       })
 
@@ -758,8 +761,15 @@ export function WeekSchedulePage() {
     return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
-  const student = currentUser
-  const entries = apiEntries ?? getStudentScheduleEntries(snapshot, student.id)
+  if (loading) {
+    return <EmptyState title="Đang tải lịch học..." description="Vui lòng chờ trong giây lát." />
+  }
+
+  if (error) {
+    return <EmptyState title="Không thể tải lịch học" description={error} />
+  }
+
+  const entries = apiEntries ?? []
   const morning = entries.filter((entry) => entry.startPeriod <= 4).length
   const afternoon = entries.filter((entry) => entry.startPeriod >= 5 && entry.startPeriod <= 8).length
   const evening = entries.filter((entry) => entry.startPeriod > 8).length
@@ -787,6 +797,8 @@ export function SemesterSchedulePage() {
   const semesterId = snapshot.settings.currentSemesterId
   const scheduleKey = studentId ? `${studentId}:${semesterId}:semester` : ''
   const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
 
   useEffect(() => {
@@ -800,11 +812,13 @@ export function SemesterSchedulePage() {
       .then((entries) => {
         if (active) {
           setApiSchedule({ key: scheduleKey, entries })
+          setLoading(false)
         }
       })
-      .catch(() => {
+      .catch((err) => {
         if (active) {
-          setApiSchedule(null)
+          setError(err instanceof Error ? err.message : 'Không thể tải lịch học kỳ từ hệ thống.')
+          setLoading(false)
         }
       })
 
@@ -817,8 +831,15 @@ export function SemesterSchedulePage() {
     return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
-  const student = currentUser
-  const entries = apiEntries ?? getStudentScheduleEntries(snapshot, student.id)
+  if (loading) {
+    return <EmptyState title="Đang tải lịch học kỳ..." description="Vui lòng chờ trong giây lát." />
+  }
+
+  if (error) {
+    return <EmptyState title="Không thể tải lịch học kỳ" description={error} />
+  }
+
+  const entries = apiEntries ?? []
 
   return (
     <div className="grid gap-6">

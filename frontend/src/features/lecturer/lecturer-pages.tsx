@@ -16,7 +16,7 @@ import { SearchInput } from '@/components/shared/SearchInput'
 import { SectionCapacityBar } from '@/components/shared/SectionCapacityBar'
 import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { getLecturerScheduleEntries, getLecturerSections, getSectionStudents } from '@/lib/selectors'
+import { getLecturerSections, getSectionStudents } from '@/lib/selectors'
 import { courseService } from '@/services/course.api'
 import { scheduleService } from '@/services/schedule.api'
 import { sectionService, type SectionStudentRow } from '@/services/section.api'
@@ -170,6 +170,8 @@ export function WeekTeachingPage() {
   const semesterId = snapshot.settings.currentSemesterId
   const scheduleKey = lecturerId ? `${lecturerId}:${semesterId}:week` : ''
   const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
 
   useEffect(() => {
@@ -183,11 +185,13 @@ export function WeekTeachingPage() {
       .then((entries) => {
         if (active) {
           setApiSchedule({ key: scheduleKey, entries })
+          setLoading(false)
         }
       })
-      .catch(() => {
+      .catch((err) => {
         if (active) {
-          setApiSchedule(null)
+          setError(err instanceof Error ? err.message : 'Không thể tải lịch giảng dạy từ hệ thống.')
+          setLoading(false)
         }
       })
 
@@ -200,7 +204,15 @@ export function WeekTeachingPage() {
     return <EmptyState title="Không tìm thấy giảng viên" description="Vui lòng đăng nhập lại." />
   }
 
-  const entries = apiEntries ?? getLecturerScheduleEntries(snapshot, currentUser.id)
+  if (loading) {
+    return <EmptyState title="Đang tải lịch giảng dạy..." description="Vui lòng chờ trong giây lát." />
+  }
+
+  if (error) {
+    return <EmptyState title="Không thể tải lịch giảng dạy" description={error} />
+  }
+
+  const entries = apiEntries ?? []
   return (
     <div className="grid gap-6">
       <PageTitleBlock
@@ -219,6 +231,8 @@ export function SemesterTeachingPage() {
   const semesterId = snapshot.settings.currentSemesterId
   const scheduleKey = lecturerId ? `${lecturerId}:${semesterId}:semester` : ''
   const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
 
   useEffect(() => {
@@ -232,11 +246,13 @@ export function SemesterTeachingPage() {
       .then((entries) => {
         if (active) {
           setApiSchedule({ key: scheduleKey, entries })
+          setLoading(false)
         }
       })
-      .catch(() => {
+      .catch((err) => {
         if (active) {
-          setApiSchedule(null)
+          setError(err instanceof Error ? err.message : 'Không thể tải lịch giảng dạy học kỳ.')
+          setLoading(false)
         }
       })
 
@@ -249,7 +265,15 @@ export function SemesterTeachingPage() {
     return <EmptyState title="Không tìm thấy giảng viên" description="Vui lòng đăng nhập lại." />
   }
 
-  const sourceEntries = apiEntries ?? getLecturerScheduleEntries(snapshot, currentUser.id)
+  if (loading) {
+    return <EmptyState title="Đang tải lịch giảng dạy..." description="Vui lòng chờ trong giây lát." />
+  }
+
+  if (error) {
+    return <EmptyState title="Không thể tải lịch giảng dạy" description={error} />
+  }
+
+  const sourceEntries = apiEntries ?? []
   const entries = sourceEntries.filter((entry) =>
     !query || entry.courseCode.toLowerCase().includes(query.toLowerCase()) || entry.title.toLowerCase().includes(query.toLowerCase()),
   )

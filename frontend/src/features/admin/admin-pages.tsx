@@ -926,6 +926,8 @@ export function SettingsPage() {
 export function AuditLogsPage() {
   const { currentUser, snapshot } = useAdminContext()
   const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const currentUserId = currentUser?.id
 
   useEffect(() => {
@@ -935,7 +937,13 @@ export function AuditLogsPage() {
 
     void logService
       .listLogs()
-      .catch(() => undefined)
+      .then(() => {
+        setLoading(false)
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Không thể tải nhật ký từ hệ thống.')
+        setLoading(false)
+      })
   }, [currentUserId])
 
   const rows = useMemo(
@@ -953,6 +961,14 @@ export function AuditLogsPage() {
     return <EmptyState title="Không tìm thấy quản trị viên" description="Vui lòng đăng nhập lại." />
   }
 
+  if (loading) {
+    return <EmptyState title="Đang tải nhật ký..." description="Vui lòng chờ trong giây lát." />
+  }
+
+  if (error) {
+    return <EmptyState title="Không thể tải nhật ký hệ thống" description={error} />
+  }
+
   const columns: TableColumn<(typeof rows)[number]>[] = [
     { key: 'timestamp', header: 'Thời gian', render: (row) => formatDateTime(row.timestamp) },
     { key: 'actorId', header: 'Người thực hiện', render: (row) => row.actorId },
@@ -966,7 +982,7 @@ export function AuditLogsPage() {
     <div className="grid gap-6">
       <PageTitleBlock title="Quản trị - Nhật ký hệ thống" subtitle="Theo dõi nhật ký cho các thao tác đăng nhập, đăng ký, danh sách chờ, can thiệp đặc biệt, cập nhật tham số và phân quyền." />
       <div className="grid gap-4 lg:grid-cols-4">
-        <StatCard label="Tổng log" value={String(snapshot.logs.length)} hint="Ưu tiên backend, fallback local" />
+        <StatCard label="Tổng log" value={String(snapshot.logs.length)} hint="Dữ liệu từ backend" />
         <StatCard label="Đăng ký" value={String(snapshot.logs.filter((log) => log.action.includes('REGISTER')).length)} hint="Bao gồm danh sách chờ và can thiệp" />
         <StatCard label="Phân quyền" value={String(snapshot.logs.filter((log) => log.action.includes('ROLE') || log.action.includes('USER')).length)} hint="Tác động tới người dùng và vai trò" />
         <StatCard label="Tham số" value={String(snapshot.logs.filter((log) => log.action.includes('SETTINGS')).length)} hint="Thay đổi cấu hình hệ thống" />
