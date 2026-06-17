@@ -56,6 +56,16 @@ export class SnapshotService {
   }
 
   async importSnapshot(payload: any) {
+    if (!payload || typeof payload !== 'object') {
+      throw new Error('Payload import không hợp lệ.')
+    }
+
+    const requiredFields = ['users', 'courses', 'semesters', 'sections'] as const
+    const missingFields = requiredFields.filter((field) => !Array.isArray(payload[field]))
+    if (missingFields.length > 0) {
+      throw new Error(`Thiếu dữ liệu bắt buộc: ${missingFields.join(', ')}.`)
+    }
+
     const defaultPasswordDigest = await bcrypt.hash(DEFAULT_PASSWORD, 10)
     const users = (payload.users ?? []).map((user: any) => ({
       ...user,
@@ -64,37 +74,60 @@ export class SnapshotService {
       refreshTokenExpiresAt: null,
     }))
 
-    await this.prisma.$transaction([
-      this.prisma.auditLog.deleteMany(),
-      this.prisma.enrollment.deleteMany(),
-      this.prisma.wishRequest.deleteMany(),
-      this.prisma.studentResult.deleteMany(),
-      this.prisma.section.deleteMany(),
-      this.prisma.courseCondition.deleteMany(),
-      this.prisma.registrationErrorCode.deleteMany(),
-      this.prisma.systemSetting.deleteMany(),
-      this.prisma.room.deleteMany(),
-      this.prisma.course.deleteMany(),
-      this.prisma.user.deleteMany(),
-      this.prisma.semesterOption.deleteMany(),
-    ])
+    const semesters = payload.semesters ?? []
+    const courses = payload.courses ?? []
+    const rooms = payload.rooms ?? []
+    const courseConditions = payload.courseConditions ?? []
+    const registrationErrorCodes = payload.registrationErrorCodes ?? []
+    const settings = payload.settings ?? []
+    const sections = payload.sections ?? []
+    const studentResults = payload.studentResults ?? []
+    const enrollments = payload.enrollments ?? []
+    const wishRequests = payload.wishRequests ?? []
+    const auditLogs = payload.auditLogs ?? []
 
-    await this.prisma.$transaction([
-      this.prisma.semesterOption.createMany({ data: payload.semesters ?? [] }),
-      this.prisma.user.createMany({ data: users }),
-      this.prisma.course.createMany({ data: payload.courses ?? [] }),
-      this.prisma.room.createMany({ data: payload.rooms ?? [] }),
-      this.prisma.courseCondition.createMany({ data: payload.courseConditions ?? [] }),
-      this.prisma.registrationErrorCode.createMany({ data: payload.registrationErrorCodes ?? [] }),
-      this.prisma.systemSetting.createMany({ data: payload.settings ?? [] }),
-      this.prisma.section.createMany({ data: payload.sections ?? [] }),
-      this.prisma.studentResult.createMany({ data: payload.studentResults ?? [] }),
-      this.prisma.enrollment.createMany({ data: payload.enrollments ?? [] }),
-      this.prisma.wishRequest.createMany({ data: payload.wishRequests ?? [] }),
-      this.prisma.auditLog.createMany({ data: payload.auditLogs ?? [] }),
-    ])
+    await this.prisma.$transaction(async (tx) => {
+      await tx.auditLog.deleteMany()
+      await tx.enrollment.deleteMany()
+      await tx.wishRequest.deleteMany()
+      await tx.studentResult.deleteMany()
+      await tx.section.deleteMany()
+      await tx.courseCondition.deleteMany()
+      await tx.registrationErrorCode.deleteMany()
+      await tx.systemSetting.deleteMany()
+      await tx.room.deleteMany()
+      await tx.course.deleteMany()
+      await tx.user.deleteMany()
+      await tx.semesterOption.deleteMany()
 
-    return { imported: true, defaultPassword: DEFAULT_PASSWORD }
+      if (semesters.length) await tx.semesterOption.createMany({ data: semesters })
+      if (users.length) await tx.user.createMany({ data: users })
+      if (courses.length) await tx.course.createMany({ data: courses })
+      if (rooms.length) await tx.room.createMany({ data: rooms })
+      if (courseConditions.length) await tx.courseCondition.createMany({ data: courseConditions })
+      if (registrationErrorCodes.length) await tx.registrationErrorCode.createMany({ data: registrationErrorCodes })
+      if (settings.length) await tx.systemSetting.createMany({ data: settings })
+      if (sections.length) await tx.section.createMany({ data: sections })
+      if (studentResults.length) await tx.studentResult.createMany({ data: studentResults })
+      if (enrollments.length) await tx.enrollment.createMany({ data: enrollments })
+      if (wishRequests.length) await tx.wishRequest.createMany({ data: wishRequests })
+      if (auditLogs.length) await tx.auditLog.createMany({ data: auditLogs })
+    }, { timeout: 60000 })
+
+    return {
+      imported: true,
+      defaultPassword: DEFAULT_PASSWORD,
+      summary: {
+        users: users.length,
+        courses: courses.length,
+        semesters: semesters.length,
+        rooms: rooms.length,
+        sections: sections.length,
+        enrollments: enrollments.length,
+        wishRequests: wishRequests.length,
+        auditLogs: auditLogs.length,
+      },
+    }
   }
 
   async resetSeed() {
