@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   BookOpenText,
@@ -1807,7 +1806,7 @@ export function NotFoundPage() {
               className="h-14 rounded-full border border-slate-200 px-8 text-sm font-bold text-slate-700"
               onClick={() => window.history.back()}
               type="button"
-              variant="outline"
+              variant="ghost"
             >
               Quay lại trang trước
             </Button>

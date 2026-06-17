@@ -94,7 +94,7 @@ export function AssignedSectionsPage() {
 
   return (
     <div className="grid gap-6">
-      <PageTitleBlock title="Giảng viên - Danh sách lớp được phân công" subtitle="Chỉ hiển thị các lớp học phần do giảng viên hiện tại phụ trách trong học kỳ đang xem." />
+      <PageTitleBlock title="Giảng viên - Danh sách lớp được phân công" subtitle="Quản lý và theo dõi các lớp học phần được phân công giảng dạy trong học kỳ hiện tại." />
       <div className="grid gap-4 lg:grid-cols-3">
         <StatCard label="Tổng số lớp" value={String(rows.length)} hint="Học kỳ hiện tại" />
         <StatCard label="Tổng sĩ số" value={String(rows.reduce((sum, row) => sum + row.section.registeredCount, 0))} hint="Sinh viên đăng ký hợp lệ" />
