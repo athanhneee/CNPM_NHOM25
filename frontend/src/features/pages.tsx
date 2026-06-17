@@ -1310,8 +1310,8 @@ export function ProfilePage() {
                 >
                   {column.map((item) => (
                     <div key={item.label} className="space-y-1">
-                      <p className="text-sm font-medium text-slate-500">{item.label}</p>
-                      <p className="text-xl font-semibold tracking-[-0.03em] text-slate-900">{item.value}</p>
+                      <p className="text-sm font-medium text-slate-600">{item.label}</p>
+                      <p className="text-base font-medium text-slate-900">{item.value}</p>
                     </div>
                   ))}
                 </div>
@@ -1335,8 +1335,8 @@ export function ProfilePage() {
                 >
                   {column.map((item) => (
                     <div key={item.label} className="grid gap-1 md:grid-cols-[190px_1fr] md:items-start">
-                      <p className="text-sm font-medium text-slate-500">{item.label}</p>
-                      <p className="text-lg font-semibold tracking-[-0.03em] text-slate-900">{item.value}</p>
+                      <p className="text-sm font-medium text-slate-600">{item.label}</p>
+                      <p className="text-base font-medium text-slate-900">{item.value}</p>
                     </div>
                   ))}
                 </div>
