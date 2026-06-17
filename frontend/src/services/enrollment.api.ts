@@ -77,6 +77,12 @@ interface EnrollmentQuery {
   status?: EnrollmentStatus
 }
 
+interface CancelWithdrawResponse {
+  enrollment: BackendEnrollment
+  promoted?: BackendEnrollment[]
+  warnings?: string[]
+}
+
 const ENROLLMENT_STATUSES = [
   'PENDING',
   'REGISTERED',
@@ -325,27 +331,31 @@ export const enrollmentService = {
   },
 
   async cancelEnrollment(enrollmentId: string, _actor?: EnrollmentActor, reason?: string) {
-    const enrollment = normalizeEnrollment(
-      await apiRequest<BackendEnrollment>(`/enrollments/${enrollmentId}/cancel`, {
-        method: 'POST',
-        body: { reason },
-      }),
-    )
-    upsertEnrollments([enrollment])
+    const response = await apiRequest<CancelWithdrawResponse>(`/enrollments/${enrollmentId}/cancel`, {
+      method: 'POST',
+      body: { reason },
+    })
+    
+    const enrollment = normalizeEnrollment(response.enrollment)
+    const promoted = response.promoted ? normalizeEnrollments(response.promoted) : []
+    
+    upsertEnrollments([enrollment, ...promoted])
     await refreshSections()
-    return enrollment
+    return { enrollment, promoted, warnings: response.warnings ?? [] }
   },
 
   async withdrawEnrollment(enrollmentId: string, reason: string, _actor?: EnrollmentActor) {
-    const enrollment = normalizeEnrollment(
-      await apiRequest<BackendEnrollment>(`/enrollments/${enrollmentId}/withdraw`, {
-        method: 'POST',
-        body: { reason },
-      }),
-    )
-    upsertEnrollments([enrollment])
+    const response = await apiRequest<CancelWithdrawResponse>(`/enrollments/${enrollmentId}/withdraw`, {
+      method: 'POST',
+      body: { reason },
+    })
+    
+    const enrollment = normalizeEnrollment(response.enrollment)
+    const promoted = response.promoted ? normalizeEnrollments(response.promoted) : []
+
+    upsertEnrollments([enrollment, ...promoted])
     await refreshSections()
-    return enrollment
+    return { enrollment, promoted, warnings: response.warnings ?? [] }
   },
 
   async listHistory(studentId: string) {

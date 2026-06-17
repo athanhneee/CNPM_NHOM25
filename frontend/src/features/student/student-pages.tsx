@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
+import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Dialog } from '@/components/ui/Dialog'
@@ -434,7 +435,7 @@ export function RegisterPage() {
       />
 
       <div className="grid gap-4 lg:grid-cols-4">
-        <CreditMeter current={currentCredits} min={snapshot.settings.minCredits} max={snapshot.settings.maxCredits} />
+        <CreditMeter current={currentCredits} min={snapshot.settings.minCredits} max={snapshot.settings.semesterType === 'SUMMER' ? snapshot.settings.maxCreditsSummer : snapshot.settings.maxCreditsMain} />
         <StatCard label="Lớp đang học" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'REGISTERED').length)} hint="DK_TC trong học kỳ hiện tại" />
         <StatCard label="Đang ở danh sách chờ" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'WAITLISTED').length)} hint="Theo dõi nội bộ, khi đối chiếu PDF quy về KHONG_DU_DK" />
         <StatCard label="Cảnh báo" value={checkResult?.checks.filter((item) => !item.passed).length ? String(checkResult.checks.filter((item) => !item.passed).length) : '0'} hint="Số rule fail của section đang xem" />
@@ -591,6 +592,8 @@ export function CancelRegistrationPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {row.enrollment.isRetake && <Badge className="bg-amber-100 text-amber-800 border-amber-200">Học lại</Badge>}
+                  {row.enrollment.isImprovement && <Badge className="bg-purple-100 text-purple-800 border-purple-200">Cải thiện</Badge>}
                   <StatusBadge kind="enrollment" status={row.enrollment.status} />
                   <Button onClick={() => setSelectedEnrollmentId(row.enrollment.id)} type="button" variant="danger">
                     Hủy đăng ký
@@ -674,6 +677,8 @@ export function WithdrawPage() {
                   <p className="text-sm text-slate-500">{row.section?.sectionCode} • Rút trước {snapshot.settings.withdrawalDeadline.slice(0, 10)}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {row.enrollment.isRetake && <Badge className="bg-amber-100 text-amber-800 border-amber-200">Học lại</Badge>}
+                  {row.enrollment.isImprovement && <Badge className="bg-purple-100 text-purple-800 border-purple-200">Cải thiện</Badge>}
                   <StatusBadge kind="enrollment" status={row.enrollment.status} />
                   <Button onClick={() => setSelectedEnrollmentId(row.enrollment.id)} type="button" variant="danger">
                     Rút học phần
@@ -886,7 +891,13 @@ export function HistoryPage() {
     { key: 'courseCode', header: 'Mã MH', render: (row) => row.section?.courseCode ?? '--' },
     { key: 'courseName', header: 'Tên môn học', render: (row) => row.course?.name ?? '--' },
     { key: 'sectionCode', header: 'Mã lớp HP', render: (row) => row.section?.sectionCode ?? '--' },
-    { key: 'status', header: 'Trạng thái', render: (row) => <StatusBadge kind="enrollment" status={row.enrollment.status} /> },
+    { key: 'status', header: 'Trạng thái', render: (row) => (
+      <div className="flex flex-wrap items-center gap-2">
+        {row.enrollment.isRetake && <Badge className="bg-amber-100 text-amber-800 border-amber-200">Học lại</Badge>}
+        {row.enrollment.isImprovement && <Badge className="bg-purple-100 text-purple-800 border-purple-200">Cải thiện</Badge>}
+        <StatusBadge kind="enrollment" status={row.enrollment.status} />
+      </div>
+    ) },
     { key: 'createdAt', header: 'Ngày đăng ký', render: (row) => formatDateTime(row.enrollment.createdAt) },
     {
       key: 'action',

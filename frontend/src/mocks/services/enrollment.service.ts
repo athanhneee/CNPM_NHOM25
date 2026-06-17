@@ -30,11 +30,13 @@ export const enrollmentService = {
   },
   async cancelEnrollment(enrollmentId: string, actor = studentActor, reason?: string) {
     await sleep(getRandomDelay())
-    return useDataStore.getState().cancelEnrollment(enrollmentId, actor, reason)
+    const enrollment = useDataStore.getState().cancelEnrollment(enrollmentId, actor, reason)
+    return { enrollment, promoted: [], warnings: [] }
   },
   async withdrawEnrollment(enrollmentId: string, reason: string, actor = studentActor) {
     await sleep(getRandomDelay())
-    return useDataStore.getState().withdrawEnrollment(enrollmentId, actor, reason)
+    const enrollment = useDataStore.getState().withdrawEnrollment(enrollmentId, actor, reason)
+    return { enrollment, promoted: [], warnings: [] }
   },
   async listHistory(studentId: string) {
     await sleep(140)

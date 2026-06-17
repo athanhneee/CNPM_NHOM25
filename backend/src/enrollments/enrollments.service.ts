@@ -61,12 +61,16 @@ function asRuleSettings(settings: {
   adjustmentStart: Date
   adjustmentEnd: Date
   withdrawalDeadline: Date
-  maxCredits: number
+  maxCreditsMain: number
+  maxCreditsSummer: number
   maxClassesPerDay: number
   maxClassesPerSemester: number
   allowWaitlist: boolean
+  countWaitlistCredits: boolean
+  allowGradeImprovement: boolean
+  maxRetakeAttempts: number
   currentSemesterId: string
-}): RuleSettings {
+}, semesterType: 'MAIN' | 'SUMMER'): RuleSettings {
   return {
     simulationNow: settings.simulationNow.toISOString(),
     registrationStart: settings.registrationStart.toISOString(),
@@ -74,10 +78,15 @@ function asRuleSettings(settings: {
     adjustmentStart: settings.adjustmentStart.toISOString(),
     adjustmentEnd: settings.adjustmentEnd.toISOString(),
     withdrawalDeadline: settings.withdrawalDeadline.toISOString(),
-    maxCredits: settings.maxCredits,
+    maxCreditsMain: settings.maxCreditsMain,
+    maxCreditsSummer: settings.maxCreditsSummer,
     maxClassesPerDay: settings.maxClassesPerDay,
     maxClassesPerSemester: settings.maxClassesPerSemester,
     allowWaitlist: settings.allowWaitlist,
+    countWaitlistCredits: settings.countWaitlistCredits,
+    allowGradeImprovement: settings.allowGradeImprovement,
+    maxRetakeAttempts: settings.maxRetakeAttempts,
+    semesterType,
     currentSemesterId: settings.currentSemesterId,
   }
 }
@@ -132,7 +141,8 @@ export class EnrollmentsService {
     sectionId: string,
   ) {
     const settings = await this.getCurrentSettings(client)
-    const [student, section, courses, sections, enrollments, courseConditions, studentResults] = await Promise.all([
+    const [currentSemester, student, section, courses, sections, enrollments, courseConditions, studentResults] = await Promise.all([
+      client.semesterOption.findUnique({ where: { id: settings.currentSemesterId } }),
       client.user.findUnique({ where: { id: studentId } }),
       client.section.findUnique({ where: { id: sectionId } }),
       client.course.findMany(),
@@ -143,6 +153,7 @@ export class EnrollmentsService {
     ])
 
     const targetCourse = section ? courses.find((course) => course.code === section.courseCode) : undefined
+    const semesterType = (currentSemester?.type as 'MAIN' | 'SUMMER') ?? 'MAIN'
 
     return {
       settings,
@@ -150,7 +161,7 @@ export class EnrollmentsService {
       section,
       targetCourse,
       context: {
-        settings: asRuleSettings(settings),
+        settings: asRuleSettings(settings, semesterType),
         student: student
           ? ({
               id: student.id,
@@ -391,6 +402,8 @@ export class EnrollmentsService {
             semesterId: section.semesterId,
             status: finalStatus,
             waitlistOrder,
+            isRetake: result.isRetake ?? false,
+            isImprovement: result.isImprovement ?? false,
             timeline: [buildTimelineItem(actor, finalStatus, result.message, now)],
           },
         })
@@ -479,7 +492,7 @@ export class EnrollmentsService {
         this.assertActorMayActForStudent(enrollment.studentId, actor)
         await this.assertStudentActive(tx, enrollment.studentId, actor)
 
-        if (!canCancelEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings))) {
+        if (!canCancelEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings, 'MAIN'))) {
           throw new BadRequestException('Ngoài thời gian điều chỉnh đăng ký.')
         }
 
@@ -526,7 +539,18 @@ export class EnrollmentsService {
           reason: reason ?? null,
         })
 
-        return updatedEnrollment
+        
+        let promoted = [];
+        if (enrollment.status === 'REGISTERED' && section && section.allowWaitlist) {
+          promoted = await this._processWaitlist(tx, section.id, actor, now);
+        }
+        
+        const corequisiteWarnings = await this._checkCorequisiteCascade(tx, enrollment.studentId, section?.semesterId ?? '', section?.courseCode ?? '');
+        if (corequisiteWarnings.length > 0) {
+           await require('../common/utils/audit').appendAuditLog(tx, actor, 'COREQUISITE_WARNING', id, 'WARNING', 'Cảnh báo vi phạm môn song hành.', { corequisiteWarnings });
+        }
+
+        return { enrollment: updatedEnrollment, promoted, warnings: corequisiteWarnings }
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )
@@ -544,7 +568,7 @@ export class EnrollmentsService {
         this.assertActorMayActForStudent(enrollment.studentId, actor)
         await this.assertStudentActive(tx, enrollment.studentId, actor)
 
-        if (!canWithdrawEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings))) {
+        if (!canWithdrawEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings, 'MAIN'))) {
           throw new BadRequestException('Ngoài cửa sổ rút học phần.')
         }
 
@@ -579,7 +603,42 @@ export class EnrollmentsService {
         }
 
         await appendAuditLog(tx, actor, 'WITHDRAW_ENROLLMENT', id, 'SUCCESS', 'Rút học phần thành công.', { reason })
-        return updatedEnrollment
+        
+        if (section) {
+          const existingResult = await tx.studentResult.findFirst({
+            where: { studentId: enrollment.studentId, courseCode: section.courseCode, semesterId: section.semesterId }
+          });
+          if (existingResult) {
+            await tx.studentResult.update({
+              where: { id: existingResult.id },
+              data: { letterGrade: 'W', passed: false, status: 'WITHDRAWN' }
+            });
+          } else {
+            await tx.studentResult.create({
+              data: {
+                studentId: enrollment.studentId,
+                courseCode: section.courseCode,
+                semesterId: section.semesterId,
+                letterGrade: 'W',
+                passed: false,
+                status: 'WITHDRAWN',
+              }
+            });
+          }
+        }
+    
+        
+        let promoted = [];
+        if (enrollment.status === 'REGISTERED' && section && section.allowWaitlist) {
+          promoted = await this._processWaitlist(tx, section.id, actor, now);
+        }
+        
+        const corequisiteWarnings = await this._checkCorequisiteCascade(tx, enrollment.studentId, section?.semesterId ?? '', section?.courseCode ?? '');
+        if (corequisiteWarnings.length > 0) {
+           await require('../common/utils/audit').appendAuditLog(tx, actor, 'COREQUISITE_WARNING', id, 'WARNING', 'Cảnh báo vi phạm môn song hành.', { corequisiteWarnings });
+        }
+
+        return { enrollment: updatedEnrollment, promoted, warnings: corequisiteWarnings }
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )
@@ -588,65 +647,10 @@ export class EnrollmentsService {
   async processWaitlist(sectionId: string, actor: AuditActor) {
     return this.prisma.$transaction(
       async (tx) => {
-        const section = await tx.section.findUnique({ where: { id: sectionId } })
-        if (!section) {
-          throw new NotFoundException('Không tìm thấy lớp học phần.')
-        }
-
-        const waitlisted = await tx.enrollment.findMany({
-          where: { sectionId, status: EnrollmentStatus.WAITLISTED },
-          orderBy: [{ waitlistOrder: 'asc' }, { createdAt: 'asc' }],
-        })
-
-        const promoted = []
-        let latestSection = section
-
-        for (const candidate of waitlisted) {
-          if (latestSection.registeredCount >= latestSection.capacity) {
-            break
-          }
-
-          const { context, settings } = await this.loadEligibilityContext(tx, candidate.studentId, sectionId)
-          const result = evaluateEnrollmentEligibility(context, {
-            ignoreRegistrationWindow: true,
-            excludedEnrollmentId: candidate.id,
-          })
-
-          if (!result.canRegister || result.finalStatus !== EnrollmentStatus.REGISTERED) {
-            continue
-          }
-
-          const updatedEnrollment = await tx.enrollment.update({
-            where: { id: candidate.id },
-            data: {
-              status: EnrollmentStatus.REGISTERED,
-              waitlistOrder: null,
-              timeline: [
-                ...timelineArray(candidate.timeline),
-                buildTimelineItem(
-                  actor,
-                  EnrollmentStatus.REGISTERED,
-                  'Được chuyển từ danh sách chờ sang đăng ký thành công.',
-                  settings.simulationNow,
-                ),
-              ],
-            },
-          })
-
-          const registeredCount = latestSection.registeredCount + 1
-          const waitlistCount = Math.max(latestSection.waitlistCount - 1, 0)
-          latestSection = await tx.section.update({
-            where: { id: sectionId },
-            data: {
-              registeredCount,
-              waitlistCount,
-              status: nextSectionStatus({ ...latestSection, registeredCount }),
-            },
-          })
-          promoted.push(updatedEnrollment)
-        }
-
-        await appendAuditLog(
+        const settings = await this.getCurrentSettings(tx);
+        const promoted = await this._processWaitlist(tx, sectionId, actor, settings.simulationNow);
+        
+        await require('../common/utils/audit').appendAuditLog(
           tx,
           actor,
           'PROCESS_WAITLIST',
@@ -772,4 +776,129 @@ export class EnrollmentsService {
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )
   }
+
+  private async _checkCorequisiteCascade(tx: any, studentId: string, semesterId: string, canceledCourseCode: string): Promise<string[]> {
+    const activeEnrollments = await tx.enrollment.findMany({
+      where: {
+        studentId,
+        semesterId,
+        status: { in: ['REGISTERED', 'WAITLISTED'] }
+      },
+      include: { section: true }
+    });
+
+    const violations: string[] = [];
+    for (const enrollment of activeEnrollments) {
+      const code = enrollment.section.courseCode;
+      const conditions = await tx.courseCondition.findMany({
+        where: { courseCode: code, type: 'COREQUISITE' }
+      });
+      
+      let violated = false;
+      if (conditions.some((c: any) => c.requiredCourseCode === canceledCourseCode)) {
+        violated = true;
+      } else {
+        const course = await tx.course.findUnique({ where: { code } });
+        if (course?.corequisites && Array.isArray(course.corequisites)) {
+          if (course.corequisites.includes(canceledCourseCode)) {
+            violated = true;
+          }
+        }
+      }
+
+      if (violated) {
+        violations.push(`Học phần ${code} yêu cầu môn song hành ${canceledCourseCode} vừa bị rút/hủy.`);
+      }
+    }
+    return violations;
+  }
+
+  private async _processWaitlist(tx: any, sectionId: string, actor: any, now: Date) {
+    const section = await tx.section.findUnique({ where: { id: sectionId } });
+    if (!section || section.registeredCount >= section.capacity) return [];
+
+    const waitlisted = await tx.enrollment.findMany({
+      where: { sectionId, status: 'WAITLISTED' },
+      orderBy: [{ waitlistOrder: 'asc' }, { createdAt: 'asc' }],
+    });
+
+    const promoted = [];
+    let latestSection = section;
+
+    for (const candidate of waitlisted) {
+      if (latestSection.registeredCount >= latestSection.capacity) {
+        break;
+      }
+
+      const { context, settings } = await this.loadEligibilityContext(tx, candidate.studentId, sectionId);
+      // Ensure we import evaluateEnrollmentEligibility if it isn't, but it is.
+      const result = require('./enrollment-rules').evaluateEnrollmentEligibility(context, {
+        ignoreRegistrationWindow: true,
+        excludedEnrollmentId: candidate.id,
+      });
+
+      if (!result.canRegister || result.finalStatus !== 'REGISTERED') {
+        continue;
+      }
+
+      const updatedEnrollment = await tx.enrollment.update({
+        where: { id: candidate.id },
+        data: {
+          status: 'REGISTERED',
+          waitlistOrder: null,
+          timeline: [
+            ...(Array.isArray(candidate.timeline) ? candidate.timeline : []),
+            {
+              actorId: actor.id,
+              actorRole: actor.role,
+              action: 'REGISTERED',
+              message: 'Được chuyển từ danh sách chờ sang đăng ký thành công.',
+              timestamp: now.toISOString(),
+            }
+          ],
+        },
+      });
+
+      const registeredCount = latestSection.registeredCount + 1;
+      const waitlistCount = Math.max(latestSection.waitlistCount - 1, 0);
+      
+      const statusMapping: Record<string, string> = {
+        'OPEN': 'OPEN',
+        'CLOSED': 'CLOSED',
+        'FULL': 'FULL',
+        'CANCELLED': 'CANCELLED',
+        'IN_PROGRESS': 'IN_PROGRESS',
+        'COMPLETED': 'COMPLETED'
+      };
+      
+      latestSection = await tx.section.update({
+        where: { id: sectionId },
+        data: {
+          registeredCount,
+          waitlistCount,
+          status: registeredCount >= latestSection.capacity ? 'FULL' : statusMapping[latestSection.status] ?? 'OPEN',
+        },
+      });
+      promoted.push(updatedEnrollment);
+    }
+
+    if (promoted.length > 0) {
+      // Create audit logs for promotion
+      const { appendAuditLog } = require('../common/utils/audit');
+      for (const p of promoted) {
+        await appendAuditLog(
+          tx,
+          actor,
+          'WAITLIST_PROMOTION',
+          p.id,
+          'SUCCESS',
+          'Tự động duyệt từ danh sách chờ do có slot released.',
+          { promotedEnrollmentId: p.id, sectionId }
+        );
+      }
+    }
+
+    return promoted;
+  }
+
 }
