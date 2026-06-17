@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "test": "node --test --test-isolation=none --experimental-strip-types src/mocks/seed/ptit-helpers.test.ts src/mocks/seed/ptit-seed-smoke.test.ts src/lib/student-import.test.ts",
+    "test": "node --test --experimental-strip-types src/mocks/seed/ptit-helpers.test.ts src/mocks/seed/ptit-seed-smoke.test.ts src/lib/student-import.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
