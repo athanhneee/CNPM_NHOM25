@@ -219,7 +219,17 @@ export class EnrollmentsService {
     }
 
     throw new ForbiddenException('You do not have permission to access this enrollment.')
+  }
 
+  private async assertStudentActive(client: Prisma.TransactionClient, studentId: string, actor: AuditActor) {
+    if (actor.actorRole === UserRole.ADMIN || actor.actorRole === UserRole.ACADEMIC_OFFICE) {
+      return
+    }
+
+    const student = await client.user.findUnique({ where: { id: studentId }, select: { status: true } })
+    if (!student || student.status !== 'ACTIVE') {
+      throw new ForbiddenException('Tài khoản hiện không thể thực hiện thao tác này.')
+    }
   }
 
   private async syncSectionCounters(client: Prisma.TransactionClient, sectionId: string) {
@@ -294,6 +304,7 @@ export class EnrollmentsService {
     this.assertActorMayActForStudent(studentId, actor)
     return this.prisma.$transaction(
       async (tx) => {
+        await this.assertStudentActive(tx, studentId, actor)
         const { context, settings, section } = await this.loadEligibilityContext(tx, studentId, sectionId)
         const result = evaluateEnrollmentEligibility(context)
 
@@ -427,6 +438,7 @@ export class EnrollmentsService {
         }
 
         this.assertActorMayActForStudent(currentEnrollment.studentId, actor)
+        await this.assertStudentActive(tx, currentEnrollment.studentId, actor)
 
         const enrollment = await tx.enrollment.update({
           where: { id },
@@ -464,6 +476,7 @@ export class EnrollmentsService {
         }
 
         this.assertActorMayActForStudent(enrollment.studentId, actor)
+        await this.assertStudentActive(tx, enrollment.studentId, actor)
 
         if (!canCancelEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings))) {
           throw new BadRequestException('Ngoài thời gian điều chỉnh đăng ký.')
@@ -528,6 +541,7 @@ export class EnrollmentsService {
         }
 
         this.assertActorMayActForStudent(enrollment.studentId, actor)
+        await this.assertStudentActive(tx, enrollment.studentId, actor)
 
         if (!canWithdrawEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings))) {
           throw new BadRequestException('Ngoài cửa sổ rút học phần.')
