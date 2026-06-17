@@ -92,7 +92,7 @@ export function WeekCalendarGrid({
           <div className="overflow-x-auto pb-2">
             <div className="min-w-[1180px] space-y-3">
               <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3">
-                <div className="border-b-2 border-slate-200 pb-4 pt-2">
+                <div className="flex flex-col justify-center border-b-2 border-slate-200 pb-4 pt-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Khung giờ</p>
                   <p className="mt-1 text-xs font-medium text-slate-500">Tiết học</p>
                 </div>
@@ -100,7 +100,7 @@ export function WeekCalendarGrid({
                 {weekdays.map((day) => (
                   <div
                     key={day.weekday}
-                    className="border-b-2 border-cyan-100 pb-4 pt-2 text-center"
+                    className="flex items-center justify-center border-b-2 border-cyan-100 pb-4 pt-2 text-center"
                   >
                     <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
                       <CalendarDays className="h-3.5 w-3.5" />
