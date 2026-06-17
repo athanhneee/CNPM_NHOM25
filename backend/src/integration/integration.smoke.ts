@@ -148,7 +148,7 @@ async function main() {
       { actorId: registeredStudent.id, actorRole: UserRole.STUDENT },
       'Integration cancel',
     )
-    assert.equal(cancelled.status, EnrollmentStatus.CANCELLED)
+    assert.equal(cancelled.enrollment.status, EnrollmentStatus.CANCELLED)
 
     await prisma.systemSetting.update({
       where: { id: 1 },
@@ -172,7 +172,7 @@ async function main() {
       { actorId: withdrawStudent.id, actorRole: UserRole.STUDENT },
       'Integration withdraw',
     )
-    assert.equal(withdrawn.status, EnrollmentStatus.DROPPED)
+    assert.equal(withdrawn.enrollment.status, EnrollmentStatus.DROPPED)
 
     console.log('Integration smoke tests passed.')
   } finally {
