@@ -1782,54 +1782,59 @@ export function NotFoundPage() {
             </div>
           </div>
 
-          <div className="inline-flex rounded-full border border-cyan-200 bg-white/90 px-5 py-2 text-sm font-semibold tracking-[0.28em] text-cyan-700 shadow-[0_16px_38px_rgba(8,145,178,0.1)]">
+          <div className="inline-flex rounded-full border border-cyan-100 bg-white px-5 py-2 text-xs font-bold tracking-[0.2em] text-cyan-600 shadow-sm">
             404 / ĐIỀU HƯỚNG LẠC NHỊP
           </div>
 
-          <div className="space-y-3">
-            <h1 className="max-w-4xl text-5xl font-semibold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl">
+          <div className="space-y-4">
+            <h1 className="max-w-4xl text-[64px] font-bold leading-[1.1] tracking-[-0.03em] text-teal-950">
               Xin lỗi, chúng tôi không tìm thấy trang bạn cần.
             </h1>
-            <p className="max-w-3xl text-lg leading-8 text-slate-600">
+            <p className="max-w-3xl text-lg font-medium leading-relaxed text-teal-800/80">
               Liên kết này có thể đã thay đổi, bị xóa hoặc không còn tồn tại trong cổng học vụ.
               Bạn có thể quay về trang chủ, trở lại bước trước đó hoặc tiếp tục khám phá các phân
               hệ đang sẵn sàng sử dụng.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-4 pt-2">
             <Link to="/">
-              <Button className="rounded-2xl px-7 py-4" leftIcon={<Home className="h-4 w-4" />} type="button">
+              <Button className="h-14 rounded-full bg-cyan-500 px-8 text-sm font-bold hover:bg-cyan-600" type="button">
                 Về trang chủ
               </Button>
             </Link>
             <Button
-              className="rounded-2xl px-7 py-4"
-              leftIcon={<ArrowLeft className="h-4 w-4" />}
+              className="h-14 rounded-full border border-slate-200 px-8 text-sm font-bold text-slate-700"
               onClick={() => window.history.back()}
               type="button"
-              variant="ghost"
+              variant="outline"
             >
               Quay lại trang trước
             </Button>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card title="Mã lỗi" description="Trang hiện tại không có dữ liệu để hiển thị.">
-              <p className="text-6xl font-semibold tracking-[-0.06em] text-cyan-600">404</p>
-            </Card>
-            <Card
-              title="Gợi ý tiếp theo"
-              description="Kiểm tra lại đường dẫn hoặc chuyển sang các khu vực chính của hệ thống."
-            >
-              <Link
-                className="interactive-press inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 transition hover:text-teal-700"
-                to="/"
-              >
-                Khám phá bảng điều khiển
-                <ArrowRight className="h-4 w-4" />
+          <div className="grid gap-6 pt-4 lg:grid-cols-2">
+            <div className="flex flex-col justify-between rounded-[32px] border border-cyan-100 bg-white p-8 shadow-[0_8px_30px_rgba(8,145,178,0.06)]">
+              <div>
+                <p className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-600">Mã lỗi</p>
+                <p className="mt-4 text-sm font-medium leading-relaxed text-cyan-700/70">
+                  Trang hiện tại không có dữ liệu để hiển thị.
+                </p>
+              </div>
+              <p className="mt-6 text-[80px] font-bold leading-none tracking-[-0.04em] text-cyan-500">404</p>
+            </div>
+            
+            <div className="flex flex-col justify-between rounded-[32px] border border-cyan-100 bg-white p-8 shadow-[0_8px_30px_rgba(8,145,178,0.06)]">
+              <div>
+                <p className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-600">Gợi ý tiếp theo</p>
+                <p className="mt-4 text-base font-semibold leading-relaxed text-slate-800">
+                  Kiểm tra lại đường dẫn hoặc chuyển sang các khu vực chính của hệ thống.
+                </p>
+              </div>
+              <Link to="/" className="mt-6 inline-block text-sm font-bold text-cyan-600 hover:text-cyan-700">
+                Khám phá bảng điều khiển &rarr;
               </Link>
-            </Card>
+            </div>
           </div>
         </section>
       </div>
