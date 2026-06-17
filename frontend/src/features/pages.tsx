@@ -1586,10 +1586,7 @@ export function ChangePasswordPage() {
 
   return (
     <div className="grid gap-6">
-      <PageTitleBlock
-        title="Trang đổi mật khẩu"
-        subtitle="Cập nhật mật khẩu đăng nhập cho tài khoản PTIT HCM qua backend và ghi nhận thao tác vào nhật ký hệ thống."
-      />
+      <PageTitleBlock title="Đổi mật khẩu" />
 
       <div className="grid items-start gap-6 xl:grid-cols-[0.62fr_0.38fr]">
         <section className="surface-panel overflow-hidden border border-cyan-100">
@@ -1668,15 +1665,6 @@ export function ChangePasswordPage() {
             </div>
           </Card>
 
-          <Card title="Gợi ý an toàn" description="Những lưu ý nhanh để tránh nhầm lẫn khi demo">
-            <div className="space-y-3 text-sm leading-7 text-slate-600">
-              <p>
-                Mật khẩu mẫu mặc định của hệ thống hiện là <strong>ptithcm2026</strong>.
-              </p>
-              <p>Không nên dùng lại cùng một mật khẩu cho nhiều vai trò khi bạn kiểm thử luồng phân quyền.</p>
-              <p>Mỗi lần đổi mật khẩu thành công đều được ghi lại trong nhật ký hệ thống để tiện đối chiếu.</p>
-            </div>
-          </Card>
         </div>
       </div>
     </div>
