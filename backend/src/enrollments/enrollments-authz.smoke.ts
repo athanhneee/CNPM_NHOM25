@@ -42,7 +42,7 @@ async function main() {
   // Student A queries with Student B's studentId → still safe because
   // controller forces studentId = currentUser.id for non-privileged
   // (the studentId param is ignored, own data is returned)
-  const result = await controller.findAll(user('student-A', ['STUDENT']), { studentId: 'student-B' })
+  await controller.findAll(user('student-A', ['STUDENT']), { studentId: 'student-B' })
   // Should have been called with studentId = 'student-A' (forced by controller)
   // We verify the controller doesn't throw - actual data filtering is tested via service
 

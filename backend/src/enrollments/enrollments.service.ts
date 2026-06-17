@@ -547,7 +547,7 @@ export class EnrollmentsService {
         
         const corequisiteWarnings = await this._checkCorequisiteCascade(tx, enrollment.studentId, section?.semesterId ?? '', section?.courseCode ?? '');
         if (corequisiteWarnings.length > 0) {
-           await require('../common/utils/audit').appendAuditLog(tx, actor, 'COREQUISITE_WARNING', id, 'WARNING', 'Cảnh báo vi phạm môn song hành.', { corequisiteWarnings });
+           await appendAuditLog(tx, actor, 'COREQUISITE_WARNING', id, 'WARNING', 'Cảnh báo vi phạm môn song hành.', { corequisiteWarnings });
         }
 
         return { enrollment: updatedEnrollment, promoted, warnings: corequisiteWarnings }
@@ -635,7 +635,7 @@ export class EnrollmentsService {
         
         const corequisiteWarnings = await this._checkCorequisiteCascade(tx, enrollment.studentId, section?.semesterId ?? '', section?.courseCode ?? '');
         if (corequisiteWarnings.length > 0) {
-           await require('../common/utils/audit').appendAuditLog(tx, actor, 'COREQUISITE_WARNING', id, 'WARNING', 'Cảnh báo vi phạm môn song hành.', { corequisiteWarnings });
+           await appendAuditLog(tx, actor, 'COREQUISITE_WARNING', id, 'WARNING', 'Cảnh báo vi phạm môn song hành.', { corequisiteWarnings });
         }
 
         return { enrollment: updatedEnrollment, promoted, warnings: corequisiteWarnings }
@@ -650,7 +650,7 @@ export class EnrollmentsService {
         const settings = await this.getCurrentSettings(tx);
         const promoted = await this._processWaitlist(tx, sectionId, actor, settings.simulationNow);
         
-        await require('../common/utils/audit').appendAuditLog(
+        await appendAuditLog(
           tx,
           actor,
           'PROCESS_WAITLIST',
@@ -830,9 +830,9 @@ export class EnrollmentsService {
         break;
       }
 
-      const { context, settings } = await this.loadEligibilityContext(tx, candidate.studentId, sectionId);
+      const { context } = await this.loadEligibilityContext(tx, candidate.studentId, sectionId);
       // Ensure we import evaluateEnrollmentEligibility if it isn't, but it is.
-      const result = require('./enrollment-rules').evaluateEnrollmentEligibility(context, {
+      const result = evaluateEnrollmentEligibility(context, {
         ignoreRegistrationWindow: true,
         excludedEnrollmentId: candidate.id,
       });
@@ -884,7 +884,6 @@ export class EnrollmentsService {
 
     if (promoted.length > 0) {
       // Create audit logs for promotion
-      const { appendAuditLog } = require('../common/utils/audit');
       for (const p of promoted) {
         await appendAuditLog(
           tx,
@@ -902,3 +901,5 @@ export class EnrollmentsService {
   }
 
 }
+
+

@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert'
-import { BadRequestException, ForbiddenException } from '@nestjs/common'
+import { ForbiddenException } from '@nestjs/common'
 import { SchedulesController } from './schedules.controller'
 
 const service = {
