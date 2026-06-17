@@ -1,6 +1,8 @@
 @theme {
-  --font-sans: "Poppins", sans-serif;
-  --font-display: "Poppins", sans-serif;
+  --font-geist-sans: "Geist Sans", sans-serif;
+  --font-sans: var(--font-geist-sans);
+  --font-heading: var(--font-geist-sans);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --color-brand-teal-50: #effcfb;
   --color-brand-teal-100: #ccfbf6;
   --color-brand-teal-500: #14b8a6;

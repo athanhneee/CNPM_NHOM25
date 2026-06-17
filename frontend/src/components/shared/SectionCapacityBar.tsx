@@ -17,7 +17,7 @@ export function SectionCapacityBar({
       <div className="h-2 rounded-full bg-slate-100">
         <div className={`h-2 rounded-full ${tone}`} style={{ width: `${ratio * 100}%` }} />
       </div>
-      <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+      <div className="flex flex-wrap gap-2 text-sm text-slate-500">
         <span>
           {registeredCount}/{capacity} đã đăng ký
         </span>

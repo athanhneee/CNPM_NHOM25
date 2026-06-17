@@ -32,7 +32,7 @@ export function RuleCheckPanel({
             </div>
             <div className="space-y-1">
               <p className="text-sm font-semibold text-slate-900">{check.label}</p>
-              <p className="text-xs text-slate-600">{check.message}</p>
+              <p className="text-sm text-slate-600">{check.message}</p>
             </div>
           </div>
         ))}

@@ -18,7 +18,7 @@ export function Checkbox({ label, hint, id, ...props }: CheckboxProps) {
       />
       <span className="grid gap-1">
         <span className="font-medium text-slate-800">{label}</span>
-        {hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
+        {hint ? <span className="text-sm text-slate-500">{hint}</span> : null}
       </span>
     </label>
   )

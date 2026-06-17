@@ -47,12 +47,12 @@ export function PermissionMatrix() {
             <tr key={permission}>
               <td className="px-4 py-3">
                 <p className="font-medium text-slate-900">{permissionLabels[permission]}</p>
-                <p className="text-xs text-slate-500">{permission}</p>
+                <p className="text-sm text-slate-500">{permission}</p>
               </td>
               {roles.map((role) => (
                 <td key={role} className="px-4 py-3">
                   <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${ROLE_PERMISSIONS[role].includes(permission) ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'}`}
+                    className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${ROLE_PERMISSIONS[role].includes(permission) ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'}`}
                   >
                     {ROLE_PERMISSIONS[role].includes(permission) ? 'Có' : 'Không'}
                   </span>

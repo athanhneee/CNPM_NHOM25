@@ -59,7 +59,7 @@ export function WeekCalendarGrid({
       title="Lịch dạng tuần theo học kỳ"
       description="Theo dõi các buổi học theo thứ, khung tiết, phòng học và dải tuần học trong học kỳ."
       actions={
-        <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+        <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
           <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-teal-700">
             {entries.length} buổi theo khung tuần
           </span>
@@ -76,7 +76,7 @@ export function WeekCalendarGrid({
               <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125 group-hover:opacity-10">
                 <BookOpenText className="h-16 w-16 text-teal-700" />
               </div>
-              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-teal-600 sm:text-xs">Tổng buổi</p>
+              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-teal-600 sm:text-sm">Tổng buổi</p>
               <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-teal-950 sm:text-3xl">{entries.length}</p>
             </div>
 
@@ -84,7 +84,7 @@ export function WeekCalendarGrid({
               <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125 group-hover:opacity-10">
                 <CalendarDays className="h-16 w-16 text-cyan-700" />
               </div>
-              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-cyan-600 sm:text-xs">Ngày học</p>
+              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-cyan-600 sm:text-sm">Ngày học</p>
               <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-cyan-950 sm:text-3xl">{uniqueDays}</p>
             </div>
 
@@ -92,7 +92,7 @@ export function WeekCalendarGrid({
               <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-125 group-hover:opacity-10">
                 <MapPin className="h-16 w-16 text-indigo-700" />
               </div>
-              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-indigo-600 sm:text-xs">Phòng học</p>
+              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-indigo-600 sm:text-sm">Phòng học</p>
               <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-indigo-950 sm:text-3xl">{uniqueRooms}</p>
             </div>
           </div>
@@ -101,8 +101,8 @@ export function WeekCalendarGrid({
             <div className="min-w-[1180px] space-y-3">
               <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3 relative">
                 <div className="sticky left-0 z-20 flex flex-col justify-center border-b-2 border-slate-200 bg-white pb-4 pt-2 shadow-[8px_0_16px_-4px_rgba(0,0,0,0.05)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Khung giờ</p>
-                  <p className="mt-1 text-xs font-medium text-slate-500">Tiết học</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Khung giờ</p>
+                  <p className="mt-1 text-sm font-medium text-slate-500">Tiết học</p>
                 </div>
 
                 {weekdays.map((day) => (
@@ -110,7 +110,7 @@ export function WeekCalendarGrid({
                     key={day.weekday}
                     className="flex items-center justify-center border-b-2 border-cyan-100 pb-4 pt-2 text-center"
                   >
-                    <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1.5 text-sm font-semibold uppercase tracking-[0.18em] text-cyan-700">
                       <CalendarDays className="h-3.5 w-3.5" />
                       {day.label}
                     </div>
@@ -126,7 +126,7 @@ export function WeekCalendarGrid({
                       className="border-b border-dashed border-slate-200 px-2 py-3"
                     >
                       <p className="text-sm font-semibold text-slate-950">Tiết {slot.period}</p>
-                      <p className="mt-1 text-xs text-slate-500">{slot.time}</p>
+                      <p className="mt-1 text-sm text-slate-500">{slot.time}</p>
                       <p className="mt-1 text-[11px] font-medium text-teal-600">{slot.bucket}</p>
                     </div>
                   ))}

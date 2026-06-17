@@ -39,7 +39,7 @@ export function UserMenu() {
         </div>
         <div className="hidden sm:block">
           <p className="text-sm font-semibold text-slate-900">{user.fullName}</p>
-          <p className="text-xs text-slate-500">{ROLE_LABELS[user.roles[0] ?? 'STUDENT']}</p>
+          <p className="text-sm text-slate-500">{ROLE_LABELS[user.roles[0] ?? 'STUDENT']}</p>
         </div>
         <ChevronDown className="h-4 w-4 text-slate-400" />
       </button>
@@ -48,7 +48,7 @@ export function UserMenu() {
         <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 grid min-w-64 gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl">
           <div className="rounded-[22px] bg-slate-50 px-3 py-3">
             <p className="text-sm font-semibold text-slate-900">{user.code}</p>
-            <p className="text-xs text-slate-500">{user.email}</p>
+            <p className="text-sm text-slate-500">{user.email}</p>
           </div>
           <Link to="/profile" className="interactive-press rounded-[22px] px-3 py-3 text-sm text-slate-700 hover:bg-slate-50">
             <span className="inline-flex items-center gap-2">

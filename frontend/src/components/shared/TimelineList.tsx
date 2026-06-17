@@ -15,10 +15,10 @@ export function TimelineList({ items }: TimelineListProps) {
           <div className="min-w-0 flex-1 space-y-1 rounded-2xl border border-slate-200 bg-white px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <StatusBadge kind="enrollment" status={item.status} />
-              <span className="text-xs text-slate-500">{formatDateTime(item.timestamp)}</span>
+              <span className="text-sm text-slate-500">{formatDateTime(item.timestamp)}</span>
             </div>
             <p className="text-sm font-medium text-slate-900">{item.note}</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm text-slate-500">
               Actor: {item.actorId} • {item.actorRole}
             </p>
           </div>

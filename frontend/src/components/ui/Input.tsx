@@ -49,8 +49,8 @@ export function Input({
           </span>
         ) : null}
       </div>
-      {error ? <span className="text-xs text-rose-600">{error}</span> : null}
-      {!error && hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
+      {error ? <span className="text-sm text-rose-600">{error}</span> : null}
+      {!error && hint ? <span className="text-sm text-slate-500">{hint}</span> : null}
     </label>
   )
 }

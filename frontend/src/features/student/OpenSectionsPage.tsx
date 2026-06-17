@@ -1,1 +1,272 @@
-export { OpenSectionsPage, OpenSectionsPage as default } from '@/features/student/student-pages'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
+import { formatDateTime } from '@/lib/date'
+import { ApiError } from '@/lib/api-client'
+import { getCurrentSemesterSections, getStudentCurrentCredits, getStudentSemesterEnrollments } from '@/lib/selectors'
+import { useAuthStore } from '@/app/store/auth.store'
+import { useDataStore } from '@/app/store/data.store'
+import { useUiStore } from '@/app/store/ui.store'
+import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Dialog } from '@/components/ui/Dialog'
+import { Table, type TableColumn } from '@/components/ui/Table'
+import { Textarea } from '@/components/ui/Textarea'
+import { CreditMeter } from '@/components/shared/CreditMeter'
+import { ExportButtons } from '@/components/shared/ExportButtons'
+import { FilterBar } from '@/components/shared/FilterBar'
+import { InfoList } from '@/components/shared/InfoList'
+import { RuleCheckPanel } from '@/components/shared/RuleCheckPanel'
+import { SearchInput } from '@/components/shared/SearchInput'
+import { SectionCapacityBar } from '@/components/shared/SectionCapacityBar'
+import { StatCard } from '@/components/shared/StatCard'
+import { StatusBadge } from '@/components/shared/StatusBadge'
+import { TimelineList } from '@/components/shared/TimelineList'
+import { WeekCalendarGrid } from '@/components/calendar/WeekCalendarGrid'
+import { SemesterScheduleTable } from '@/components/calendar/SemesterScheduleTable'
+import { enrollmentService } from '@/services/enrollment.api'
+import { courseService } from '@/services/course.api'
+import { sectionService } from '@/services/section.api'
+import { scheduleService } from '@/services/schedule.api'
+import { wishService } from '@/services/wish.api'
+import type { Course } from '@/types/course'
+import type { ScheduleEntry } from '@/types/schedule'
+import type { User } from '@/types/user'
+
+function useStudentContext() {
+  const currentUser = useAuthStore((state) => state.currentUser)
+  const snapshot = useDataStore((state) => state)
+  const pushToast = useUiStore((state) => state.pushToast)
+
+  useEffect(() => {
+    if (!currentUser?.roles.includes('STUDENT')) {
+      return
+    }
+
+    let mounted = true
+    useDataStore.getState().setApiStatus('loading')
+
+    Promise.all([
+      courseService.listCourses(),
+      sectionService.listSections(),
+      enrollmentService.listHistory(currentUser.id),
+      wishService.listWishes({ studentId: currentUser.id }),
+    ])
+      .then(() => {
+        if (!mounted) return
+        useDataStore.getState().setApiStatus('ready')
+        useDataStore.getState().setLastSyncedAt(new Date().toISOString())
+      })
+      .catch((err) => {
+        if (!mounted) return
+        useDataStore.getState().setApiStatus('error', err instanceof Error ? err.message : 'Unknown error')
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [currentUser?.id, currentUser?.roles])
+
+  return {
+    currentUser,
+    snapshot,
+    pushToast,
+    actor: currentUser
+      ? { actorId: currentUser.id, actorRole: currentUser.roles[0] ?? 'STUDENT' }
+      : null,
+  }
+}
+
+interface RegistrationClassScope {
+  classCode: string
+  program?: string
+  faculty?: string
+}
+
+function normalizeLookupValue(value?: string | null) {
+  return (value ?? '').trim().toUpperCase()
+}
+
+function inferRegistrationClassScope(classCode: string, users: User[]): RegistrationClassScope {
+  const normalizedClassCode = normalizeLookupValue(classCode)
+
+  if (!normalizedClassCode) {
+    return { classCode: '' }
+  }
+
+  const matchedStudent = users.find(
+    (user) =>
+      user.roles.includes('STUDENT') &&
+      normalizeLookupValue(user.studentClass) === normalizedClassCode,
+  )
+
+  if (matchedStudent) {
+    const matchedProgram = matchedStudent.majorName ?? matchedStudent.program
+    const matchedFaculty = matchedStudent.faculty ?? matchedStudent.department
+    return {
+      classCode: matchedStudent.studentClass ?? classCode,
+      ...(matchedProgram ? { program: matchedProgram } : {}),
+      ...(matchedFaculty ? { faculty: matchedFaculty } : {}),
+    }
+  }
+
+  if (['ATTT', 'DCAT', 'CQAT'].some((token) => normalizedClassCode.includes(token))) {
+    return {
+      classCode,
+      program: 'An toàn thông tin',
+      faculty: 'Khoa An toàn thông tin',
+    }
+  }
+
+  if (['CNTT', 'DCCN', 'CQCN'].some((token) => normalizedClassCode.includes(token))) {
+    return {
+      classCode,
+      program: 'Công nghệ thông tin',
+      faculty: 'Khoa Công nghệ thông tin',
+    }
+  }
+
+  return { classCode }
+}
+
+function courseMatchesRegistrationClass(course: Course | null, scope: RegistrationClassScope) {
+  if (!course || !scope.program) {
+    return true
+  }
+
+  const supportedMajors = course.majorsSupported ?? []
+  if (!supportedMajors.length) {
+    return true
+  }
+
+  return supportedMajors.includes(scope.program)
+}
+
+function courseMatchesManagingFaculty(course: Course | null, facultyFilter: string) {
+  if (!facultyFilter || !course) {
+    return true
+  }
+
+  const courseFaculty = course.faculty ?? course.department
+  return courseFaculty === facultyFilter
+}
+
+export function OpenSectionsPage() {
+  const navigate = useNavigate()
+  const { currentUser, snapshot, pushToast, actor } = useStudentContext()
+  const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [submittingId, setSubmittingId] = useState('')
+
+  if (!currentUser || !actor) {
+    return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
+  }
+
+  const student = currentUser
+  const auditActor = actor
+
+  const rows = getCurrentSemesterSections(snapshot).filter((item) => {
+    const keyword = query.toLowerCase()
+    const matchesQuery =
+      !query ||
+      item.section.sectionCode.toLowerCase().includes(keyword) ||
+      item.section.courseCode.toLowerCase().includes(keyword) ||
+      item.course?.name.toLowerCase().includes(keyword)
+    const matchesStatus = statusFilter === 'ALL' || item.derivedStatus === statusFilter
+    return matchesQuery && matchesStatus
+  })
+
+  const columns: TableColumn<(typeof rows)[number]>[] = [
+    { key: 'sectionCode', header: 'Mã lớp HP', render: (row) => <span className="font-medium text-slate-900">{row.section.sectionCode}</span> },
+    { key: 'courseCode', header: 'Mã MH', render: (row) => row.section.courseCode },
+    { key: 'courseName', header: 'Tên môn học', render: (row) => row.course?.name ?? '--' },
+    { key: 'credits', header: 'Tín chỉ', render: (row) => String(row.course?.credits ?? '--') },
+    { key: 'time', header: 'Lịch học', render: (row) => `Thứ ${row.section.weekday} • Tiết ${row.section.startPeriod}` },
+    { key: 'lecturer', header: 'Giảng viên', render: (row) => row.lecturer?.fullName ?? '--' },
+    { key: 'capacity', header: 'Sĩ số', render: (row) => <SectionCapacityBar capacity={row.section.capacity} registeredCount={row.section.registeredCount} waitlistCount={row.section.waitlistCount} /> },
+    { key: 'status', header: 'Trạng thái', render: (row) => <StatusBadge kind="section" status={row.derivedStatus} /> },
+    {
+      key: 'actions',
+      header: 'Thao tác',
+      render: (row) => (
+        <div className="flex flex-wrap gap-2">
+          <Button variant="ghost" onClick={() => navigate(`/student/open-sections/${row.section.id}`)} type="button">
+            Xem chi tiết
+          </Button>
+          <Button
+            loading={submittingId === row.section.id}
+            onClick={async () => {
+              if (snapshot.settings.maintenanceMode) {
+                pushToast({ tone: 'warning', title: 'Hệ thống đang bảo trì', description: snapshot.settings.maintenanceMessage })
+                return
+              }
+
+              setSubmittingId(row.section.id)
+              const result = await enrollmentService.registerSection(student.id, row.section.id, auditActor)
+              setSubmittingId('')
+                pushToast({
+                  tone: result.success ? 'success' : 'error',
+                  title: result.success ? 'Đã gửi yêu cầu đăng ký' : 'Không thể đăng ký',
+                  description: result.message,
+                })
+            }}
+            type="button"
+          >
+            Đăng ký nhanh
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
+  return (
+    <div className="grid gap-6">
+      <PageTitleBlock
+        title="Sinh viên - Danh sách học phần mở"
+        subtitle="Tra cứu các lớp học phần đang mở trong học kỳ hiện tại, kèm sĩ số, danh sách chờ và thao tác đăng ký nhanh."
+      />
+
+      <div className="grid gap-4 lg:grid-cols-4">
+        <StatCard label="Tổng lớp mở" value={String(rows.length)} hint="Sau khi đã lọc" />
+        <StatCard label="Còn chỗ" value={String(rows.filter((row) => row.availableSeats > 0).length)} hint="Có thể đăng ký trực tiếp" />
+        <StatCard label="Có danh sách chờ" value={String(rows.filter((row) => row.section.allowWaitlist).length)} hint="Cho phép vào danh sách chờ" />
+        <StatCard label="Tổng tín chỉ có thể chọn" value={String(rows.reduce((sum, row) => sum + (row.course?.credits ?? 0), 0))} hint="Tổng tín chỉ của danh sách hiện tại" />
+      </div>
+
+      <FilterBar
+        actions={
+          <ExportButtons
+            fileName="student-open-sections.csv"
+            rows={rows.map((row) => ({
+              ma_lop_hp: row.section.sectionCode,
+              ma_mon: row.section.courseCode,
+              ten_mon_hoc: row.course?.name ?? '',
+              tin_chi: row.course?.credits ?? '',
+              giang_vien: row.lecturer?.fullName ?? '',
+              trang_thai: row.derivedStatus,
+            }))}
+          />
+        }
+      >
+        <SearchInput label="Tìm kiếm môn học / lớp HP" placeholder="INT2102, an toàn mạng..." value={query} onChange={(event) => setQuery(event.target.value)} />
+        <Input label="Trạng thái" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} list="section-status-list" />
+      </FilterBar>
+      <datalist id="section-status-list">
+        <option value="ALL" />
+        <option value="OPEN" />
+        <option value="FULL" />
+        <option value="CLOSED" />
+      </datalist>
+
+      {rows.length ? <Table columns={columns} rows={rows} rowKey={(row) => row.section.id} /> : <EmptyState title="Không có lớp phù hợp" description="Hãy đổi bộ lọc hoặc tìm kiếm bằng mã môn học, tên môn học." />}
+    </div>
+  )
+}
+
+export default OpenSectionsPage;
