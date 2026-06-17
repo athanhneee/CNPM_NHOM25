@@ -220,23 +220,23 @@ function StudentPerformanceCard({ user }: { user: User }) {
       <div className="grid gap-6">
         <div className="grid h-[13rem] grid-cols-4 gap-4">
           {performance.map((point, index) => (
-            <div className="flex h-full flex-col justify-end gap-3" key={point.courseLabel}>
-              <div className="relative flex flex-1 items-end rounded-2xl bg-slate-50 px-3 py-3">
+            <div className="flex h-full flex-col items-center justify-end gap-2" key={point.courseLabel}>
+              <span className="text-xs font-semibold text-slate-700">
+                {point.value}%
+              </span>
+              <div className="relative flex w-12 flex-1 flex-col justify-end rounded-full bg-slate-100 p-1">
                 <div
-                  className={`w-full rounded-[22px] ${
+                  className={`w-full rounded-full ${
                     index % 2 === 0
-                      ? 'bg-gradient-to-t from-teal-600 via-teal-500 to-cyan-300'
-                      : 'bg-gradient-to-t from-cyan-600 via-cyan-500 to-teal-300'
-                  } shadow-[0_18px_36px_rgba(8,145,178,0.18)]`}
+                      ? 'bg-gradient-to-t from-teal-600 to-cyan-400'
+                      : 'bg-gradient-to-t from-cyan-500 to-sky-400'
+                  } shadow-sm transition-all duration-500`}
                   style={{ height: `${point.value}%` }}
                 />
-                <span className="absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
-                  {point.value}%
-                </span>
               </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-slate-900">{point.label}</p>
-                <p className="text-xs text-slate-500">{point.courseLabel}</p>
+              <div className="mt-1 text-center">
+                <p className="text-[13px] font-semibold leading-tight text-slate-900">{point.label}</p>
+                <p className="mt-0.5 text-[11px] text-slate-500">{point.courseLabel}</p>
               </div>
             </div>
           ))}
