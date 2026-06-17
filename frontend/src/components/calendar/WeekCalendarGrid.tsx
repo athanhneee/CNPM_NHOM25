@@ -92,17 +92,17 @@ export function WeekCalendarGrid({
           <div className="overflow-x-auto pb-2">
             <div className="min-w-[1180px] space-y-3">
               <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                <div className="border-b-2 border-slate-200 pb-4 pt-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Khung giờ</p>
-                  <p className="mt-2 text-sm font-medium text-slate-700">Tiết học trong ngày</p>
+                  <p className="mt-1 text-xs font-medium text-slate-500">Tiết học</p>
                 </div>
 
                 {weekdays.map((day) => (
                   <div
                     key={day.weekday}
-                    className="rounded-2xl border border-cyan-100 bg-gradient-to-br from-white via-cyan-50/60 to-teal-50 px-4 py-4"
+                    className="border-b-2 border-cyan-100 pb-4 pt-2 text-center"
                   >
-                    <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
                       <CalendarDays className="h-3.5 w-3.5" />
                       {day.label}
                     </div>
@@ -111,15 +111,15 @@ export function WeekCalendarGrid({
               </div>
 
               <div className="grid grid-cols-[150px_repeat(7,minmax(145px,1fr))] gap-3">
-                <div className="grid auto-rows-[84px] gap-3">
+                <div className="grid auto-rows-[90px]">
                   {periodSlots.map((slot) => (
                     <div
                       key={slot.period}
-                      className="rounded-[26px] border border-slate-200 bg-white px-4 py-3 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.35)]"
+                      className="border-b border-dashed border-slate-200 px-2 py-3"
                     >
                       <p className="text-sm font-semibold text-slate-950">Tiết {slot.period}</p>
                       <p className="mt-1 text-xs text-slate-500">{slot.time}</p>
-                      <p className="mt-2 text-xs font-medium text-teal-600">{slot.bucket}</p>
+                      <p className="mt-1 text-[11px] font-medium text-teal-600">{slot.bucket}</p>
                     </div>
                   ))}
                 </div>
@@ -128,11 +128,11 @@ export function WeekCalendarGrid({
                   const dayEntries = entries.filter((entry) => entry.weekday === day.weekday)
 
                   return (
-                    <div key={day.weekday} className="grid auto-rows-[84px] gap-3">
+                    <div key={day.weekday} className="grid auto-rows-[90px]">
                       {periodSlots.map((slot) => (
                         <div
                           key={`${day.weekday}-${slot.period}`}
-                          className="rounded-[26px] border border-slate-200/90 bg-slate-50/70"
+                          className="border-b border-dashed border-slate-200"
                         />
                       ))}
 
@@ -140,42 +140,39 @@ export function WeekCalendarGrid({
                         <article
                           key={entry.id}
                           className={cn(
-                            'relative z-10 overflow-hidden rounded-2xl border p-4 shadow-[0_20px_40px_-28px_rgba(13,148,136,0.45)]',
+                            'relative z-10 m-1 overflow-hidden rounded-[20px] border p-3 shadow-sm transition hover:shadow-md',
                             getScheduleTone(entry.sectionStatus),
                           )}
                           style={{
                             gridRow: `${entry.startPeriod} / span ${Math.max(entry.periodCount, 1)}`,
                           }}
                         >
-                          <div className="flex h-full flex-col justify-between gap-3">
-                            <div className="space-y-2">
-                              <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700">
-                                <BookOpenText className="h-3.5 w-3.5" />
+                          <div className="flex h-full flex-col justify-between gap-2">
+                            <div className="space-y-1">
+                              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700">
+                                <BookOpenText className="h-3 w-3" />
                                 {entry.courseCode}
                               </div>
 
-                              <div>
-                                <p className="text-sm font-semibold leading-6 text-slate-950">{entry.title}</p>
-                                <p className="text-xs font-medium text-slate-600">{entry.sectionCode}</p>
+                              <div className="pt-1">
+                                <p className="text-sm font-semibold leading-tight text-slate-950">{entry.title}</p>
+                                <p className="mt-0.5 text-[11px] font-medium text-slate-600">{entry.sectionCode}</p>
                               </div>
                             </div>
 
-                            <div className="space-y-1.5 text-xs text-slate-600">
-                              <div className="flex items-center gap-2">
-                                <Clock3 className="h-3.5 w-3.5 text-teal-600" />
+                            <div className="space-y-1 text-[11px] text-slate-600">
+                              <div className="flex items-center gap-1.5">
+                                <Clock3 className="h-3 w-3 text-teal-600" />
                                 <span>{getPeriodRangeLabel(entry)}</span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-3.5 w-3.5 text-cyan-600" />
-                                <span>{entry.room}</span>
+                              <div className="flex items-center gap-1.5">
+                                <MapPin className="h-3 w-3 text-cyan-600" />
+                                <span className="font-medium text-slate-700">{entry.room}</span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <UserRound className="h-3.5 w-3.5 text-slate-500" />
+                              <div className="flex items-center gap-1.5">
+                                <UserRound className="h-3 w-3 text-slate-500" />
                                 <span>{entry.lecturerName}</span>
                               </div>
-                              <p className="pt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
-                                Tuần {entry.weeks}
-                              </p>
                             </div>
                           </div>
                         </article>
