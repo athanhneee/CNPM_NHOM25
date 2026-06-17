@@ -5,6 +5,7 @@ export interface SemesterOption {
   academicYear?: string
   termCode?: string
   registrationStatus?: 'UPCOMING' | 'OPEN' | 'ADJUSTMENT' | 'CLOSED' | 'COMPLETED'
+  type?: 'MAIN' | 'SUMMER'
   registrationStart?: string
   registrationEnd?: string
   adjustmentStart?: string
@@ -18,10 +19,15 @@ export interface SystemSettings {
   adjustmentStart: string
   adjustmentEnd: string
   withdrawalDeadline: string
-  maxCredits: number
+  maxCreditsMain: number
+  maxCreditsSummer: number
   minCredits: number
   maintenanceMode: boolean
   allowWaitlist: boolean
+  countWaitlistCredits: boolean
+  allowGradeImprovement: boolean
+  maxRetakeAttempts: number
+  semesterType?: 'MAIN' | 'SUMMER'
   sessionTimeoutMinutes: number
   warningBeforeLogoutSeconds: number
   maxClassesPerDay: number

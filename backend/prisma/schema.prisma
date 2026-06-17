@@ -15,6 +15,11 @@ enum UserRole {
   ADMIN
 }
 
+enum SemesterType {
+  MAIN
+  SUMMER
+}
+
 enum AccountStatus {
   ACTIVE
   LOCKED
@@ -87,6 +92,7 @@ enum StudentResultStatus {
   FAILED
   IN_PROGRESS
   TRANSFERRED
+  WITHDRAWN
 }
 
 model User {
@@ -187,6 +193,7 @@ model Course {
 model SemesterOption {
   id                  String                   @id @default(uuid())
   label               String
+  type                SemesterType            @default(MAIN)
   isCurrent           Boolean                 @default(false)
   academicYear        String?
   termCode            String?
@@ -283,6 +290,8 @@ model Enrollment {
   droppedAt    DateTime?
   reasonCode   String?
   waitlistOrder Int?
+  isRetake      Boolean          @default(false)
+  isImprovement Boolean          @default(false)
   timeline     Json             @default("[]")
 
   @@index([studentId, semesterId])
@@ -360,10 +369,14 @@ model SystemSetting {
   adjustmentStart           DateTime
   adjustmentEnd             DateTime
   withdrawalDeadline        DateTime
-  maxCredits                Int
+  maxCreditsMain            Int      @default(24)
+  maxCreditsSummer          Int      @default(12)
   minCredits                Int
   maintenanceMode           Boolean
   allowWaitlist             Boolean
+  countWaitlistCredits      Boolean  @default(false)
+  allowGradeImprovement     Boolean  @default(true)
+  maxRetakeAttempts         Int      @default(3)
   sessionTimeoutMinutes     Int
   warningBeforeLogoutSeconds Int
   maxClassesPerDay          Int

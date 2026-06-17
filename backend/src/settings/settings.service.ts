@@ -42,12 +42,17 @@ export class SettingsService {
     }
 
     const minCredits = updateDto.minCredits ?? currentSettings.minCredits
-    const maxCredits = updateDto.maxCredits ?? currentSettings.maxCredits
-    if (minCredits > maxCredits) {
-      throw new BadRequestException('Tín chỉ tối thiểu không được lớn hơn tín chỉ tối đa.')
+    const maxCreditsMain = updateDto.maxCreditsMain ?? currentSettings.maxCreditsMain
+    const maxCreditsSummer = updateDto.maxCreditsSummer ?? currentSettings.maxCreditsSummer
+    if (minCredits > maxCreditsMain) {
+      throw new BadRequestException('Số tín chỉ tối thiểu không được lớn hơn số tín chỉ tối đa học kỳ chính.')
     }
-    if (maxCredits <= 0) {
-      throw new BadRequestException('Tín chỉ tối đa phải lớn hơn 0.')
+    if (minCredits > maxCreditsSummer) {
+      throw new BadRequestException('Số tín chỉ tối thiểu không được lớn hơn số tín chỉ tối đa học kỳ hè.')
+    }
+
+    if (maxCreditsMain <= 0 || maxCreditsSummer <= 0) {
+      throw new BadRequestException('Số tín chỉ tối đa phải lớn hơn 0.')
     }
 
     const sessionTimeoutMinutes = updateDto.sessionTimeoutMinutes ?? currentSettings.sessionTimeoutMinutes
@@ -85,10 +90,13 @@ export class SettingsService {
           adjustmentStart: updateDto.adjustmentStart ? new Date(updateDto.adjustmentStart) : undefined,
           adjustmentEnd: updateDto.adjustmentEnd ? new Date(updateDto.adjustmentEnd) : undefined,
           withdrawalDeadline: updateDto.withdrawalDeadline ? new Date(updateDto.withdrawalDeadline) : undefined,
-          maxCredits: updateDto.maxCredits,
+          maxCreditsMain: updateDto.maxCreditsMain,
+          maxCreditsSummer: updateDto.maxCreditsSummer,
           minCredits: updateDto.minCredits,
           maintenanceMode: updateDto.maintenanceMode,
           allowWaitlist: updateDto.allowWaitlist,
+          allowGradeImprovement: updateDto.allowGradeImprovement,
+          maxRetakeAttempts: updateDto.maxRetakeAttempts,
           sessionTimeoutMinutes: updateDto.sessionTimeoutMinutes,
           warningBeforeLogoutSeconds: updateDto.warningBeforeLogoutSeconds,
           maxClassesPerDay: updateDto.maxClassesPerDay,

@@ -69,8 +69,9 @@ function settingsToForm(settings: SystemSettings) {
     adjustmentStart: settings.adjustmentStart,
     adjustmentEnd: settings.adjustmentEnd,
     withdrawalDeadline: settings.withdrawalDeadline,
-    maxCredits: String(settings.maxCredits),
-    minCredits: String(settings.minCredits),
+    maxCreditsMain: settings.maxCreditsMain ?? 24,
+    maxCreditsSummer: settings.maxCreditsSummer ?? 12,
+    minCredits: settings.minCredits ?? 12,
     maintenanceMode: settings.maintenanceMode ? 'true' : 'false',
     allowWaitlist: settings.allowWaitlist ? 'true' : 'false',
     sessionTimeoutMinutes: String(settings.sessionTimeoutMinutes),
@@ -771,8 +772,9 @@ export function SettingsPage() {
             <Input label="Bắt đầu điều chỉnh" value={form.adjustmentStart} onChange={(event) => updateForm((value) => ({ ...value, adjustmentStart: event.target.value }))} />
             <Input label="Kết thúc điều chỉnh" value={form.adjustmentEnd} onChange={(event) => updateForm((value) => ({ ...value, adjustmentEnd: event.target.value }))} />
             <Input label="Hạn rút học phần" value={form.withdrawalDeadline} onChange={(event) => updateForm((value) => ({ ...value, withdrawalDeadline: event.target.value }))} />
-            <Input label="Tín chỉ tối đa" value={form.maxCredits} onChange={(event) => updateForm((value) => ({ ...value, maxCredits: event.target.value }))} />
-            <Input label="Tín chỉ tối thiểu" value={form.minCredits} onChange={(event) => updateForm((value) => ({ ...value, minCredits: event.target.value }))} />
+            <Input label="Tín chỉ tối đa học kỳ chính" type="number" min={0} value={String(form.maxCreditsMain)} onChange={(event) => updateForm((value) => ({ ...value, maxCreditsMain: Number(event.target.value) }))} />
+            <Input label="Tín chỉ tối đa học kỳ hè" type="number" min={0} value={String(form.maxCreditsSummer)} onChange={(event) => updateForm((value) => ({ ...value, maxCreditsSummer: Number(event.target.value) }))} />
+            <Input label="Tín chỉ tối thiểu" type="number" min={0} value={String(form.minCredits)} onChange={(event) => updateForm((value) => ({ ...value, minCredits: Number(event.target.value) }))} />
             <Input label="Timeout phiên (phút)" value={form.sessionTimeoutMinutes} onChange={(event) => updateForm((value) => ({ ...value, sessionTimeoutMinutes: event.target.value }))} />
             <Input label="Cảnh báo trước logout (giây)" value={form.warningBeforeLogoutSeconds} onChange={(event) => updateForm((value) => ({ ...value, warningBeforeLogoutSeconds: event.target.value }))} />
             <Input label="Bật bảo trì" value={form.maintenanceMode} onChange={(event) => updateForm((value) => ({ ...value, maintenanceMode: event.target.value }))} list="boolean-options" />
@@ -833,8 +835,9 @@ export function SettingsPage() {
                     adjustmentStart,
                     adjustmentEnd,
                     withdrawalDeadline,
-                    maxCredits: Number(form.maxCredits),
-                    minCredits: Number(form.minCredits),
+                    maxCreditsMain: form.maxCreditsMain,
+                    maxCreditsSummer: form.maxCreditsSummer,
+                    minCredits: form.minCredits,
                     sessionTimeoutMinutes,
                     warningBeforeLogoutSeconds,
                     maintenanceMode: form.maintenanceMode === 'true',

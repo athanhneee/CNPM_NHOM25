@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString } from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString, Min } from 'class-validator'
 
 export class UpdateSystemSettingsDto {
   @ApiProperty({ required: false })
@@ -32,25 +32,49 @@ export class UpdateSystemSettingsDto {
   @IsOptional()
   withdrawalDeadline?: string
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
-  maxCredits?: number
+  @Min(1)
+  maxCreditsMain?: number
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
+  @Min(1)
+  maxCreditsSummer?: number
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
   minCredits?: number
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
   maintenanceMode?: boolean
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
   allowWaitlist?: boolean
+  
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  countWaitlistCredits?: boolean
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  allowGradeImprovement?: boolean
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
+  maxRetakeAttempts?: number
 
   @ApiProperty({ required: false })
   @IsNumber()
