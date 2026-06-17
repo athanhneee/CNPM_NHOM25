@@ -1723,121 +1723,137 @@ export function ForbiddenPage() {
 }
 
 export function NotFoundPage() {
+  const navigate = useNavigate()
+
+  const handleGoBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1)
+      return
+    }
+
+    navigate('/')
+  }
+
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.2),_transparent_34%),radial-gradient(circle_at_bottom_left,_rgba(20,184,166,0.15),_transparent_28%),linear-gradient(180deg,_#f4feff_0%,_#f8fafc_54%,_#eefdfb_100%)] px-4 py-8 text-slate-900">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-center gap-10 xl:grid-cols-[0.95fr_1.05fr]">
-        <section className="relative flex justify-center xl:justify-start">
-          <div className="absolute left-10 top-20 hidden h-64 w-64 rounded-full bg-cyan-200/35 blur-3xl md:block" />
-          <div className="absolute bottom-6 right-6 hidden h-56 w-56 rounded-full bg-teal-200/35 blur-3xl md:block" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-cyan-50 via-white to-cyan-50 font-sans text-slate-900">
+      <div className="absolute left-1/2 top-0 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-cyan-200/30 blur-3xl" />
+      <div className="absolute -left-16 top-20 h-56 w-56 rounded-full bg-cyan-200/30 blur-3xl" />
+      <div className="absolute -right-20 bottom-12 h-64 w-64 rounded-full bg-cyan-200/25 blur-3xl" />
 
-          <div className="relative mx-auto w-full max-w-[640px]">
-            <div className="absolute left-0 top-16 hidden h-[74%] w-[68%] rounded-2xl bg-teal-950/88 shadow-[0_32px_60px_rgba(13,148,136,0.18)] md:block" />
-            <div className="absolute left-8 top-6 hidden h-[78%] w-[72%] rounded-[34px] bg-gradient-to-br from-cyan-500 to-teal-500 shadow-[0_34px_70px_rgba(6,182,212,0.18)] md:block" />
-
-            <div className="surface-panel relative min-h-[520px] rounded-[38px] border-[5px] border-cyan-400 bg-white/92 px-6 py-5 shadow-[0_32px_84px_rgba(8,145,178,0.16)] sm:px-8">
-              <div className="flex items-center gap-3">
-                <span className="h-4 w-4 rounded-full bg-cyan-400" />
-                <span className="h-4 w-4 rounded-full bg-cyan-200" />
-                <span className="h-4 w-4 rounded-full bg-teal-300" />
-              </div>
-              <div className="mt-6 h-4 w-36 rounded-full bg-cyan-100" />
-
-              <div className="mt-12">
-                <p className="bg-gradient-to-r from-cyan-500 via-cyan-500 to-teal-500 bg-clip-text text-[112px] font-semibold leading-none tracking-[-0.08em] text-transparent sm:text-[156px]">
-                  404
-                </p>
-                <p className="mt-5 text-2xl font-semibold tracking-[0.24em] text-teal-900">LỖI</p>
-                <p className="mt-4 text-sm font-semibold tracking-[0.36em] text-cyan-600">
-                  TRANG KHÔNG TỒN TẠI
-                </p>
-              </div>
-
-              <div className="mt-12 grid grid-cols-3 gap-4">
-                <div className="h-20 rounded-[26px] bg-cyan-100/80" />
-                <div className="h-20 rounded-[26px] bg-teal-100/80" />
-                <div className="h-20 rounded-[26px] bg-cyan-100/80" />
-              </div>
-
-              <div className="mx-auto mt-14 h-16 w-44 rounded-[24px] bg-gradient-to-r from-cyan-500 to-teal-500 shadow-[0_20px_50px_rgba(13,148,136,0.18)]" />
-              <div className="mx-auto mt-10 h-32 w-72 rounded-[38px] border-[5px] border-teal-700/70" />
-            </div>
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center justify-center gap-14 px-6 py-10 lg:flex-row lg:gap-10 lg:px-10 xl:px-12">
+        <div className="relative flex w-full max-w-[720px] items-end justify-center lg:flex-1" aria-hidden="true">
+          <div className="absolute bottom-3 h-40 w-[88%] rounded-full bg-cyan-200/55 blur-2xl" />
+          <div className="absolute left-[11%] top-6 h-10 w-20 rounded-full bg-cyan-200/80" />
+          <div className="absolute left-[24%] top-16 h-8 w-14 rounded-full bg-cyan-200/70" />
+          <div className="absolute right-[10%] top-[12%] flex h-24 w-24 rotate-12 items-center justify-center rounded-3xl border-2 border-cyan-300/70 bg-white/80 shadow-[0_18px_50px_rgba(13,148,136,0.16)] backdrop-blur">
+            <span className="text-2xl font-black uppercase tracking-[0.32em] text-cyan-500">404</span>
           </div>
-        </section>
 
-        <section className="relative space-y-7">
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="relative w-full max-w-[620px] pb-24">
+            <div className="absolute left-16 top-6 h-[380px] w-[76%] rounded-3xl bg-gradient-to-br from-cyan-400 to-cyan-500 shadow-[0_28px_70px_rgba(8,145,178,0.28)]" />
+            <div className="absolute left-8 top-10 h-[380px] w-[76%] rounded-3xl bg-cyan-950/90 shadow-[0_20px_40px_rgba(15,118,110,0.24)]" />
+
+            <div className="relative ml-auto w-[84%] rounded-3xl border-[10px] border-cyan-300 bg-white shadow-[0_35px_80px_rgba(8,145,178,0.22)]">
+              <div className="rounded-3xl bg-gradient-to-b from-cyan-50 via-white to-cyan-50 p-6 sm:p-8">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-cyan-300" />
+                  <span className="h-3 w-3 rounded-full bg-cyan-200" />
+                  <span className="h-3 w-3 rounded-full bg-cyan-300" />
+                </div>
+
+                <div className="mt-5 h-3 w-24 rounded-full bg-cyan-100" />
+
+                <div className="mt-8 flex items-end gap-1 sm:gap-2">
+                  <span className="text-[5.5rem] font-black leading-none tracking-[-0.08em] text-cyan-400 sm:text-[7.5rem]">4</span>
+                  <span className="text-[5.5rem] font-black leading-none tracking-[-0.08em] text-cyan-500 sm:text-[7.5rem]">0</span>
+                  <span className="text-[5.5rem] font-black leading-none tracking-[-0.08em] text-cyan-500 sm:text-[7.5rem]">4</span>
+                </div>
+
+                <p className="mt-3 text-xl font-black uppercase tracking-[0.32em] text-cyan-800 sm:text-2xl">Error</p>
+                <p className="mt-2 text-sm font-semibold uppercase tracking-[0.32em] text-cyan-500 sm:text-base">
+                  Page not found
+                </p>
+
+                <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                  <div className="h-14 rounded-3xl bg-cyan-100/80" />
+                  <div className="h-14 rounded-3xl bg-cyan-100/80" />
+                  <div className="h-14 rounded-3xl bg-cyan-100/80" />
+                </div>
+              </div>
+            </div>
+
+            <div className="relative mx-auto mt-[-4px] h-10 w-28 rounded-b-2xl bg-gradient-to-b from-cyan-400 to-cyan-500 shadow-[0_12px_24px_rgba(13,148,136,0.25)]" />
+            <div className="mx-auto h-7 w-52 rounded-full bg-cyan-500/90 shadow-[0_16px_32px_rgba(13,148,136,0.18)]" />
+
+            <div className="absolute bottom-2 left-[18%] h-24 w-72 rounded-full border-[4px] border-cyan-900/70" />
+          </div>
+        </div>
+
+        <div className="w-full max-w-[560px] flex-1 text-center lg:text-left">
+          <div className="mb-6 flex flex-wrap items-center justify-center gap-4 lg:justify-start">
             <img
-              alt="Logo Học Viện Công Nghệ Bưu Chính Viễn Thông"
-              className="h-[4.5rem] w-[4.5rem] rounded-[24px] border border-cyan-100 bg-white p-2 shadow-[0_16px_40px_rgba(8,145,178,0.12)]"
+              alt="Logo PTIT"
+              className="h-14 w-14 rounded-2xl border border-cyan-100 bg-white p-2 shadow-sm"
               src="/Logo-Hoc-Vien-Cong-Nghe-Buu-Chinh-Vien-Thong-PTIT.webp"
             />
-            <div className="space-y-1">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-700">
-                PTIT HCM
-              </p>
-              <p className="text-sm font-medium text-slate-600">
-                Học Viện Công Nghệ Bưu Chính Viễn Thông cơ sở Hồ Chí Minh
-              </p>
+            <div className="text-left space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-700">PTIT HCM</p>
+              <p className="text-[13px] font-medium text-slate-600">Học Viện Công Nghệ Bưu Chính Viễn Thông</p>
             </div>
           </div>
 
-          <div className="inline-flex rounded-full border border-cyan-100 bg-white px-5 py-2 text-xs font-bold tracking-[0.2em] text-cyan-600 shadow-sm">
-            404 / ĐIỀU HƯỚNG LẠC NHỊP
-          </div>
+          <span className="inline-flex rounded-full border border-cyan-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-600 shadow-sm">
+            404 / Điều hướng lạc nhịp
+          </span>
 
-          <div className="space-y-4">
-            <h1 className="max-w-4xl text-[64px] font-bold leading-[1.1] tracking-[-0.03em] text-teal-950">
-              Xin lỗi, chúng tôi không tìm thấy trang bạn cần.
-            </h1>
-            <p className="max-w-3xl text-lg font-medium leading-relaxed text-teal-800/80">
-              Liên kết này có thể đã thay đổi, bị xóa hoặc không còn tồn tại trong cổng học vụ.
-              Bạn có thể quay về trang chủ, trở lại bước trước đó hoặc tiếp tục khám phá các phân
-              hệ đang sẵn sàng sử dụng.
-            </p>
-          </div>
+          <h1 className="mt-6 text-4xl font-semibold leading-[1.08] text-cyan-950 sm:text-5xl xl:text-[4.2rem]">
+            Xin lỗi, chúng tôi không tìm thấy trang bạn cần.
+          </h1>
 
-          <div className="flex flex-wrap gap-4 pt-2">
-            <Link to="/">
-              <Button className="h-14 rounded-full bg-cyan-500 px-8 text-sm font-bold hover:bg-cyan-600" type="button">
-                Về trang chủ
-              </Button>
+          <p className="mt-5 text-base leading-8 text-cyan-600/85 sm:text-lg">
+            Liên kết này có thể đã thay đổi, bị xóa hoặc không còn tồn tại trong cổng học vụ. Bạn có thể quay về trang chủ hoặc tiếp tục khám phá các phân hệ đang mở để không bị ngắt mạch trải nghiệm.
+          </p>
+
+          <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-cyan-500 px-7 py-4 text-base font-semibold text-white shadow-[0_18px_40px_rgba(6,182,212,0.28)] transition-transform duration-200 hover:-translate-y-0.5"
+            >
+              Về trang chủ
             </Link>
-            <Button
-              className="h-14 rounded-full border border-slate-200 px-8 text-sm font-bold text-slate-700"
-              onClick={() => window.history.back()}
+
+            <button
               type="button"
-              variant="ghost"
+              onClick={handleGoBack}
+              className="inline-flex items-center justify-center rounded-full border border-cyan-200 bg-white/85 px-7 py-4 text-base font-semibold text-cyan-600 shadow-[0_14px_32px_rgba(15,118,110,0.12)] transition-colors duration-200 hover:border-cyan-300 hover:bg-white"
             >
               Quay lại trang trước
-            </Button>
+            </button>
           </div>
 
-          <div className="grid gap-6 pt-4 lg:grid-cols-2">
-            <div className="flex flex-col justify-between rounded-[32px] border border-cyan-100 bg-white p-8 shadow-[0_8px_30px_rgba(8,145,178,0.06)]">
-              <div>
-                <p className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-600">Mã lỗi</p>
-                <p className="mt-4 text-sm font-medium leading-relaxed text-cyan-700/70">
-                  Trang hiện tại không có dữ liệu để hiển thị.
-                </p>
-              </div>
-              <p className="mt-6 text-[80px] font-bold leading-none tracking-[-0.04em] text-cyan-500">404</p>
+          <div className="mt-8 grid gap-4 text-left sm:grid-cols-2">
+            <div className="rounded-3xl border border-cyan-200/80 bg-white/75 p-5 shadow-[0_18px_40px_rgba(8,145,178,0.12)] backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-600">Mã lỗi</p>
+              <p className="mt-3 text-4xl font-black text-cyan-500">404</p>
+              <p className="mt-2 text-sm leading-6 text-cyan-600/80">Trang hiện tại không có dữ liệu để hiển thị.</p>
             </div>
-            
-            <div className="flex flex-col justify-between rounded-[32px] border border-cyan-100 bg-white p-8 shadow-[0_8px_30px_rgba(8,145,178,0.06)]">
-              <div>
-                <p className="text-xs font-bold tracking-[0.2em] uppercase text-cyan-600">Gợi ý tiếp theo</p>
-                <p className="mt-4 text-base font-semibold leading-relaxed text-slate-800">
-                  Kiểm tra lại đường dẫn hoặc chuyển sang các khu vực chính của hệ thống.
-                </p>
-              </div>
-              <Link to="/" className="mt-6 inline-block text-sm font-bold text-cyan-600 hover:text-cyan-700">
-                Khám phá bảng điều khiển &rarr;
+
+            <div className="rounded-3xl border border-cyan-200/80 bg-white/75 p-5 shadow-[0_18px_40px_rgba(15,118,110,0.12)] backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-600">Gợi ý tiếp theo</p>
+              <p className="mt-3 text-[15px] font-semibold leading-6 text-cyan-900">
+                Kiểm tra lại đường dẫn hoặc chuyển sang bảng điều khiển.
+              </p>
+              <Link
+                to="/"
+                className="mt-4 inline-flex text-sm font-semibold text-cyan-500 transition-colors hover:text-cyan-600"
+              >
+                Khám phá bảng điều khiển
               </Link>
             </div>
           </div>
-        </section>
+        </div>
       </div>
-    </main>
+    </div>
   )
 }
 

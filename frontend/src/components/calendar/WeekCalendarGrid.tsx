@@ -133,6 +133,7 @@ export function WeekCalendarGrid({
                         <div
                           key={`${day.weekday}-${slot.period}`}
                           className="border-b border-dashed border-slate-200"
+                          style={{ gridRow: `${slot.period} / span 1` }}
                         />
                       ))}
 
