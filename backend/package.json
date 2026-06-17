@@ -6,7 +6,7 @@
     "start": "node dist/src/main.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "build": "tsc -p tsconfig.build.json",
-    "test:rules": "ts-node src/auth/jwt.guard.smoke.ts && ts-node src/enrollments/enrollment-rules.smoke.ts && ts-node src/sections/sections-rules.smoke.ts && ts-node src/schedules/schedules-permissions.smoke.ts",
+    "test:rules": "ts-node src/auth/jwt.guard.smoke.ts && ts-node src/enrollments/enrollment-rules.smoke.ts && ts-node src/enrollments/enrollments-authz.smoke.ts && ts-node src/sections/sections-rules.smoke.ts && ts-node src/schedules/schedules-permissions.smoke.ts",
     "test:integration": "ts-node src/integration/integration.smoke.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",

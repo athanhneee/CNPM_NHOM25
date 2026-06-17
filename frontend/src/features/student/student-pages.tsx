@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
 import { formatDateTime } from '@/lib/date'
+import { ApiError } from '@/lib/api-client'
 import { getCurrentSemesterSections, getStudentCurrentCredits, getStudentSemesterEnrollments } from '@/lib/selectors'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
@@ -747,7 +748,11 @@ export function WeekSchedulePage() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof Error ? err.message : 'Không thể tải lịch học từ hệ thống.')
+          setError(
+            err instanceof ApiError && err.status === 403
+              ? 'Bạn không có quyền xem dữ liệu này.'
+              : err instanceof Error ? err.message : 'Không thể tải lịch học từ hệ thống.',
+          )
           setLoading(false)
         }
       })
@@ -817,7 +822,11 @@ export function SemesterSchedulePage() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof Error ? err.message : 'Không thể tải lịch học kỳ từ hệ thống.')
+          setError(
+            err instanceof ApiError && err.status === 403
+              ? 'Bạn không có quyền xem dữ liệu này.'
+              : err instanceof Error ? err.message : 'Không thể tải lịch học kỳ từ hệ thống.',
+          )
           setLoading(false)
         }
       })

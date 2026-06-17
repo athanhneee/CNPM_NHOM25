@@ -25,7 +25,13 @@ export class SectionsController {
 
   @ApiOperation({ summary: 'Danh sách lớp học phần' })
   @Get()
-  async findAll(@Query() query: SectionQueryDto) {
+  async findAll(@CurrentUser() user: RequestUser, @Query() query: SectionQueryDto) {
+    const isPrivileged = user.roles.some((role) => ['ADMIN', 'ACADEMIC_OFFICE'].includes(role))
+
+    if (!isPrivileged && user.roles.includes('LECTURER')) {
+      return this.sectionsService.findAll({ ...query, lecturerId: user.userId })
+    }
+
     return this.sectionsService.findAll(query)
   }
 
