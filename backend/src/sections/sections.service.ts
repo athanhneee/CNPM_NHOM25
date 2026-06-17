@@ -20,6 +20,45 @@ function overlaps(startA: number, countA: number, startB: number, countB: number
   return startA < endB && startB < endA
 }
 
+export function parseWeeks(weeks: string | null | undefined): Set<number> {
+  if (!weeks || !weeks.trim()) {
+    return new Set()
+  }
+
+  const result = new Set<number>()
+  for (const segment of weeks.split(',')) {
+    const trimmed = segment.trim()
+    if (!trimmed) continue
+    const rangeParts = trimmed.split('-')
+    if (rangeParts.length === 1) {
+      const num = Number(rangeParts[0])
+      if (Number.isNaN(num) || num <= 0) continue
+      result.add(num)
+    } else if (rangeParts.length === 2) {
+      const start = Number(rangeParts[0])
+      const end = Number(rangeParts[1])
+      if (Number.isNaN(start) || Number.isNaN(end) || start <= 0 || end < start) continue
+      for (let i = start; i <= end; i++) {
+        result.add(i)
+      }
+    }
+  }
+
+  return result
+}
+
+function weeksOverlap(weeksA: string | null | undefined, weeksB: string | null | undefined): boolean {
+  const setA = parseWeeks(weeksA)
+  const setB = parseWeeks(weeksB)
+  if (setA.size === 0 || setB.size === 0) {
+    return true
+  }
+  for (const w of setA) {
+    if (setB.has(w)) return true
+  }
+  return false
+}
+
 const PRESERVED_SECTION_STATUSES: SectionStatus[] = [
   SectionStatus.CANCELLED,
   SectionStatus.CLOSED,
@@ -87,13 +126,13 @@ export class SectionsService {
     }
   }
 
-  private async resolveRoomId(roomCode: string) {
+  private async resolveRoom(roomCode: string) {
     const room = await this.prisma.room.findUnique({ where: { code: roomCode } })
     if (!room) {
-      throw new BadRequestException('Phong hoc khong ton tai trong danh muc phong.')
+      throw new BadRequestException('Phòng học không tồn tại trong danh mục phòng.')
     }
 
-    return room.id
+    return room
   }
 
   private async assertCourseSemesterLecturer(courseCode: string, semesterId: string, lecturerId: string) {
@@ -117,7 +156,7 @@ export class SectionsService {
   }
 
   private async assertScheduleAvailable(
-    payload: Pick<Section, 'id' | 'semesterId' | 'lecturerId' | 'room' | 'weekday' | 'startPeriod' | 'periodCount'>,
+    payload: Pick<Section, 'id' | 'semesterId' | 'lecturerId' | 'room' | 'weekday' | 'startPeriod' | 'periodCount' | 'weeks'>,
   ) {
     const comparedSections = await this.prisma.section.findMany({
       where: {
@@ -132,7 +171,8 @@ export class SectionsService {
     const lecturerConflict = comparedSections.some(
       (section) =>
         section.lecturerId === payload.lecturerId &&
-        overlaps(section.startPeriod, section.periodCount, payload.startPeriod, payload.periodCount),
+        overlaps(section.startPeriod, section.periodCount, payload.startPeriod, payload.periodCount) &&
+        weeksOverlap(section.weeks, payload.weeks),
     )
 
     if (lecturerConflict) {
@@ -142,7 +182,8 @@ export class SectionsService {
     const roomConflict = comparedSections.some(
       (section) =>
         section.room === payload.room &&
-        overlaps(section.startPeriod, section.periodCount, payload.startPeriod, payload.periodCount),
+        overlaps(section.startPeriod, section.periodCount, payload.startPeriod, payload.periodCount) &&
+        weeksOverlap(section.weeks, payload.weeks),
     )
 
     if (roomConflict) {
@@ -216,9 +257,13 @@ export class SectionsService {
       weekday: createSectionDto.weekday,
       startPeriod: createSectionDto.startPeriod,
       periodCount: createSectionDto.periodCount,
+      weeks: createSectionDto.weeks,
     })
 
-    const roomId = await this.resolveRoomId(createSectionDto.room)
+    const room = await this.resolveRoom(createSectionDto.room)
+    if (createSectionDto.capacity > room.capacity) {
+      throw new BadRequestException(`Sĩ số lớp (${createSectionDto.capacity}) vượt quá sức chứa phòng ${room.code} (${room.capacity}).`)
+    }
 
     const section = await this.prisma.section.create({
       data: {
@@ -228,7 +273,7 @@ export class SectionsService {
         group: createSectionDto.group,
         subGroup: createSectionDto.subGroup ?? '',
         lecturerId: createSectionDto.lecturerId,
-        roomId,
+        roomId: room.id,
         room: createSectionDto.room,
         weekday: createSectionDto.weekday,
         startPeriod: createSectionDto.startPeriod,
@@ -279,9 +324,17 @@ export class SectionsService {
       weekday: nextSection.weekday,
       startPeriod: nextSection.startPeriod,
       periodCount: nextSection.periodCount,
+      weeks: nextSection.weeks,
     })
 
-    const roomId = updateSectionDto.room ? await this.resolveRoomId(nextSection.room) : undefined
+    let roomId: string | undefined
+    if (updateSectionDto.room || updateSectionDto.capacity !== undefined) {
+      const room = await this.resolveRoom(nextSection.room)
+      roomId = updateSectionDto.room ? room.id : undefined
+      if (nextSection.capacity > room.capacity) {
+        throw new BadRequestException(`Sĩ số lớp (${nextSection.capacity}) vượt quá sức chứa phòng ${room.code} (${room.capacity}).`)
+      }
+    }
 
     const section = await this.prisma.section.update({
       where: { id },
