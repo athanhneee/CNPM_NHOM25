@@ -21,6 +21,8 @@ export type RegistrationErrorCode =
   | 'REG_ERR_CREDIT_LIMIT_EXCEEDED'
   | 'REG_ERR_ALREADY_REGISTERED'
   | 'REG_ERR_ALREADY_REGISTERED_COURSE'
+  | 'REG_ERR_ALREADY_PASSED'
+  | 'REG_ERR_MAX_RETAKE_EXCEEDED'
   | 'REG_ERR_CLASS_NOT_FOUND'
   | 'REG_ERR_STUDENT_NOT_FOUND'
   | 'REG_ERR_CANNOT_WITHDRAW'
@@ -46,6 +48,8 @@ export const REGISTRATION_ERROR_MESSAGES: Record<RegistrationErrorCode, string> 
   REG_ERR_CREDIT_LIMIT_EXCEEDED: 'Vượt quá giới hạn số tín chỉ tối đa.',
   REG_ERR_ALREADY_REGISTERED: 'Sinh viên đã có bản ghi đăng ký cho lớp này.',
   REG_ERR_CLASS_NOT_FOUND: 'Không tìm thấy lớp học phần.',
+  REG_ERR_ALREADY_PASSED: 'Sinh viên đã tích lũy môn học này và hệ thống không cho phép học cải thiện.',
+  REG_ERR_MAX_RETAKE_EXCEEDED: 'Sinh viên đã vượt quá số lần học lại cho phép của môn học này.',
   REG_ERR_STUDENT_NOT_FOUND: 'Không tìm thấy thông tin sinh viên.',
   REG_ERR_CANNOT_WITHDRAW: 'Không thể hủy hoặc rút học phần này.',
   REG_ERR_CLASS_CANCELLED: 'Lớp học phần đã bị hủy.',
@@ -134,10 +138,15 @@ export interface RuleSettings {
   adjustmentStart: string
   adjustmentEnd: string
   withdrawalDeadline: string
-  maxCredits: number
+  maxCreditsMain: number
+  maxCreditsSummer: number
   maxClassesPerDay: number
   maxClassesPerSemester: number
   allowWaitlist: boolean
+  countWaitlistCredits: boolean
+  allowGradeImprovement: boolean
+  maxRetakeAttempts: number
+  semesterType: 'MAIN' | 'SUMMER'
   currentSemesterId: string
 }
 
@@ -164,6 +173,8 @@ export interface EligibilityCheckResult {
   pdfStatusCode?: PdfRegistrationStatusCode
   errorCode?: RegistrationErrorCode
   message: string
+  isRetake?: boolean
+  isImprovement?: boolean
   checks: Array<{
     key: string
     label: string
@@ -283,14 +294,17 @@ export function calculateCurrentCredits(
   enrollments: RuleEnrollment[],
   sections: RuleSection[],
   courses: RuleCourse[],
+  settings?: RuleSettings,
 ) {
+  const countWaitlisted = settings?.countWaitlistCredits ?? false;
+  
   const activeSectionIds = new Set(
     enrollments
       .filter(
         (enrollment) =>
           enrollment.studentId === studentId &&
           enrollment.semesterId === semesterId &&
-          ACTIVE_ENROLLMENT_STATUSES.has(enrollment.status),
+          (enrollment.status === 'REGISTERED' || (countWaitlisted && enrollment.status === 'WAITLISTED')),
       )
       .map((enrollment) => enrollment.sectionId),
   )
@@ -423,6 +437,10 @@ export function evaluateEnrollmentEligibility(
     targetCourse?.corequisites,
   )
 
+  const isImprovement = Boolean(targetCourse && completedCourseCodes.has(targetCourse.code))
+  const failedCount = context.studentResults?.filter(r => r.courseCode === targetCourse?.code && !r.passed).length ?? 0
+  const isRetake = Boolean(targetCourse && failedCount > 0)
+
   const checks = [
     buildRuleResult(
       'account',
@@ -484,6 +502,22 @@ export function evaluateEnrollmentEligibility(
       'REG_ERR_ALREADY_REGISTERED_COURSE',
     ),
     buildRuleResult(
+      'already-passed',
+      'Điều kiện học cải thiện',
+      !(isImprovement && !settings.allowGradeImprovement),
+      'Môn học chưa được tích lũy hoặc hệ thống cho phép học cải thiện.',
+      REGISTRATION_ERROR_MESSAGES.REG_ERR_ALREADY_PASSED,
+      'REG_ERR_ALREADY_PASSED',
+    ),
+    buildRuleResult(
+      'max-retake',
+      'Giới hạn học lại',
+      !(isRetake && failedCount >= settings.maxRetakeAttempts),
+      'Chưa vượt quá số lần học lại cho phép.',
+      REGISTRATION_ERROR_MESSAGES.REG_ERR_MAX_RETAKE_EXCEEDED,
+      'REG_ERR_MAX_RETAKE_EXCEEDED',
+    ),
+    buildRuleResult(
       'prerequisite',
       'Điều kiện tiên quyết',
       Boolean(prerequisiteCodes.every((code) => completedCourseCodes.has(code))),
@@ -538,9 +572,9 @@ export function evaluateEnrollmentEligibility(
       Boolean(
         section &&
           targetCourse &&
-          calculateCurrentCredits(student?.id ?? '', settings.currentSemesterId, enrollments, sections, courses) +
+          calculateCurrentCredits(student?.id ?? '', settings.currentSemesterId, enrollments, sections, courses, settings) +
             targetCourse.credits <=
-            settings.maxCredits,
+            (settings.semesterType === 'SUMMER' ? settings.maxCreditsSummer : settings.maxCreditsMain),
       ),
       'Tổng tín chỉ sau đăng ký vẫn nằm trong ngưỡng cho phép.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_CREDIT_LIMIT_EXCEEDED,
@@ -574,6 +608,8 @@ export function evaluateEnrollmentEligibility(
       canRegister: false,
       finalStatus: null,
       message: firstFailedCheck.message,
+      isRetake,
+      isImprovement,
       checks,
       errorCode: firstFailedCheck.errorCode,
       pdfStatusCode: mapRegistrationErrorToPdfStatus(firstFailedCheck.errorCode),
@@ -587,6 +623,8 @@ export function evaluateEnrollmentEligibility(
       errorCode: 'REG_ERR_CLASS_NOT_FOUND',
       pdfStatusCode: 'KHONG_DU_DK',
       message: REGISTRATION_ERROR_MESSAGES.REG_ERR_CLASS_NOT_FOUND,
+      isRetake,
+      isImprovement,
       checks,
     }
   }
@@ -598,6 +636,8 @@ export function evaluateEnrollmentEligibility(
       finalStatus: 'WAITLISTED',
       pdfStatusCode: mapEnrollmentStatusToPdfStatus('WAITLISTED'),
       message: 'Lớp đã đủ sĩ số, sinh viên sẽ được đưa vào danh sách chờ.',
+      isRetake,
+      isImprovement,
       checks,
     }
   }
@@ -609,6 +649,8 @@ export function evaluateEnrollmentEligibility(
       errorCode: 'REG_ERR_FULL_CAPACITY',
       pdfStatusCode: 'KHONG_DU_DK',
       message: REGISTRATION_ERROR_MESSAGES.REG_ERR_FULL_CAPACITY,
+      isRetake,
+      isImprovement,
       checks,
     }
   }
@@ -618,6 +660,8 @@ export function evaluateEnrollmentEligibility(
     finalStatus: 'REGISTERED',
     pdfStatusCode: mapEnrollmentStatusToPdfStatus('REGISTERED'),
     message: 'Sinh viên đáp ứng đầy đủ điều kiện đăng ký.',
+    isRetake,
+    isImprovement,
     checks,
   }
 }

@@ -1,4 +1,4 @@
-﻿import type { User } from '@/types/user'
+import type { User } from '@/types/user'
 import type { Course } from '@/types/course'
 import type { EligibilityCheckResult, Enrollment } from '@/types/enrollment'
 import type { Section } from '@/types/section'
@@ -53,14 +53,16 @@ export function calculateCurrentCredits(
   enrollments: Enrollment[],
   sections: Section[],
   courses: Course[],
+  settings?: SystemSettings,
 ) {
+  const countWaitlisted = settings?.countWaitlistCredits ?? false;
   const activeSectionIds = new Set(
     enrollments
       .filter(
         (enrollment) =>
           enrollment.studentId === studentId &&
           enrollment.semesterId === semesterId &&
-          ACTIVE_ENROLLMENT_STATUSES.has(enrollment.status),
+          (enrollment.status === 'REGISTERED' || (countWaitlisted && enrollment.status === 'WAITLISTED')),
       )
       .map((enrollment) => enrollment.sectionId),
   )
@@ -119,6 +121,14 @@ export function evaluateEnrollmentEligibility(
     currentSections.map((item) => item.courseCode),
   )
 
+  const isImprovement = Boolean(targetCourse && completedCourseCodes.has(targetCourse.code))
+  const failedCount = studentEnrollments.filter(
+    (item) =>
+      item.status === 'FAILED' &&
+      sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode === targetCourse?.code,
+  ).length
+  const isRetake = Boolean(targetCourse && failedCount > 0)
+
   const checks: RuleResult[] = [
     buildRuleResult(
       'account',
@@ -170,6 +180,38 @@ export function evaluateEnrollmentEligibility(
       'REG_ERR_ALREADY_REGISTERED',
     ),
     buildRuleResult(
+      'duplicate-course',
+      'Trùng học phần trong học kỳ',
+      Boolean(
+        section &&
+          !currentSemesterEnrollments.some(
+            (item) =>
+              item.sectionId !== section.id &&
+              ['REGISTERED', 'WAITLISTED', 'PENDING'].includes(item.status) &&
+              sections.find((s) => s.id === item.sectionId)?.courseCode === targetCourse?.code
+          ),
+      ),
+      'Chưa có lớp khác của cùng học phần trong học kỳ này.',
+      REGISTRATION_ERROR_MESSAGES.REG_ERR_ALREADY_REGISTERED_COURSE,
+      'REG_ERR_ALREADY_REGISTERED_COURSE',
+    ),
+    buildRuleResult(
+      'already-passed',
+      'Điều kiện học cải thiện',
+      !(isImprovement && !settings.allowGradeImprovement),
+      'Môn học chưa được tích lũy hoặc hệ thống cho phép học cải thiện.',
+      REGISTRATION_ERROR_MESSAGES.REG_ERR_ALREADY_PASSED,
+      'REG_ERR_ALREADY_PASSED',
+    ),
+    buildRuleResult(
+      'max-retake',
+      'Giới hạn học lại',
+      !(isRetake && failedCount >= settings.maxRetakeAttempts),
+      'Chưa vượt quá số lần học lại cho phép.',
+      REGISTRATION_ERROR_MESSAGES.REG_ERR_MAX_RETAKE_EXCEEDED,
+      'REG_ERR_MAX_RETAKE_EXCEEDED',
+    ),
+    buildRuleResult(
       'prerequisite',
       'Điều kiện tiên quyết',
       Boolean(
@@ -215,13 +257,9 @@ export function evaluateEnrollmentEligibility(
       Boolean(
         section &&
           targetCourse &&
-          calculateCurrentCredits(
-            student?.id ?? '',
-            settings.currentSemesterId,
-            enrollments,
-            sections,
-            courses,
-          ) + targetCourse.credits <= settings.maxCredits,
+          calculateCurrentCredits(student?.id ?? '', settings.currentSemesterId, enrollments, sections, courses, settings) +
+            targetCourse.credits <=
+            (settings.semesterType === 'SUMMER' ? settings.maxCreditsSummer : settings.maxCreditsMain),
       ),
       'Tổng tín chỉ sau đăng ký vẫn nằm trong ngưỡng cho phép.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_CREDIT_LIMIT_EXCEEDED,
@@ -256,6 +294,8 @@ export function evaluateEnrollmentEligibility(
       canRegister: false,
       finalStatus: null,
       message: firstFailedCheck.message,
+      isRetake,
+      isImprovement,
       checks,
       pdfStatusCode: mapRegistrationErrorToPdfStatus(firstFailedCheck.errorCode),
       ...(firstFailedCheck.errorCode ? { errorCode: firstFailedCheck.errorCode } : {}),
@@ -269,6 +309,8 @@ export function evaluateEnrollmentEligibility(
       pdfStatusCode: 'KHONG_DU_DK',
       errorCode: 'REG_ERR_CLASS_NOT_FOUND',
       message: REGISTRATION_ERROR_MESSAGES.REG_ERR_CLASS_NOT_FOUND,
+      isRetake,
+      isImprovement,
       checks,
     }
   }
@@ -281,6 +323,8 @@ export function evaluateEnrollmentEligibility(
       finalStatus: 'WAITLISTED',
       pdfStatusCode: mapEnrollmentStatusToPdfStatus('WAITLISTED'),
       message: 'Lớp đã full, sinh viên sẽ được đưa vào danh sách chờ.',
+      isRetake,
+      isImprovement,
       checks,
     }
   }
@@ -292,6 +336,8 @@ export function evaluateEnrollmentEligibility(
       pdfStatusCode: 'KHONG_DU_DK',
       errorCode: 'REG_ERR_FULL_CAPACITY',
       message: REGISTRATION_ERROR_MESSAGES.REG_ERR_FULL_CAPACITY,
+      isRetake,
+      isImprovement,
       checks,
     }
   }
@@ -301,6 +347,8 @@ export function evaluateEnrollmentEligibility(
     finalStatus: 'REGISTERED',
     pdfStatusCode: mapEnrollmentStatusToPdfStatus('REGISTERED'),
     message: 'Sinh viên đáp ứng đầy đủ điều kiện đăng ký.',
+    isRetake,
+    isImprovement,
     checks,
   }
 }

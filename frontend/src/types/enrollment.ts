@@ -33,6 +33,8 @@ export interface Enrollment {
   droppedAt?: string
   reasonCode?: string
   waitlistOrder?: number
+  isRetake?: boolean
+  isImprovement?: boolean
   timeline: EnrollmentTimelineItem[]
 }
 
@@ -42,6 +44,8 @@ export interface EligibilityCheckResult {
   pdfStatusCode?: EnrollmentConventionCode
   errorCode?: string | undefined
   message: string
+  isRetake?: boolean
+  isImprovement?: boolean
   checks: Array<{
     key: string
     label: string

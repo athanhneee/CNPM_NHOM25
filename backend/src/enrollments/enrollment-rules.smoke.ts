@@ -17,10 +17,15 @@ const settings: RuleSettings = {
   adjustmentStart: '2026-05-01T00:00:00.000Z',
   adjustmentEnd: '2026-05-10T23:59:59.999Z',
   withdrawalDeadline: '2026-05-20T23:59:59.999Z',
-  maxCredits: 24,
+  maxCreditsMain: 24,
+  maxCreditsSummer: 12,
+  allowGradeImprovement: true,
+  maxRetakeAttempts: 3,
   maxClassesPerDay: 4,
   maxClassesPerSemester: 8,
   allowWaitlist: true,
+  countWaitlistCredits: false,
+  semesterType: 'MAIN',
   currentSemesterId: 'semester-1',
 }
 
@@ -123,6 +128,77 @@ const counterSummary = countSectionEnrollmentStatuses([
 ])
 
 assert.deepEqual(counterSummary, { registeredCount: 1, waitlistCount: 1 })
+
+// Test: Credit limit (Main)
+const defaultContext = {
+  student,
+  section: openSection,
+  targetCourse: course,
+  courses: [course],
+  sections: [openSection],
+  enrollments: [],
+  settings: { ...settings },
+  studentResults: [],
+}
+
+const resultCreditLimit = evaluateEnrollmentEligibility({
+  ...defaultContext,
+  settings: { ...settings, maxCreditsMain: 2 },
+})
+assert.equal(resultCreditLimit.canRegister, false)
+assert.equal(resultCreditLimit.errorCode, 'REG_ERR_CREDIT_LIMIT_EXCEEDED')
+
+// Test: Summer limit
+const resultSummerLimit = evaluateEnrollmentEligibility({
+  ...defaultContext,
+  settings: { ...settings, semesterType: 'SUMMER', maxCreditsSummer: 2 },
+})
+assert.equal(resultSummerLimit.canRegister, false)
+assert.equal(resultSummerLimit.errorCode, 'REG_ERR_CREDIT_LIMIT_EXCEEDED')
+
+// Test: Summer within limit
+const resultSummerOk = evaluateEnrollmentEligibility({
+  ...defaultContext,
+  settings: { ...settings, semesterType: 'SUMMER', maxCreditsSummer: 5 },
+})
+assert.equal(resultSummerOk.canRegister, true)
+
+// Test: Retake allowed and flagged
+const resultRetake = evaluateEnrollmentEligibility({
+  ...defaultContext,
+  studentResults: [{ studentId: 'student-1', courseCode: 'CSE101', status: 'FAILED', passed: false }],
+})
+assert.equal(resultRetake.canRegister, true)
+assert.equal(resultRetake.isRetake, true)
+
+// Test: Retake limit exceeded
+const resultRetakeLimit = evaluateEnrollmentEligibility({
+  ...defaultContext,
+  studentResults: [
+    { studentId: 'student-1', courseCode: 'CSE101', status: 'FAILED', passed: false },
+    { studentId: 'student-1', courseCode: 'CSE101', status: 'FAILED', passed: false },
+    { studentId: 'student-1', courseCode: 'CSE101', status: 'FAILED', passed: false },
+  ],
+})
+assert.equal(resultRetakeLimit.canRegister, false)
+assert.equal(resultRetakeLimit.errorCode, 'REG_ERR_MAX_RETAKE_EXCEEDED')
+
+// Test: Improvement allowed and flagged
+const resultImprovement = evaluateEnrollmentEligibility({
+  ...defaultContext,
+  studentResults: [{ studentId: 'student-1', courseCode: 'CSE101', status: 'PASSED', passed: true }],
+})
+assert.equal(resultImprovement.canRegister, true)
+assert.equal(resultImprovement.isImprovement, true)
+
+// Test: Improvement rejected if flag is off
+const resultImprovementRejected = evaluateEnrollmentEligibility({
+  ...defaultContext,
+  studentResults: [{ studentId: 'student-1', courseCode: 'CSE101', status: 'PASSED', passed: true }],
+  settings: { ...settings, allowGradeImprovement: false },
+})
+assert.equal(resultImprovementRejected.canRegister, false)
+assert.equal(resultImprovementRejected.errorCode, 'REG_ERR_ALREADY_PASSED')
 
 console.log('✓ Original enrollment rule smoke tests passed.')
 
