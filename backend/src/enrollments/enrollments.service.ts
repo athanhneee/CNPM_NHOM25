@@ -321,7 +321,7 @@ export class EnrollmentsService {
           where: {
             studentId,
             sectionId,
-            semesterId: settings.currentSemesterId,
+            semesterId: section.semesterId,
             status: { in: ACTIVE_ENROLLMENT_STATUSES },
           },
         })
@@ -340,7 +340,7 @@ export class EnrollmentsService {
           where: {
             studentId,
             sectionId: { not: sectionId },
-            semesterId: settings.currentSemesterId,
+            semesterId: section.semesterId,
             status: { in: ACTIVE_ENROLLMENT_STATUSES },
             section: { is: { courseCode: section.courseCode } },
           },
@@ -376,7 +376,7 @@ export class EnrollmentsService {
           data: {
             studentId,
             sectionId,
-            semesterId: settings.currentSemesterId,
+            semesterId: section.semesterId,
             status: finalStatus,
             waitlistOrder,
             timeline: [buildTimelineItem(actor, finalStatus, result.message, now)],

@@ -28,6 +28,7 @@ export type RegistrationErrorCode =
   | 'REG_ERR_ACCOUNT_INACTIVE'
   | 'REG_ERR_MAX_CLASS_PER_DAY'
   | 'REG_ERR_MAX_CLASS_PER_SEMESTER'
+  | 'REG_ERR_SECTION_NOT_IN_CURRENT_SEMESTER'
 
 export type PdfRegistrationStatusCode = 'DK_TC' | 'HUY_DK' | 'KHONG_DU_DK' | 'NGOAI_TGDK'
 
@@ -51,6 +52,7 @@ export const REGISTRATION_ERROR_MESSAGES: Record<RegistrationErrorCode, string> 
   REG_ERR_ACCOUNT_INACTIVE: 'Tài khoản hiện không thể thực hiện thao tác này.',
   REG_ERR_MAX_CLASS_PER_DAY: 'Vượt quá số lớp tối đa trong một ngày.',
   REG_ERR_MAX_CLASS_PER_SEMESTER: 'Vượt quá tổng số lớp tối đa trong học kỳ.',
+  REG_ERR_SECTION_NOT_IN_CURRENT_SEMESTER: 'Lớp học phần không thuộc học kỳ hiện tại.',
 }
 
 export interface RuleUser {
@@ -338,6 +340,14 @@ export function evaluateEnrollmentEligibility(
       'Đã tìm thấy lớp học phần.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_CLASS_NOT_FOUND,
       'REG_ERR_CLASS_NOT_FOUND',
+    ),
+    buildRuleResult(
+      'current-semester',
+      'Thuộc học kỳ hiện tại',
+      Boolean(section && section.semesterId === settings.currentSemesterId),
+      'Lớp học phần thuộc học kỳ hiện hành.',
+      REGISTRATION_ERROR_MESSAGES.REG_ERR_SECTION_NOT_IN_CURRENT_SEMESTER,
+      'REG_ERR_SECTION_NOT_IN_CURRENT_SEMESTER',
     ),
     buildRuleResult(
       'section-status',
