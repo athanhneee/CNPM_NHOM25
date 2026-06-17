@@ -1591,6 +1591,7 @@ export function ChangePasswordPage() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const changePassword = useAuthStore((state) => state.changePassword)
   const pushToast = useUiStore((state) => state.pushToast)
+  const navigate = useNavigate()
   const [currentPassword, setCurrentPassword] = useState('')
   const [nextPassword, setNextPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -1621,16 +1622,19 @@ export function ChangePasswordPage() {
     const result = await changePassword(currentPassword, nextPassword)
     setLoading(false)
 
-    pushToast({
-      tone: result.success ? 'success' : 'error',
-      title: result.success ? 'Đổi mật khẩu thành công' : 'Không thể đổi mật khẩu',
-      description: result.message,
-    })
-
     if (result.success) {
-      setCurrentPassword('')
-      setNextPassword('')
-      setConfirmPassword('')
+      pushToast({
+        tone: 'success',
+        title: 'Đổi mật khẩu thành công',
+        description: 'Vui lòng đăng nhập lại với mật khẩu mới.',
+      })
+      navigate('/login')
+    } else {
+      pushToast({
+        tone: 'error',
+        title: 'Không thể đổi mật khẩu',
+        description: result.message,
+      })
     }
   }
 

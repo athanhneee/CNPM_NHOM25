@@ -138,15 +138,23 @@ export class AuthService {
     const accessToken = this.signAccessToken(user)
     const refreshToken = this.signRefreshToken(user)
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10)
-    const refreshTokenExpiresAt = new Date(
-      Date.now() + parseDurationMs(this.refreshTokenExpiresIn(), 7 * 24 * 60 * 60 * 1000),
-    )
+
+    let sessionExpiresAt: Date
+    if (rememberMe) {
+      sessionExpiresAt = new Date(
+        Date.now() + parseDurationMs(this.refreshTokenExpiresIn(), 7 * 24 * 60 * 60 * 1000),
+      )
+    } else {
+      const settings = await this.prisma.systemSetting.findUnique({ where: { id: 1 } })
+      const timeoutMinutes = settings?.sessionTimeoutMinutes ?? 30
+      sessionExpiresAt = new Date(Date.now() + timeoutMinutes * 60 * 1000)
+    }
 
     const updatedUser = await this.prisma.user.update({
       where: { id: user.id },
       data: {
         refreshToken: refreshTokenHash,
-        refreshTokenExpiresAt,
+        refreshTokenExpiresAt: sessionExpiresAt,
         failedLoginAttempts: 0,
         lastLoginAt: new Date(),
       },
@@ -160,7 +168,8 @@ export class AuthService {
       refreshToken,
       tokenType: 'Bearer',
       expiresIn: this.accessTokenExpiresIn(),
-      session: this.buildSession(updatedUser.id, rememberMe, refreshTokenExpiresAt),
+      sessionExpiresAt: sessionExpiresAt.toISOString(),
+      session: this.buildSession(updatedUser.id, rememberMe, sessionExpiresAt),
       user: toPublicUser(updatedUser),
     }
   }
@@ -253,6 +262,6 @@ export class AuthService {
     })
 
     await this.auditForUser(updatedUser, 'CHANGE_PASSWORD', 'SUCCESS', 'Đổi mật khẩu thành công.')
-    return { success: true, message: 'Cập nhật mật khẩu thành công.' }
+    return { success: true, message: 'Đổi mật khẩu thành công. Vui lòng đăng nhập lại.', requireRelogin: true }
   }
 }

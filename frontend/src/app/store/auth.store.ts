@@ -92,7 +92,18 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
       return { success: false, message: 'Bạn cần đăng nhập để thực hiện thao tác này.' }
     }
 
-    return authService.changePassword(user.id, currentPassword, nextPassword)
+    const result = await authService.changePassword(user.id, currentPassword, nextPassword)
+    if (result.success) {
+      removeStorageKey(STORAGE_KEYS.auth)
+      set({
+        currentUser: null,
+        session: null,
+        isAuthenticated: false,
+        permissions: [],
+      })
+    }
+
+    return result
   },
   touchSession: async () => {
     const session = await authService.touchSession()
