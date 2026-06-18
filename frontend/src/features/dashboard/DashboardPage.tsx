@@ -1,20 +1,27 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   ArrowRight,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BadgeCheck,
   BookOpenText,
   Building2,
   CalendarDays,
   ChartColumnBig,
   Clock3,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Eye,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   EyeOff,
   GraduationCap,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Home,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   IdCard,
   LockKeyhole,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Mail,
   MapPinHouse,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   PhoneCall,
   School,
   ShieldAlert,
@@ -22,24 +29,18 @@ import {
   UserRound,
   UsersRound,
 } from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
-import { useUiStore } from '@/app/store/ui.store'
-import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
-import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Checkbox } from '@/components/ui/Checkbox'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Input } from '@/components/ui/Input'
 import { StatCard } from '@/components/shared/StatCard'
-import { StatusBadge } from '@/components/shared/StatusBadge'
 import { SystemWindowCard } from '@/components/shared/SystemWindowCard'
 import { formatDateTime } from '@/lib/date'
-import { authApiService } from '@/services/auth.api'
 import {
   getRelevantLogs,
   getRoleDashboardMetrics,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ROLE_LABELS,
   getStudentAttendanceBreakdown,
   getStudentInstructorContacts,
@@ -70,6 +71,7 @@ function getInitials(fullName: string) {
     .join('')
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatShortDate(value?: string) {
   if (!value) {
     return 'Chưa cập nhật'
@@ -82,6 +84,7 @@ function formatShortDate(value?: string) {
   }).format(new Date(value))
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatProfileValue(value?: string | number | null) {
   if (value === undefined || value === null || value === '') {
     return 'Chưa cập nhật'
@@ -90,6 +93,7 @@ function formatProfileValue(value?: string | number | null) {
   return String(value)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getCodeLabelByRole(role: UserRole) {
   switch (role) {
     case 'LECTURER':

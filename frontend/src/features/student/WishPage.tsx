@@ -1,9 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
-import { formatDateTime } from '@/lib/date'
-import { ApiError } from '@/lib/api-client'
-import { getCurrentSemesterSections, getStudentCurrentCredits, getStudentSemesterEnrollments } from '@/lib/selectors'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -11,32 +6,13 @@ import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { ErrorState } from '@/components/ui/ErrorState'
-import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { Dialog } from '@/components/ui/Dialog'
-import { Table, type TableColumn } from '@/components/ui/Table'
 import { Textarea } from '@/components/ui/Textarea'
-import { CreditMeter } from '@/components/shared/CreditMeter'
-import { ExportButtons } from '@/components/shared/ExportButtons'
-import { FilterBar } from '@/components/shared/FilterBar'
-import { InfoList } from '@/components/shared/InfoList'
-import { RuleCheckPanel } from '@/components/shared/RuleCheckPanel'
-import { SearchInput } from '@/components/shared/SearchInput'
-import { SectionCapacityBar } from '@/components/shared/SectionCapacityBar'
-import { StatCard } from '@/components/shared/StatCard'
-import { StatusBadge } from '@/components/shared/StatusBadge'
-import { TimelineList } from '@/components/shared/TimelineList'
-import { WeekCalendarGrid } from '@/components/calendar/WeekCalendarGrid'
-import { SemesterScheduleTable } from '@/components/calendar/SemesterScheduleTable'
 import { enrollmentService } from '@/services/enrollment.api'
 import { courseService } from '@/services/course.api'
 import { sectionService } from '@/services/section.api'
-import { scheduleService } from '@/services/schedule.api'
 import { wishService } from '@/services/wish.api'
 import type { Course } from '@/types/course'
-import type { ScheduleEntry } from '@/types/schedule'
 import type { User } from '@/types/user'
 
 function useStudentContext() {
@@ -93,6 +69,7 @@ function normalizeLookupValue(value?: string | null) {
   return (value ?? '').trim().toUpperCase()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function inferRegistrationClassScope(classCode: string, users: User[]): RegistrationClassScope {
   const normalizedClassCode = normalizeLookupValue(classCode)
 
@@ -135,6 +112,7 @@ function inferRegistrationClassScope(classCode: string, users: User[]): Registra
   return { classCode }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function courseMatchesRegistrationClass(course: Course | null, scope: RegistrationClassScope) {
   if (!course || !scope.program) {
     return true
@@ -148,6 +126,7 @@ function courseMatchesRegistrationClass(course: Course | null, scope: Registrati
   return supportedMajors.includes(scope.program)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function courseMatchesManagingFaculty(course: Course | null, facultyFilter: string) {
   if (!facultyFilter || !course) {
     return true

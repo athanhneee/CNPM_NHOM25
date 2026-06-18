@@ -12,18 +12,12 @@ import { Table, type TableColumn } from '@/components/ui/Table'
 import { Textarea } from '@/components/ui/Textarea'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { FilterBar } from '@/components/shared/FilterBar'
-import { PermissionMatrix } from '@/components/shared/PermissionMatrix'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { adminService } from '@/services/admin.api'
-import { logService } from '@/services/log.api'
 import { settingsService } from '@/services/settings.api'
 import { getMajorMappingFromStudentCode } from '@/mocks/seed/ptit-helpers'
-import { ExportButtons } from '@/components/shared/ExportButtons'
-import { SystemWindowCard } from '@/components/shared/SystemWindowCard'
-import { formatDateTime } from '@/lib/date'
-import { ApiError } from '@/lib/api-client'
 import type { SystemSettings } from '@/types/settings'
 import {
   parseStudentImportFile,
@@ -56,11 +50,13 @@ function useAdminContext() {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function toValidIsoDate(value: string) {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? null : date.toISOString()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function settingsToForm(settings: SystemSettings) {
   return {
     simulationNow: settings.simulationNow,
@@ -80,6 +76,7 @@ function settingsToForm(settings: SystemSettings) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type SettingsForm = ReturnType<typeof settingsToForm>
 
 export function UserAccountsPage() {

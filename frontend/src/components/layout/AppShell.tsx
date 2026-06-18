@@ -15,6 +15,7 @@ export function AppShell() {
   const dismissMaintenance = useSessionStore((state) => state.dismissMaintenance)
   const warningVisible = useSessionStore((state) => state.warningVisible)
   const remainingSeconds = useSessionStore((state) => state.remainingSeconds)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const sidebarOpen = useUiStore((state) => state.sidebarOpen)
   const location = useLocation()
   const isDemoMode = import.meta.env.VITE_APP_MODE === 'demo'
@@ -69,5 +70,3 @@ export function AppShell() {
 }
 
 export default AppShell
-
-

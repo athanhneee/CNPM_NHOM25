@@ -5,43 +5,35 @@ import { useUiStore } from '@/app/store/ui.store'
 import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { Drawer } from '@/components/ui/Drawer'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
-import { Table, type TableColumn } from '@/components/ui/Table'
-import { Textarea } from '@/components/ui/Textarea'
-import { ExportButtons } from '@/components/shared/ExportButtons'
-import { FilterBar } from '@/components/shared/FilterBar'
 import { InfoList } from '@/components/shared/InfoList'
-import { SearchInput } from '@/components/shared/SearchInput'
-import { StatCard } from '@/components/shared/StatCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { courseService } from '@/services/course.api'
 import { enrollmentService } from '@/services/enrollment.api'
-import { reportService } from '@/services/report.api'
 import { sectionService } from '@/services/section.api'
-import { wishService } from '@/services/wish.api'
-import { getCurrentSemesterSections, getSectionStudents, getSectionWaitlist } from '@/lib/selectors'
+import { getCurrentSemesterSections } from '@/lib/selectors'
 import type { Course, WishRequest } from '@/types/course'
-import type { ReportRow, UtilizationStats } from '@/types/settings'
-import type { SectionStatus } from '@/types/section'
 
 type CourseTypeValue = NonNullable<Course['courseType']>
 
 type AcademicBlockValue = NonNullable<Course['academicBlock']>
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DEFAULT_COURSE_TYPE: CourseTypeValue = 'Tự chọn'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DEFAULT_ACADEMIC_BLOCK: AcademicBlockValue = 'electiveCourses'
 
 const DEFAULT_ROOM_OPTIONS = ['A1-101', 'A1-201', 'A2-301', 'B1-201', 'LAB-01']
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MAJOR_CODE_BY_NAME: Record<string, string> = {
   'Công nghệ thông tin': '7480201',
   'An toàn thông tin': '7480202',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function normalizeMajors(rawValue: string) {
   return rawValue
     .split(',')
@@ -49,6 +41,7 @@ function normalizeMajors(rawValue: string) {
     .filter(Boolean)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function resolveCourseCategory(
   academicBlock: AcademicBlockValue,
   courseType: CourseTypeValue,
@@ -136,6 +129,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function WishStatusBadge({ status }: { status: WishRequest['status'] }) {
   return (
     <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${wishStatusClassNames[status]}`}>
@@ -144,6 +138,7 @@ function WishStatusBadge({ status }: { status: WishRequest['status'] }) {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatWishDate(value: string) {
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',

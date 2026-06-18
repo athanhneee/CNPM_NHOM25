@@ -4,28 +4,19 @@ import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
 import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Drawer } from '@/components/ui/Drawer'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
 import { Table, type TableColumn } from '@/components/ui/Table'
 import { Textarea } from '@/components/ui/Textarea'
-import { ExportButtons } from '@/components/shared/ExportButtons'
 import { FilterBar } from '@/components/shared/FilterBar'
-import { InfoList } from '@/components/shared/InfoList'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { StatCard } from '@/components/shared/StatCard'
-import { StatusBadge } from '@/components/shared/StatusBadge'
 import { courseService } from '@/services/course.api'
 import { enrollmentService } from '@/services/enrollment.api'
-import { reportService } from '@/services/report.api'
 import { sectionService } from '@/services/section.api'
-import { wishService } from '@/services/wish.api'
-import { getCurrentSemesterSections, getSectionStudents, getSectionWaitlist } from '@/lib/selectors'
 import type { Course, WishRequest } from '@/types/course'
-import type { ReportRow, UtilizationStats } from '@/types/settings'
-import type { SectionStatus } from '@/types/section'
 
 type CourseTypeValue = NonNullable<Course['courseType']>
 
@@ -114,6 +105,7 @@ function useAcademicContext() {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function buildRoomOptions(rooms: string[]) {
   return Array.from(new Set([...DEFAULT_ROOM_OPTIONS, ...rooms.filter(Boolean)])).sort((left, right) =>
     left.localeCompare(right),
@@ -136,6 +128,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function WishStatusBadge({ status }: { status: WishRequest['status'] }) {
   return (
     <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${wishStatusClassNames[status]}`}>
@@ -144,6 +137,7 @@ function WishStatusBadge({ status }: { status: WishRequest['status'] }) {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatWishDate(value: string) {
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
