@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Zap,
 } from 'lucide-react'
+import { WeatherProvider, WeatherOverlay, WeatherBadge } from '@/components/weather/WeatherEffects'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
@@ -72,58 +73,67 @@ export function LoginPage() {
       <div className="relative z-10 w-full max-w-[1200px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[760px] border border-slate-200/60">
         
         {/* LEFT PANEL - Light Vibrant UI */}
-        <section className="relative hidden lg:flex lg:w-5/12 bg-teal-50/50 flex-col justify-between p-12 overflow-hidden border-r border-teal-100/50">
-          {/* Abstract glowing background shapes */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute -top-[20%] -left-[10%] w-[80%] h-[80%] bg-teal-300/30 blur-[100px] rounded-full mix-blend-multiply" />
-            <div className="absolute bottom-[0%] -right-[20%] w-[70%] h-[70%] bg-cyan-300/30 blur-[90px] rounded-full mix-blend-multiply" />
-            <div className="absolute top-[40%] left-[20%] w-[50%] h-[50%] bg-sky-200/40 blur-[100px] rounded-full mix-blend-multiply" />
-          </div>
-          
-          <div className="relative z-10 flex items-center gap-3">
-            <div className="bg-white p-2.5 rounded-2xl border border-teal-100 shadow-sm shrink-0">
-              <img
-                alt="Logo PTIT"
-                src="/Logo-Hoc-Vien-Cong-Nghe-Buu-Chinh-Vien-Thong-PTIT.webp"
-                className="h-9 w-9 object-contain"
-              />
-            </div>
-            <span className="font-bold text-[13px] xl:text-sm text-teal-900 leading-snug uppercase tracking-wide whitespace-nowrap">
-              Học viện Công nghệ Bưu chính Viễn thông<br />Cơ sở Hồ Chí Minh
-            </span>
-          </div>
+        <WeatherProvider>
+          <section className="relative hidden lg:flex lg:w-5/12 bg-teal-50/50 flex-col justify-between p-12 overflow-hidden border-r border-teal-100/50">
+            {/* Weather ambient overlay — behind everything */}
+            <WeatherOverlay />
 
-          <div className="relative z-10 space-y-8 mt-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-teal-200/60 text-teal-700 text-xs font-bold uppercase tracking-wider backdrop-blur-md shadow-sm">
-              <Zap className="h-3.5 w-3.5 text-teal-500" />
-              <span>Hệ thống mới 2026</span>
+            {/* Abstract glowing background shapes */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+              <div className="absolute -top-[20%] -left-[10%] w-[80%] h-[80%] bg-teal-300/30 blur-[100px] rounded-full mix-blend-multiply" />
+              <div className="absolute bottom-[0%] -right-[20%] w-[70%] h-[70%] bg-cyan-300/30 blur-[90px] rounded-full mix-blend-multiply" />
+              <div className="absolute top-[40%] left-[20%] w-[50%] h-[50%] bg-sky-200/40 blur-[100px] rounded-full mix-blend-multiply" />
             </div>
-            <h1 className="text-4xl xl:text-5xl font-extrabold leading-[1.15] tracking-tight text-slate-900">
-              Nền tảng học vụ <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-500">
-                thông minh hơn.
+            
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="bg-white p-2.5 rounded-2xl border border-teal-100 shadow-sm shrink-0">
+                <img
+                  alt="Logo PTIT"
+                  src="/Logo-Hoc-Vien-Cong-Nghe-Buu-Chinh-Vien-Thong-PTIT.webp"
+                  className="h-9 w-9 object-contain"
+                />
+              </div>
+              <span className="font-bold text-[13px] xl:text-sm text-teal-900 leading-snug uppercase tracking-wide whitespace-nowrap">
+                Học viện Công nghệ Bưu chính Viễn thông<br />Cơ sở Hồ Chí Minh
               </span>
-            </h1>
-            <p className="text-lg text-slate-600 leading-relaxed font-medium max-w-sm">
-              Trải nghiệm hệ thống quản lý đào tạo hiện đại, trực quan và tối ưu cho toàn bộ sinh viên, giảng viên.
-            </p>
-          </div>
+            </div>
 
-          <div className="relative z-10 mt-auto pt-16">
-            <div className="flex items-center gap-5 bg-white/70 backdrop-blur-md border border-teal-100/60 p-5 rounded-3xl shadow-sm">
-              <div className="bg-teal-100 p-3.5 rounded-full border border-teal-200/50 shadow-inner">
-                <GraduationCap className="h-7 w-7 text-teal-700" strokeWidth={2.5} />
+            <div className="relative z-10 space-y-8 mt-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-teal-200/60 text-teal-700 text-xs font-bold uppercase tracking-wider backdrop-blur-md shadow-sm">
+                <Zap className="h-3.5 w-3.5 text-teal-500" />
+                <span>Hệ thống mới 2026</span>
               </div>
-              <div>
-                <p className="text-sm font-bold text-teal-950">Cổng thông tin đào tạo</p>
-                <p className="text-xs text-teal-800 mt-1 font-medium">Phiên bản dành cho PTIT Cơ sở miền Nam</p>
+              <h1 className="text-4xl xl:text-5xl font-extrabold leading-[1.15] tracking-tight text-slate-900">
+                Nền tảng học vụ <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-500">
+                  thông minh hơn.
+                </span>
+              </h1>
+              <p className="text-lg text-slate-600 leading-relaxed font-medium max-w-sm">
+                Trải nghiệm hệ thống quản lý đào tạo hiện đại, trực quan và tối ưu cho toàn bộ sinh viên, giảng viên.
+              </p>
+            </div>
+
+            <div className="relative z-10 mt-auto pt-16">
+              <div className="flex items-center gap-5 bg-white/70 backdrop-blur-md border border-teal-100/60 p-5 rounded-3xl shadow-sm">
+                <div className="bg-teal-100 p-3.5 rounded-full border border-teal-200/50 shadow-inner">
+                  <GraduationCap className="h-7 w-7 text-teal-700" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-teal-950">Cổng thông tin đào tạo</p>
+                  <p className="text-xs text-teal-800 mt-1 font-medium">Phiên bản dành cho PTIT Cơ sở miền Nam</p>
+                </div>
+              </div>
+              <div className="mt-6 flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                  © {new Date().getFullYear()} PTIT HCM
+                </p>
+                {/* Weather badge — inline, sits naturally next to copyright */}
+                <WeatherBadge />
               </div>
             </div>
-            <p className="mt-8 text-xs font-semibold text-slate-400 uppercase tracking-widest">
-              © {new Date().getFullYear()} PTIT HCM
-            </p>
-          </div>
-        </section>
+          </section>
+        </WeatherProvider>
 
         {/* RIGHT PANEL - Clean Login Form */}
         <section className="flex-1 flex flex-col justify-center p-8 sm:p-14 lg:p-16 relative bg-white overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
