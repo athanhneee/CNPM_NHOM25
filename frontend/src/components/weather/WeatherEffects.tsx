@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, createContext, useContext } from 'react'
+import { useEffect, useState, useRef, createContext, useContext } from 'react'
 
 type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'thunderstorm' | 'loading'
 
@@ -32,7 +32,7 @@ const WeatherContext = createContext<WeatherData>({
   description: '',
 })
 
-export function useWeather(): WeatherData {
+function useWeather(): WeatherData {
   const [weather, setWeather] = useState<WeatherData>({
     temperature: 0,
     condition: 'loading',
@@ -76,8 +76,9 @@ export function useWeather(): WeatherData {
 
 /* ─── Rain Effect — Very subtle ambient drops ─── */
 function RainEffect() {
-  const drops = useMemo(() => {
-    return Array.from({ length: 22 }, (_, i) => ({
+  const dropsRef = useRef<Array<{ id: number; left: number; delay: number; duration: number; opacity: number; width: number; height: number }> | null>(null)
+  if (dropsRef.current === null) {
+    dropsRef.current = Array.from({ length: 22 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
       delay: Math.random() * 4,
@@ -86,7 +87,8 @@ function RainEffect() {
       width: 1 + Math.random() * 0.5,
       height: 14 + Math.random() * 10,
     }))
-  }, [])
+  }
+  const drops = dropsRef.current
 
   return (
     <div className="weather-rain-container">
@@ -120,15 +122,17 @@ function ThunderstormEffect() {
 
 /* ─── Sun Effect ─── */
 function SunEffect() {
-  const particles = useMemo(() => {
-    return Array.from({ length: 8 }, (_, i) => ({
+  const particlesRef = useRef<Array<{ id: number; left: number; top: number; delay: number; duration: number }> | null>(null)
+  if (particlesRef.current === null) {
+    particlesRef.current = Array.from({ length: 8 }, (_, i) => ({
       id: i,
       left: 10 + Math.random() * 50,
       top: 5 + Math.random() * 45,
       delay: Math.random() * 6,
       duration: 4 + Math.random() * 5,
     }))
-  }, [])
+  }
+  const particles = particlesRef.current
 
   return (
     <div className="weather-sun-container">
