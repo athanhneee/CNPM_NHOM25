@@ -11,7 +11,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ title, description, action, className }: EmptyStateProps) {
   return (
-    <div className={cn("surface-panel grid place-items-center gap-4 px-6 py-12 text-center", className)}>
+    <div className={cn("surface-panel flex flex-col items-center justify-center gap-4 px-6 py-12 text-center h-full", className)}>
       <div className="rounded-full bg-[var(--color-surface-strong)] p-4 text-[var(--color-muted)]">
         <Inbox className="h-7 w-7" />
       </div>

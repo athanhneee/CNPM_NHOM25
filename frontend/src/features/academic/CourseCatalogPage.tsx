@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -159,6 +160,7 @@ export function CourseCatalogPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editingId, setEditingId] = useState('')
   const [deleteId, setDeleteId] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
   const [form, setForm] = useState({
     code: 'INT3999',
     name: 'Học phần mới',
@@ -228,6 +230,10 @@ export function CourseCatalogPage() {
       matchesSemester
     )
   })
+
+  const itemsPerPage = 5
+  const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage))
+  const paginatedRows = rows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   if (!currentUser || !actor) {
     return <EmptyState title="Không tìm thấy tài khoản phòng đào tạo" description="Vui lòng đăng nhập lại." />
@@ -332,7 +338,36 @@ export function CourseCatalogPage() {
         />
       </FilterBar>
 
-      <Table columns={columns} rows={rows} rowKey={(row) => row.id} />
+      <div className="grid gap-4">
+        <Table columns={columns} rows={paginatedRows} rowKey={(row) => row.id} />
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-4 mt-2">
+            <span className="text-sm text-slate-500 font-medium">
+              Hiển thị trang <span className="text-teal-700 font-bold">{currentPage}</span> / {totalPages}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                type="button"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                type="button"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <Drawer open={drawerOpen} title={editingId ? 'Cập nhật học phần' : 'Thêm học phần mới'} onClose={() => setDrawerOpen(false)}>
         <div className="grid gap-4">

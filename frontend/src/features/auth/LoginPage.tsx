@@ -31,7 +31,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<'SV' | 'GV' | 'QTV'>('SV')
+  const [activeTab, setActiveTab] = useState<'SV' | 'GV' | 'GVU' | 'QTV'>('SV')
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -59,7 +59,8 @@ export function LoginPage() {
   const filteredDemoAccounts = demoAccounts.filter(acc => {
     if (activeTab === 'SV') return acc.role === 'STUDENT'
     if (activeTab === 'GV') return acc.role === 'LECTURER'
-    if (activeTab === 'QTV') return acc.role === 'ADMIN' || acc.role === 'ACADEMIC_OFFICER'
+    if (activeTab === 'GVU') return acc.role === 'ACADEMIC_OFFICE'
+    if (activeTab === 'QTV') return acc.role === 'ADMIN'
     return true
   })
 
@@ -218,19 +219,25 @@ export function LoginPage() {
               <div className="bg-slate-50 border border-slate-100 p-2 rounded-full mb-4 flex gap-1">
                 <button 
                   onClick={() => setActiveTab('SV')} 
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-full transition-all ${activeTab === 'SV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
+                  className={`flex-1 py-2 px-1 sm:px-2 text-xs font-bold rounded-full transition-all ${activeTab === 'SV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                 >
                   Sinh viên
                 </button>
                 <button 
                   onClick={() => setActiveTab('GV')} 
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-full transition-all ${activeTab === 'GV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
+                  className={`flex-1 py-2 px-1 sm:px-2 text-xs font-bold rounded-full transition-all ${activeTab === 'GV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                 >
                   Giảng viên
                 </button>
                 <button 
+                  onClick={() => setActiveTab('GVU')} 
+                  className={`flex-1 py-2 px-1 sm:px-2 text-xs font-bold rounded-full transition-all ${activeTab === 'GVU' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
+                >
+                  Giáo vụ
+                </button>
+                <button 
                   onClick={() => setActiveTab('QTV')} 
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-full transition-all ${activeTab === 'QTV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
+                  className={`flex-1 py-2 px-1 sm:px-2 text-xs font-bold rounded-full transition-all ${activeTab === 'QTV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                 >
                   Quản trị
                 </button>

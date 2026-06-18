@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -154,12 +155,17 @@ export function AssignLecturerPage() {
   const { currentUser, snapshot, pushToast, actor } = useAcademicContext()
   const [selectedSectionId, setSelectedSectionId] = useState('')
   const [nextLecturerId, setNextLecturerId] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   if (!currentUser || !actor) {
     return <EmptyState title="Không tìm thấy tài khoản phòng đào tạo" description="Vui lòng đăng nhập lại." />
   }
 
   const sections = getCurrentSemesterSections(snapshot)
+  const itemsPerPage = 5
+  const totalPages = Math.max(1, Math.ceil(sections.length / itemsPerPage))
+  const paginatedSections = sections.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
   const selectedSection = sections.find((item) => item.section.id === selectedSectionId)
   const lecturers = snapshot.users.filter((user) => user.roles.includes('LECTURER'))
 
@@ -170,7 +176,7 @@ export function AssignLecturerPage() {
       <div className="grid gap-6 lg:grid-cols-[0.58fr_0.42fr]">
         <Card title="Danh sách section cần phân công" description="Chọn section và cập nhật giảng viên phụ trách">
           <div className="grid gap-3">
-            {sections.map((row) => (
+            {paginatedSections.map((row) => (
               <button
                 key={row.section.id}
                 className={`rounded-3xl border px-4 py-4 text-left ${selectedSectionId === row.section.id ? 'border-teal-200 bg-teal-50' : 'border-slate-200 bg-white'}`}
@@ -190,6 +196,34 @@ export function AssignLecturerPage() {
               </button>
             ))}
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-4">
+              <span className="text-sm text-slate-500 font-medium">
+                Hiển thị trang <span className="text-teal-700 font-bold">{currentPage}</span> / {totalPages}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  type="button"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  type="button"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
 
         <Card title="Cập nhật giảng viên" description="Xem thông tin lớp và chọn giảng viên mới">

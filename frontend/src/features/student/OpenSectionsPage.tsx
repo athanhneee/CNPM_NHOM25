@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getCurrentSemesterSections } from '@/lib/selectors'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
@@ -8,6 +9,7 @@ import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { Table, type TableColumn } from '@/components/ui/Table'
 import { ExportButtons } from '@/components/shared/ExportButtons'
 import { FilterBar } from '@/components/shared/FilterBar'
@@ -148,6 +150,8 @@ export function OpenSectionsPage() {
   const { currentUser, snapshot, pushToast, actor } = useStudentContext()
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 15
   const [submittingId, setSubmittingId] = useState('')
 
   if (!currentUser || !actor) {
@@ -167,6 +171,10 @@ export function OpenSectionsPage() {
     const matchesStatus = statusFilter === 'ALL' || item.derivedStatus === statusFilter
     return matchesQuery && matchesStatus
   })
+
+  const totalPages = Math.ceil(rows.length / PAGE_SIZE)
+  const startIndex = (currentPage - 1) * PAGE_SIZE
+  const paginatedRows = rows.slice(startIndex, startIndex + PAGE_SIZE)
 
   const columns: TableColumn<(typeof rows)[number]>[] = [
     { key: 'sectionCode', header: 'Mã lớp HP', render: (row) => <span className="font-medium text-slate-900">{row.section.sectionCode}</span> },
@@ -240,17 +248,55 @@ export function OpenSectionsPage() {
           />
         }
       >
-        <SearchInput label="Tìm kiếm môn học / lớp HP" placeholder="INT2102, an toàn mạng..." value={query} onChange={(event) => setQuery(event.target.value)} />
-        <Input label="Trạng thái" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} list="section-status-list" />
+        <SearchInput label="Tìm kiếm môn học / lớp HP" placeholder="INT2102, an toàn mạng..." value={query} onChange={(event) => { setQuery(event.target.value); setCurrentPage(1); }} />
+        <Select
+          label="Trạng thái"
+          value={statusFilter}
+          onChange={(event) => { setStatusFilter(event.target.value); setCurrentPage(1); }}
+          options={[
+            { label: 'Tất cả trạng thái', value: 'ALL' },
+            { label: 'Đang mở đăng ký (OPEN)', value: 'OPEN' },
+            { label: 'Đã đầy (FULL)', value: 'FULL' },
+            { label: 'Đã đóng (CLOSED)', value: 'CLOSED' },
+          ]}
+        />
       </FilterBar>
-      <datalist id="section-status-list">
-        <option value="ALL" />
-        <option value="OPEN" />
-        <option value="FULL" />
-        <option value="CLOSED" />
-      </datalist>
 
-      {rows.length ? <Table columns={columns} rows={rows} rowKey={(row) => row.section.id} /> : <EmptyState title="Không có lớp phù hợp" description="Hãy đổi bộ lọc hoặc tìm kiếm bằng mã môn học, tên môn học." />}
+      {rows.length ? (
+        <div className="space-y-6">
+          <Table columns={columns} rows={paginatedRows} rowKey={(row) => row.section.id} />
+          {totalPages > 1 && (
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[var(--color-hairline)] bg-[var(--color-surface)] px-6 py-4 shadow-sm">
+              <p className="text-sm text-[var(--color-muted)]">
+                Hiển thị <span className="font-medium text-[var(--color-ink)]">{startIndex + 1}</span> đến <span className="font-medium text-[var(--color-ink)]">{Math.min(startIndex + PAGE_SIZE, rows.length)}</span> trong tổng số <span className="font-medium text-[var(--color-ink)]">{rows.length}</span> lớp học phần
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="px-3 text-sm font-medium text-[var(--color-ink)]">
+                  {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <EmptyState title="Không có lớp phù hợp" description="Hãy đổi bộ lọc hoặc tìm kiếm bằng mã môn học, tên môn học." />
+      )}
     </div>
   )
 }

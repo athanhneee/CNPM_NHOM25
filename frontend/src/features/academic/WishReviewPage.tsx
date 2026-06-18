@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -155,6 +156,7 @@ export function WishReviewPage() {
   const [updatingWishId, setUpdatingWishId] = useState('')
   const [decision, setDecision] = useState<{ wishId: string; status: 'APPROVED' | 'REJECTED' } | null>(null)
   const [reviewNote, setReviewNote] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
   const currentSemesterId = snapshot.settings.currentSemesterId
 
   useEffect(() => {
@@ -180,6 +182,10 @@ export function WishReviewPage() {
         .sort((left, right) => right.wish.createdAt.localeCompare(left.wish.createdAt)),
     [currentSemesterId, snapshot.courses, snapshot.users, snapshot.wishes, statusFilter],
   )
+
+  const itemsPerPage = 5
+  const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage))
+  const paginatedRows = rows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const pendingCount = snapshot.wishes.filter(
     (wish) => wish.semesterId === currentSemesterId && wish.status === 'PENDING',
@@ -342,7 +348,36 @@ export function WishReviewPage() {
         </label>
       </FilterBar>
       {rows.length ? (
-        <Table columns={columns} rows={rows} rowKey={(row) => row.wish.id} />
+        <div className="grid gap-4">
+          <Table columns={columns} rows={paginatedRows} rowKey={(row) => row.wish.id} />
+          {totalPages > 1 && (
+            <div className="mt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-4">
+              <span className="text-sm text-slate-500 font-medium">
+                Hiển thị trang <span className="text-teal-700 font-bold">{currentPage}</span> / {totalPages}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  type="button"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  type="button"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       ) : (
         <EmptyState title="Chưa có nguyện vọng phù hợp" description="Đổi bộ lọc khác hoặc để sinh viên gửi yêu cầu mới." />
       )}

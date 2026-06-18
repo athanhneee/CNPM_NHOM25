@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
 import { getCurrentSemesterSections, getStudentCurrentCredits, getStudentSemesterEnrollments } from '@/lib/selectors'
 import { useAuthStore } from '@/app/store/auth.store'
@@ -147,6 +148,8 @@ export function RegisterPage() {
   const [query, setQuery] = useState('')
   const [classFilter, setClassFilter] = useState(currentUser?.studentClass ?? '')
   const [facultyFilter, setFacultyFilter] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 5
   const [selectedSectionId, setSelectedSectionId] = useState('')
   const [checkResult, setCheckResult] = useState<ReturnType<typeof evaluateEnrollmentEligibility> | null>(null)
   const [checkingId, setCheckingId] = useState('')
@@ -187,6 +190,10 @@ export function RegisterPage() {
 
     return matchesQuery && matchesClass && matchesFaculty
   })
+
+  const totalPages = Math.ceil(sectionRows.length / PAGE_SIZE)
+  const startIndex = (currentPage - 1) * PAGE_SIZE
+  const paginatedRows = sectionRows.slice(startIndex, startIndex + PAGE_SIZE)
 
   const currentCredits = getStudentCurrentCredits(snapshot, student.id)
   const currentEnrollments = getStudentSemesterEnrollments(snapshot, student.id)
@@ -234,18 +241,18 @@ export function RegisterPage() {
       <div className="grid gap-8 xl:grid-cols-[0.62fr_0.38fr]">
         <Card title="Bảng chọn lớp học phần" description="Sử dụng tìm kiếm, lọc theo lớp sinh viên, khoa quản lý, kiểm tra điều kiện và đăng ký trực tiếp">
           <div className="mb-5 grid gap-3 xl:grid-cols-3">
-            <SearchInput label="Tìm theo mã / tên môn học" placeholder="Nhập từ khóa..." value={query} onChange={(event) => setQuery(event.target.value)} />
+            <SearchInput label="Tìm theo mã / tên môn học" placeholder="Nhập từ khóa..." value={query} onChange={(event) => { setQuery(event.target.value); setCurrentPage(1); }} />
             <Input
               label="Lớp sinh viên"
               value={classFilter}
-              onChange={(event) => setClassFilter(event.target.value)}
+              onChange={(event) => { setClassFilter(event.target.value); setCurrentPage(1); }}
               list="student-class-filter-list"
               placeholder={student.studentClass ?? 'D23CQCN01-N'}
             />
             <Select
               label="Khoa quản lý"
               value={facultyFilter}
-              onChange={(event) => setFacultyFilter(event.target.value)}
+              onChange={(event) => { setFacultyFilter(event.target.value); setCurrentPage(1); }}
               options={[{ label: 'Tất cả khoa', value: '' }, ...facultyOptions.map(f => ({ label: f, value: f }))]}
             />
           </div>
@@ -267,7 +274,7 @@ export function RegisterPage() {
           </div>
           {sectionRows.length ? (
             <div className="space-y-4">
-              {sectionRows.map((row) => (
+              {paginatedRows.map((row) => (
                 <div
                   key={row.section.id}
                   className="rounded-2xl border border-[var(--color-hairline)] bg-white p-5 transition-shadow duration-200 hover:shadow-[var(--shadow-airbnb)]"
@@ -319,6 +326,35 @@ export function RegisterPage() {
                   </div>
                 </div>
               ))}
+
+              {totalPages > 1 && (
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[var(--color-hairline)] bg-[var(--color-surface)] px-6 py-4 shadow-sm">
+                  <p className="text-sm text-[var(--color-muted)]">
+                    Hiển thị <span className="font-medium text-[var(--color-ink)]">{startIndex + 1}</span> đến <span className="font-medium text-[var(--color-ink)]">{Math.min(startIndex + PAGE_SIZE, sectionRows.length)}</span> trong tổng số <span className="font-medium text-[var(--color-ink)]">{sectionRows.length}</span> lớp
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="px-3 text-sm font-medium text-[var(--color-ink)]">
+                      {currentPage} / {totalPages}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <EmptyState title="Không có lớp học phần phù hợp" description="Hãy đổi lớp sinh viên, khoa quản lý hoặc từ khóa tìm kiếm để xem danh sách khác." />

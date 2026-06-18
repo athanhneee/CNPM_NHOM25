@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -165,6 +166,7 @@ export function CreateSectionPage() {
     weeks: '1-15',
     allowWaitlist: true,
   })
+  const [currentPage, setCurrentPage] = useState(1)
   const roomOptions = useMemo(
     () => buildRoomOptions(snapshot.sections.map((section) => section.room)),
     [snapshot.sections],
@@ -174,7 +176,10 @@ export function CreateSectionPage() {
     return <EmptyState title="Không tìm thấy tài khoản phòng đào tạo" description="Vui lòng đăng nhập lại." />
   }
 
-  const rows = getCurrentSemesterSections(snapshot).slice(0, 8)
+  const allSections = getCurrentSemesterSections(snapshot)
+  const itemsPerPage = 5
+  const totalPages = Math.max(1, Math.ceil(allSections.length / itemsPerPage))
+  const paginatedRows = allSections.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   return (
     <div className="grid gap-6">
@@ -244,7 +249,7 @@ export function CreateSectionPage() {
 
         <Card title="Lớp học phần tạo gần đây" description="Danh sách nhanh để đối chiếu xung đột và tình trạng mở lớp">
           <div className="grid gap-3">
-            {rows.map((row) => (
+            {paginatedRows.map((row) => (
               <div key={row.section.id} className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -259,6 +264,34 @@ export function CreateSectionPage() {
               </div>
             ))}
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-4">
+              <span className="text-sm text-slate-500 font-medium">
+                Hiển thị trang <span className="text-teal-700 font-bold">{currentPage}</span> / {totalPages}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  type="button"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  type="button"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>

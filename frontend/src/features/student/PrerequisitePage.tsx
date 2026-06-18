@@ -178,23 +178,23 @@ export function PrerequisitePage() {
             Hiển thị <span className="font-medium text-[var(--color-ink)]">{startIndex + 1}</span> đến <span className="font-medium text-[var(--color-ink)]">{Math.min(startIndex + PAGE_SIZE, filteredRows.length)}</span> trong tổng số <span className="font-medium text-[var(--color-ink)]">{filteredRows.length}</span> môn học
           </p>
           <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="px-3 text-sm font-medium text-[var(--color-ink)]">
-              {currentPage} / {totalPages}
-            </span>
-            <Button
-              variant="secondary"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3"
-            >
+                    <Button
+                      variant="secondary"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="px-3 text-sm font-medium text-[var(--color-ink)]">
+                      {currentPage} / {totalPages}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                    >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -157,12 +158,17 @@ export function RegistrationManagementPage() {
   const [selectedSectionId, setSelectedSectionId] = useState('')
   const [capacity, setCapacity] = useState('60')
   const [reason, setReason] = useState('Mở rộng chỉ tiêu để xử lý nhóm nhu cầu cao.')
+  const [currentPage, setCurrentPage] = useState(1)
 
   if (!currentUser || !actor) {
     return <EmptyState title="Không tìm thấy tài khoản phòng đào tạo" description="Vui lòng đăng nhập lại." />
   }
 
   const sections = getCurrentSemesterSections(snapshot)
+  const itemsPerPage = 5
+  const totalPages = Math.max(1, Math.ceil(sections.length / itemsPerPage))
+  const paginatedSections = sections.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  
   const selected = sections.find((item) => item.section.id === selectedSectionId) ?? sections[0]
   const students = selected ? getSectionStudents(snapshot, selected.section.id) : []
 
@@ -179,7 +185,7 @@ export function RegistrationManagementPage() {
       <div className="grid gap-6 lg:grid-cols-[0.42fr_0.58fr]">
         <Card title="Tổng hợp section" description="Chọn section để xem danh sách sinh viên và cập nhật chỉ tiêu">
           <div className="grid gap-3">
-            {sections.map((row) => (
+            {paginatedSections.map((row) => (
               <button
                 key={row.section.id}
                 className={`rounded-3xl border px-4 py-4 text-left ${selected?.section.id === row.section.id ? 'border-teal-200 bg-teal-50' : 'border-slate-200 bg-white'}`}
@@ -199,6 +205,34 @@ export function RegistrationManagementPage() {
               </button>
             ))}
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-4">
+              <span className="text-sm text-slate-500 font-medium">
+                Hiển thị trang <span className="text-teal-700 font-bold">{currentPage}</span> / {totalPages}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  type="button"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  type="button"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
 
         {selected ? (
