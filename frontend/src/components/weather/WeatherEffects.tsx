@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, createContext, useContext } from 'react'
+import { useEffect, useState, createContext, useContext } from 'react'
 
 type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'thunderstorm' | 'loading'
 
@@ -74,25 +74,30 @@ function useWeather(): WeatherData {
   return weather
 }
 
+/* ─── Pre-computed random data (module-level, outside render) ─── */
+const RAIN_DROPS = Array.from({ length: 22 }, (_, i) => ({
+  id: i,
+  left: Math.random() * 100,
+  delay: Math.random() * 4,
+  duration: 1.2 + Math.random() * 0.8,
+  opacity: 0.06 + Math.random() * 0.14,
+  width: 1 + Math.random() * 0.5,
+  height: 14 + Math.random() * 10,
+}))
+
+const SUN_PARTICLES = Array.from({ length: 8 }, (_, i) => ({
+  id: i,
+  left: 10 + Math.random() * 50,
+  top: 5 + Math.random() * 45,
+  delay: Math.random() * 6,
+  duration: 4 + Math.random() * 5,
+}))
+
 /* ─── Rain Effect — Very subtle ambient drops ─── */
 function RainEffect() {
-  const dropsRef = useRef<Array<{ id: number; left: number; delay: number; duration: number; opacity: number; width: number; height: number }> | null>(null)
-  if (dropsRef.current === null) {
-    dropsRef.current = Array.from({ length: 22 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 4,
-      duration: 1.2 + Math.random() * 0.8,
-      opacity: 0.06 + Math.random() * 0.14,
-      width: 1 + Math.random() * 0.5,
-      height: 14 + Math.random() * 10,
-    }))
-  }
-  const drops = dropsRef.current
-
   return (
     <div className="weather-rain-container">
-      {drops.map((drop) => (
+      {RAIN_DROPS.map((drop) => (
         <div
           key={drop.id}
           className="weather-raindrop"
@@ -122,18 +127,6 @@ function ThunderstormEffect() {
 
 /* ─── Sun Effect ─── */
 function SunEffect() {
-  const particlesRef = useRef<Array<{ id: number; left: number; top: number; delay: number; duration: number }> | null>(null)
-  if (particlesRef.current === null) {
-    particlesRef.current = Array.from({ length: 8 }, (_, i) => ({
-      id: i,
-      left: 10 + Math.random() * 50,
-      top: 5 + Math.random() * 45,
-      delay: Math.random() * 6,
-      duration: 4 + Math.random() * 5,
-    }))
-  }
-  const particles = particlesRef.current
-
   return (
     <div className="weather-sun-container">
       <div className="weather-sun">
@@ -149,7 +142,7 @@ function SunEffect() {
         </div>
         <div className="weather-sun-halo" />
       </div>
-      {particles.map((p) => (
+      {SUN_PARTICLES.map((p) => (
         <div
           key={p.id}
           className="weather-sun-particle"
