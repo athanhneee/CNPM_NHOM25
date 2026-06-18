@@ -151,9 +151,7 @@ export function PrerequisitePage() {
     return item.courseCode.toLowerCase().includes(keyword) || item.courseName.toLowerCase().includes(keyword)
   })
 
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [query])
+
 
   const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE)
   const startIndex = (currentPage - 1) * PAGE_SIZE
@@ -171,7 +169,7 @@ export function PrerequisitePage() {
     <div className="grid gap-6">
       <PageTitleBlock title="Sinh viên - Xem môn tiên quyết" subtitle="Tra cứu các quan hệ prerequisite, prestudy và corequisite cho các học phần trong catalog." />
       <FilterBar>
-        <SearchInput label="Tìm theo mã / tên môn học" placeholder="SEC2201..." value={query} onChange={(event) => setQuery(event.target.value)} />
+        <SearchInput label="Tìm theo mã / tên môn học" placeholder="SEC2201..." value={query} onChange={(event) => { setQuery(event.target.value); setCurrentPage(1); }} />
       </FilterBar>
       <Table columns={columns} rows={paginatedRows} rowKey={(row) => row.id} />
       {totalPages > 1 && (

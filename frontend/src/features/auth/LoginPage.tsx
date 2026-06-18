@@ -8,7 +8,6 @@ import {
   ShieldAlert,
   UserRound,
   GraduationCap,
-  Sparkles,
   Zap,
 } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
