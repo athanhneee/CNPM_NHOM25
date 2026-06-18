@@ -160,7 +160,10 @@ export function PrerequisitePage() {
   const columns: TableColumn<(typeof filteredRows)[number]>[] = [
     { key: 'course', header: 'Môn đăng ký', render: (row) => `${row.courseCode} - ${row.courseName}` },
     { key: 'required', header: 'Môn yêu cầu', render: (row) => `${row.requiredCourseCode} - ${row.requiredCourseName}` },
-    { key: 'type', header: 'Loại quan hệ', render: (row) => row.relationType },
+    { key: 'type', header: 'Loại quan hệ', render: (row) => {
+      const labels: Record<string, string> = { PREREQUISITE: 'Tiên quyết', PRESTUDY: 'Học trước', COREQUISITE: 'Song hành' }
+      return labels[row.relationType] ?? row.relationType
+    } },
     { key: 'program', header: 'Hệ đào tạo', render: (row) => row.program },
     { key: 'department', header: 'Khoa', render: (row) => row.department },
   ]

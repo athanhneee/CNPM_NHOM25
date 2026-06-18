@@ -386,12 +386,63 @@ export async function seedDemoData(client: PrismaClient, options: { reset?: bool
     KT: ['LEC015', 'LEC016'],
   }
 
+  // --- Conflict-free schedule generation ---
+  // 3 non-overlapping time blocks per day: startPeriod 1 (Ca sáng), 5 (Ca chiều), 9 (Ca tối)
+  // 6 weekdays (Mon–Sat, encoded 2–7) × 3 blocks = 18 slots per lecturer / room
+  // 14 rooms × 18 slots = 252 total capacity (>160 courses)
+  const WEEKDAYS = [2, 3, 4, 5, 6, 7]
+  const PERIOD_SLOTS = [1, 5, 9]
+
+  type SlotEntry = { weekday: number; startPeriod: number; periodCount: number }
+
+  function scheduleConflicts(schedule: SlotEntry[], weekday: number, startPeriod: number, periodCount: number): boolean {
+    return schedule.some(
+      (s) => s.weekday === weekday && s.startPeriod < startPeriod + periodCount && startPeriod < s.startPeriod + s.periodCount,
+    )
+  }
+
+  const lecturerSchedule = new Map<string, SlotEntry[]>()
+  const roomSchedule = new Map<string, SlotEntry[]>()
+
   const sectionData = ALL_COURSES.map((course, index) => {
     const lecturers = lecturerByDept[course.department] ?? ['LEC001']
     const lecturerId = lecturers[index % lecturers.length]
-    const weekday = (index % 6) + 2 // 2-7 (Mon-Sat)
-    const startPeriod = (index % 4) * 2 + 1 // 1,3,5,7
-    const room = ROOMS[index % ROOMS.length]
+    const periodCount = course.credits >= 4 ? 4 : 3
+
+    if (!lecturerSchedule.has(lecturerId)) lecturerSchedule.set(lecturerId, [])
+    const lecSched = lecturerSchedule.get(lecturerId)!
+
+    let weekday = WEEKDAYS[0]
+    let startPeriod = PERIOD_SLOTS[0]
+    let roomObj = ROOMS[0]
+
+    // Find first (weekday, timeSlot, room) with no lecturer or room conflict
+    // Rotate room start position per course to distribute rooms evenly
+    const roomOffset = index % ROOMS.length
+    let found = false
+    for (const w of WEEKDAYS) {
+      for (const sp of PERIOD_SLOTS) {
+        if (scheduleConflicts(lecSched, w, sp, periodCount)) continue
+        for (let ri = 0; ri < ROOMS.length; ri++) {
+          const r = ROOMS[(ri + roomOffset) % ROOMS.length]
+          if (!roomSchedule.has(r.code)) roomSchedule.set(r.code, [])
+          if (scheduleConflicts(roomSchedule.get(r.code)!, w, sp, periodCount)) continue
+          weekday = w
+          startPeriod = sp
+          roomObj = r
+          found = true
+          break
+        }
+        if (found) break
+      }
+      if (found) break
+    }
+
+    const slot: SlotEntry = { weekday, startPeriod, periodCount }
+    lecSched.push(slot)
+    if (!roomSchedule.has(roomObj.code)) roomSchedule.set(roomObj.code, [])
+    roomSchedule.get(roomObj.code)!.push(slot)
+
     return {
       id: `sec-${course.code.toLowerCase()}-1`,
       sectionCode: `${course.code}-1`,
@@ -400,13 +451,13 @@ export async function seedDemoData(client: PrismaClient, options: { reset?: bool
       group: '01',
       subGroup: '001',
       lecturerId,
-      roomId: room.id,
-      room: room.code,
+      roomId: roomObj.id,
+      room: roomObj.code,
       weekday,
       startPeriod,
-      periodCount: course.credits >= 4 ? 4 : 3,
+      periodCount,
       weeks: '1-15',
-      capacity: room.capacity,
+      capacity: roomObj.capacity,
       registeredCount: Math.floor(Math.random() * 10),
       waitlistCount: 0,
       allowWaitlist: true,
