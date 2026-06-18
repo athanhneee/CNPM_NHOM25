@@ -126,7 +126,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   PENDING: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   REVIEWED: 'bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200',
   APPROVED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  REJECTED: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  REJECTED: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
@@ -173,7 +173,7 @@ export function AssignLecturerPage() {
             {sections.map((row) => (
               <button
                 key={row.section.id}
-                className={`rounded-2xl border px-4 py-4 text-left ${selectedSectionId === row.section.id ? 'border-teal-200 bg-teal-50' : 'border-slate-200 bg-white'}`}
+                className={`rounded-3xl border px-4 py-4 text-left ${selectedSectionId === row.section.id ? 'border-teal-200 bg-teal-50' : 'border-slate-200 bg-white'}`}
                 onClick={() => {
                   setSelectedSectionId(row.section.id)
                   setNextLecturerId(row.section.lecturerId)

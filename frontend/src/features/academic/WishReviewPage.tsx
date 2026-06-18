@@ -127,7 +127,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   PENDING: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   REVIEWED: 'bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200',
   APPROVED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  REJECTED: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  REJECTED: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
@@ -264,7 +264,7 @@ export function WishReviewPage() {
       key: 'actions',
       header: 'Thao tác',
       render: (row) => (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {row.wish.status === 'PENDING' ? (
             <Button
               className="px-3 py-2"
@@ -328,7 +328,7 @@ export function WishReviewPage() {
         <label className="grid gap-2">
           <span className="text-sm font-medium text-slate-700">Lọc trạng thái</span>
           <select
-            className="brand-ring rounded-2xl border border-slate-200 bg-white/96 px-5 py-4 text-sm text-slate-900"
+            className="brand-ring rounded-2xl border border-[var(--color-hairline)] bg-white/96 px-5 py-4 text-sm text-slate-900"
             onChange={(event) => setStatusFilter(event.target.value as WishRequest['status'] | 'ALL')}
             value={statusFilter}
           >

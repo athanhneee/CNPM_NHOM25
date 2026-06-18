@@ -128,7 +128,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   PENDING: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   REVIEWED: 'bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200',
   APPROVED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  REJECTED: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  REJECTED: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
@@ -238,14 +238,14 @@ export function ReportsPage() {
         <StatCard label="Waitlist" value={String(stats.totalWaitlisted)} hint="Sinh viên đang chờ" />
       </div>
       {reportError ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {reportError}
         </div>
       ) : null}
       <Card title="Bảng báo cáo" description="Tổng hợp theo lớp học phần, giảng viên và sĩ số">
         <div className="grid gap-3">
           {rows.map((row) => (
-            <div key={row.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+            <div key={row.id} className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold text-slate-900">{row.sectionCode} - {row.courseName}</p>

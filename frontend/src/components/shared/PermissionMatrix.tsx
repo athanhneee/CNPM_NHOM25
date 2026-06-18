@@ -30,7 +30,7 @@ export function PermissionMatrix() {
   const permissionKeys = Object.keys(permissionLabels) as PermissionKey[]
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200">
+    <div className="overflow-x-auto rounded-3xl border border-slate-200">
       <table className="min-w-full text-left text-sm">
         <thead className="bg-slate-100 text-slate-600">
           <tr>

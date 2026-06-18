@@ -17,7 +17,7 @@ interface TableProps<T> {
 
 export function Table<T>({ columns, rows, rowKey, onRowClick }: TableProps<T>) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200">
+    <div className="overflow-x-auto rounded-3xl border border-slate-200">
       <table className="min-w-full border-collapse text-left text-sm">
         <thead className="sticky top-0 bg-slate-100 text-slate-600">
           <tr>

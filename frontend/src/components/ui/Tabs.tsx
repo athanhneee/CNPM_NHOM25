@@ -18,12 +18,12 @@ export function Tabs({ items, activeTab, onChange }: TabsProps) {
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
+      <div className="flex flex-wrap gap-2 rounded-full border border-slate-200 bg-slate-50 p-1.5">
         {items.map((item) => (
           <button
             key={item.id}
             className={cn(
-              'brand-ring rounded-2xl px-4 py-2 text-sm font-medium transition',
+              'brand-ring rounded-full px-5 py-2.5 text-sm font-medium leading-normal transition',
               item.id === activeTab
                 ? 'bg-white text-teal-700 shadow-sm'
                 : 'text-slate-500 hover:bg-white hover:text-slate-700',

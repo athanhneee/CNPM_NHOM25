@@ -72,7 +72,7 @@ export function WeekCalendarGrid({
       {entries.length ? (
         <div className="space-y-5">
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[20px] border border-teal-100/60 bg-gradient-to-b from-teal-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(20,184,166,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(20,184,166,0.25)] sm:p-5">
+            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-teal-100/60 bg-gradient-to-b from-teal-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(20,184,166,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(20,184,166,0.25)] sm:p-5">
               <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125 group-hover:opacity-10">
                 <BookOpenText className="h-16 w-16 text-teal-700" />
               </div>
@@ -80,7 +80,7 @@ export function WeekCalendarGrid({
               <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-teal-950 sm:text-3xl">{entries.length}</p>
             </div>
 
-            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[20px] border border-cyan-100/60 bg-gradient-to-b from-cyan-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(6,182,212,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(6,182,212,0.25)] sm:p-5">
+            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-cyan-100/60 bg-gradient-to-b from-cyan-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(6,182,212,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(6,182,212,0.25)] sm:p-5">
               <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125 group-hover:opacity-10">
                 <CalendarDays className="h-16 w-16 text-cyan-700" />
               </div>
@@ -88,7 +88,7 @@ export function WeekCalendarGrid({
               <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-cyan-950 sm:text-3xl">{uniqueDays}</p>
             </div>
 
-            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[20px] border border-indigo-100/60 bg-gradient-to-b from-indigo-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(99,102,241,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(99,102,241,0.25)] sm:p-5">
+            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-indigo-100/60 bg-gradient-to-b from-indigo-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(99,102,241,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(99,102,241,0.25)] sm:p-5">
               <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-125 group-hover:opacity-10">
                 <MapPin className="h-16 w-16 text-indigo-700" />
               </div>
@@ -149,7 +149,7 @@ export function WeekCalendarGrid({
                         <article
                           key={entry.id}
                           className={cn(
-                            'relative z-10 m-1 overflow-hidden rounded-[20px] border p-3 shadow-sm transition hover:shadow-md',
+                            'relative z-10 m-1 overflow-hidden rounded-2xl border p-3 shadow-sm transition hover:shadow-md',
                             getScheduleTone(entry.sectionStatus),
                           )}
                           style={{
@@ -194,7 +194,7 @@ export function WeekCalendarGrid({
           </div>
         </div>
       ) : (
-        <div className="grid min-h-72 place-items-center rounded-2xl border border-dashed border-cyan-200 bg-gradient-to-br from-cyan-50/70 via-white to-teal-50/80 px-6 text-center">
+        <div className="grid min-h-72 place-items-center rounded-3xl border border-dashed border-cyan-200 bg-gradient-to-br from-cyan-50/70 via-white to-teal-50/80 px-6 text-center">
           <div className="max-w-xl space-y-3">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-700">Lịch trống</p>
             <h3 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">

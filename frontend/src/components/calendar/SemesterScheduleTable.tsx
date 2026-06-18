@@ -97,19 +97,19 @@ export function SemesterScheduleTable({ entries }: SemesterScheduleTableProps) {
   return (
     <div className="space-y-5">
       <div className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4">
+        <div className="rounded-3xl border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-teal-600">Tổng lớp hiển thị</p>
           <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{entries.length}</p>
           <p className="mt-2 text-sm text-slate-600">Số dòng học phần đang có trong lịch học kỳ hiện tại.</p>
         </div>
 
-        <div className="rounded-2xl border border-cyan-100 bg-white px-4 py-4">
+        <div className="rounded-3xl border border-cyan-100 bg-white px-4 py-4">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-600">Phòng học sử dụng</p>
           <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{uniqueRooms}</p>
           <p className="mt-2 text-sm text-slate-600">Số phòng học khác nhau được phân bổ trong lịch học kỳ.</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+        <div className="rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-4">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Tổng số tiết</p>
           <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{totalPeriods}</p>
           <p className="mt-2 text-sm text-slate-600">

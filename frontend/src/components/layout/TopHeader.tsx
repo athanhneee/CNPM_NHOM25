@@ -13,7 +13,7 @@ export function TopHeader() {
     <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-white/60 bg-white/70 px-4 py-4 backdrop-blur xl:px-6">
       <div className="flex items-center gap-3">
         <button
-          className="brand-ring interactive-press inline-flex h-12 w-12 items-center justify-center rounded-[24px] border border-slate-200 bg-white shadow-sm xl:hidden"
+          className="brand-ring interactive-press inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm xl:hidden"
           onClick={toggleSidebar}
           type="button"
         >
@@ -27,7 +27,7 @@ export function TopHeader() {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <div className="hidden items-center gap-2 rounded-[24px] border border-cyan-100 bg-cyan-50 px-4 py-2 text-sm text-cyan-700 md:flex">
+        <div className="hidden items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-4 py-2 text-sm text-cyan-700 md:flex">
           <Bell className="h-4 w-4" />
           Thời gian mô phỏng: {settings.simulationNow.slice(0, 16).replace('T', ' ')}
         </div>

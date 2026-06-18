@@ -181,7 +181,7 @@ export function OpenSectionsPage() {
       key: 'actions',
       header: 'Thao tác',
       render: (row) => (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="ghost" onClick={() => navigate(`/student/open-sections/${row.section.id}`)} type="button">
             Xem chi tiết
           </Button>

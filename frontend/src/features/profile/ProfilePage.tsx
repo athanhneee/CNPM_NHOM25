@@ -157,10 +157,10 @@ function DashboardQuickLinks({ links }: { links: QuickLink[] }) {
       {links.map((link) => (
         <Link
           key={`${link.to}-${link.label}`}
-          className="interactive-press rounded-2xl border border-slate-200 bg-white/90 px-4 py-3.5 shadow-[0_14px_32px_rgba(15,23,42,0.05)] transition hover:border-cyan-200 hover:bg-cyan-50/80"
+          className="interactive-press rounded-2xl border border-[var(--color-hairline)] bg-white/90 px-4 py-3.5 shadow-[0_14px_32px_rgba(15,23,42,0.05)] transition hover:border-cyan-200 hover:bg-cyan-50/80"
           to={link.to}
         >
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-slate-900">{link.label}</p>
               <p className="mt-1 text-sm leading-5 text-slate-500">{link.description}</p>
@@ -202,7 +202,7 @@ function StudentAttendanceCard({ user }: { user: User }) {
         </div>
 
         <div className="space-y-3">
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+          <div className="rounded-3xl bg-slate-50 px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm font-medium text-slate-600">Có mặt</span>
               <span className="text-sm font-semibold text-teal-700">{breakdown.present}%</span>
@@ -215,7 +215,7 @@ function StudentAttendanceCard({ user }: { user: User }) {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+          <div className="rounded-3xl bg-slate-50 px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm font-medium text-slate-600">Vắng mặt</span>
               <span className="text-sm font-semibold text-cyan-700">{breakdown.absent}%</span>
@@ -228,7 +228,7 @@ function StudentAttendanceCard({ user }: { user: User }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-cyan-100 bg-cyan-50/60 px-4 py-3 text-sm leading-7 text-slate-600">
+          <div className="rounded-3xl border border-cyan-100 bg-cyan-50/60 px-4 py-3 text-sm leading-7 text-slate-600">
             Hệ thống tổng hợp điểm danh từ các lớp đang học trong học kỳ hiện tại để bạn dễ theo
             dõi tiến độ và chủ động điều chỉnh lịch học.
           </div>
@@ -272,13 +272,13 @@ function StudentPerformanceCard({ user }: { user: User }) {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-slate-50 px-4 py-3.5">
+          <div className="rounded-3xl bg-slate-50 px-4 py-3.5">
             <p className="text-sm font-medium text-slate-500">GPA hiện tại</p>
             <p className="mt-1.5 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
               {(user.gpa ?? 3.1).toFixed(2)}
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-50 px-4 py-3.5">
+          <div className="rounded-3xl bg-slate-50 px-4 py-3.5">
             <p className="text-sm font-medium text-slate-500">Tín chỉ đã tích lũy</p>
             <p className="mt-1.5 text-2xl font-semibold tracking-[-0.04em] text-slate-950">
               {user.completedCredits ?? 0}
@@ -301,7 +301,7 @@ function StudentInstructorCard({ instructors }: { instructors: User[] }) {
         <div className="grid gap-3">
           {instructors.map((lecturer) => (
             <div
-              className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3"
+              className="flex items-start gap-4 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
               key={lecturer.id}
             >
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500 to-teal-500 text-sm font-semibold text-white">
@@ -344,7 +344,7 @@ function RecentLogsCard({
         <div className="grid gap-3">
           {logs.map((log) => (
             <div
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
+              className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
               key={log.id}
             >
               <div className="flex items-center justify-between gap-3">
@@ -373,26 +373,26 @@ function StudentProfileCard({ user }: { user: User }) {
       description="Thông tin nhanh để bạn theo dõi học kỳ và định hướng học tập."
     >
       <div className="grid gap-3">
-        <div className="rounded-2xl bg-slate-50 px-4 py-3">
+        <div className="rounded-3xl bg-slate-50 px-4 py-3">
           <p className="text-sm font-medium text-slate-500">Sinh viên</p>
           <p className="mt-1 text-xl font-semibold text-slate-950">{user.fullName}</p>
           <p className="mt-1 text-sm text-slate-500">{user.code}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+          <div className="rounded-3xl bg-slate-50 px-4 py-3">
             <p className="text-sm text-slate-500">Chuyên ngành</p>
             <p className="mt-1 font-semibold text-slate-900">{user.program ?? user.department}</p>
           </div>
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+          <div className="rounded-3xl bg-slate-50 px-4 py-3">
             <p className="text-sm text-slate-500">Khóa học</p>
             <p className="mt-1 font-semibold text-slate-900">{user.cohort ?? 'K23'}</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-cyan-100 bg-cyan-50/60 px-4 py-3">
+        <div className="rounded-3xl border border-cyan-100 bg-cyan-50/60 px-4 py-3">
           <p className="text-sm font-medium text-slate-700">Mối quan tâm</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {(user.interests ?? []).map((interest) => (
               <span
                 className="rounded-full bg-white px-3 py-2 text-sm font-semibold text-cyan-700 shadow-sm"
@@ -418,7 +418,7 @@ function AdminTeamCard({ team }: { team: User[] }) {
       <div className="grid gap-3">
         {team.map((member) => (
           <div
-            className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3"
+            className="flex items-start gap-4 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
             key={member.id}
           >
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-teal-600 to-cyan-500 text-sm font-semibold text-white">
@@ -446,7 +446,7 @@ function AcademicLeadershipCard({ leaders }: { leaders: User[] }) {
       <div className="grid gap-3">
         {leaders.map((leader) => (
           <div
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
+            className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
             key={leader.id}
           >
             <p className="font-semibold text-slate-900">{leader.fullName}</p>
@@ -611,11 +611,11 @@ export function ProfilePage() {
         actions={
           isEditing ? (
             <>
-              <Button className="rounded-2xl px-5" onClick={handleSave} type="button">
+              <Button className="rounded-3xl px-5" onClick={handleSave} type="button">
                 Lưu
               </Button>
               <Button
-                className="rounded-2xl px-5"
+                className="rounded-3xl px-5"
                 variant="ghost"
                 onClick={() => {
                   setIsEditing(false)
@@ -627,7 +627,7 @@ export function ProfilePage() {
               </Button>
             </>
           ) : (
-            <Button className="rounded-2xl px-5" onClick={handleStartEditing} type="button">
+            <Button className="rounded-3xl px-5" onClick={handleStartEditing} type="button">
               Chỉnh sửa
             </Button>
           )
@@ -647,7 +647,7 @@ export function ProfilePage() {
 
             <div className="grid gap-6 px-6 py-5 md:grid-cols-[170px_1fr] md:items-center">
               <div className="w-full max-w-[170px] mx-auto rounded-3xl bg-gradient-to-br from-teal-50 via-cyan-50 to-white p-4">
-                <div className="grid h-36 w-36 mx-auto place-items-center rounded-[2rem] border border-white/80 bg-white text-3xl font-semibold tracking-[-0.06em] text-teal-700 shadow-[0_24px_60px_-36px_rgba(8,145,178,0.45)]">
+                <div className="grid h-36 w-36 mx-auto place-items-center rounded-full border border-white/80 bg-white text-3xl font-semibold tracking-[-0.06em] text-teal-700 shadow-[0_24px_60px_-36px_rgba(8,145,178,0.45)]">
                   {getInitials(user.fullName)}
                 </div>
                 <div className="mt-4 space-y-2 text-center">
@@ -785,7 +785,7 @@ export function ProfilePage() {
               {overviewItems.map((item, index) => (
                 <div
                   key={item.label}
-                  className={`rounded-2xl px-4 py-3 ${index === 0 ? 'border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-50' : 'border border-slate-200 bg-white'}`}
+                  className={`rounded-3xl px-4 py-3 ${index === 0 ? 'border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-50' : 'border border-slate-200 bg-white'}`}
                 >
                   <p className="text-sm font-medium text-slate-500">{item.label}</p>
                   <p className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">{item.value}</p>
@@ -799,13 +799,13 @@ export function ProfilePage() {
             description={isStudent ? 'Sở thích và định hướng học tập của sinh viên.' : 'Mô tả ngắn gọn về vai trò chuyên môn hiện tại.'}
           >
             <div className="space-y-3">
-              <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-600">
+              <p className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-600">
                 {user.bio ??
                   'Chưa có phần giới thiệu. Bạn có thể bổ sung thêm nội dung này trong các phiên bản tiếp theo của hệ thống.'}
               </p>
 
               {user.interests?.length ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {user.interests.map((interest) => (
                     <span
                       key={interest}

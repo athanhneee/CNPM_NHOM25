@@ -9,12 +9,12 @@ interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> {
 export function SearchInput({ label, className, ...props }: SearchInputProps) {
   return (
     <label className="grid gap-2">
-      {label ? <span className="text-sm font-medium text-slate-700">{label}</span> : null}
+      {label ? <span className="text-sm font-medium text-[var(--color-ink)]">{label}</span> : null}
       <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-soft)]" />
         <input
           className={cn(
-            'brand-ring w-full rounded-full border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400',
+            'brand-ring w-full rounded-full border border-[var(--color-hairline)] bg-white py-3.5 pl-11 pr-4 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted-soft)] transition focus:border-[var(--color-ink)] focus:border-2 focus:outline-none',
             className,
           )}
           {...props}

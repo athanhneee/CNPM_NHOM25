@@ -33,7 +33,7 @@ export const accountStatusMap: Record<
   AccountStatus,
   { label: string; className: string }
 > = {
-  ACTIVE: { label: 'Hoạt động', className: 'bg-teal-50 text-teal-700 ring-teal-200' },
-  LOCKED: { label: 'Bị khóa', className: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  ACTIVE: { label: 'Hoạt động', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  LOCKED: { label: 'Bị khóa', className: 'bg-[var(--color-accent-100)] text-[var(--color-accent)] ring-[var(--color-accent-disabled)]' },
   INACTIVE: { label: 'Tạm ngưng', className: 'bg-slate-100 text-slate-700 ring-slate-200' },
 }

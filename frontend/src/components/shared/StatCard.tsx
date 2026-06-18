@@ -10,14 +10,14 @@ interface StatCardProps {
 
 export function StatCard({ label, value, hint, icon }: StatCardProps) {
   return (
-    <Card className="h-full" contentClassName="flex items-start justify-between gap-4">
+    <Card className="h-full" contentClassName="flex items-center justify-between gap-4">
       <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
-        <p className="text-3xl font-semibold tracking-tight text-slate-900">{value}</p>
-        {hint ? <p className="text-sm text-slate-500">{hint}</p> : null}
+        <p className="text-sm font-medium text-[var(--color-muted)]">{label}</p>
+        <p className="text-2xl font-semibold tracking-tight text-[var(--color-ink)]">{value}</p>
+        {hint ? <p className="text-sm text-[var(--color-muted)]">{hint}</p> : null}
       </div>
       {icon ? (
-        <div className="rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 p-3 text-teal-700">
+        <div className="rounded-full bg-[var(--color-surface-strong)] p-3 text-[var(--color-muted)]">
           {icon}
         </div>
       ) : null}

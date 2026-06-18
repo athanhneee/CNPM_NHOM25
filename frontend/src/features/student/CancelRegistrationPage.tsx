@@ -173,7 +173,7 @@ export function CancelRegistrationPage() {
         <Card title="Danh sách đăng ký hiện tại" description="Chọn học phần để hủy và ghi lại lý do nếu cần">
           <div className="grid gap-3">
             {rows.map((row) => (
-              <div key={row.enrollment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4">
+              <div key={row.enrollment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                 <div>
                   <p className="font-semibold text-slate-900">{row.course?.name ?? row.section?.sectionCode}</p>
                   <p className="text-sm text-slate-500">

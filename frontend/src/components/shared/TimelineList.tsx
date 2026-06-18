@@ -12,7 +12,7 @@ export function TimelineList({ items }: TimelineListProps) {
       {items.map((item, index) => (
         <div key={`${item.timestamp}-${index}`} className="flex gap-4">
           <div className="mt-1 h-3 w-3 rounded-full bg-teal-500 shadow-[0_0_0_6px_rgba(20,184,166,0.12)]" />
-          <div className="min-w-0 flex-1 space-y-1 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+          <div className="min-w-0 flex-1 space-y-1 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <StatusBadge kind="enrollment" status={item.status} />
               <span className="text-sm text-slate-500">{formatDateTime(item.timestamp)}</span>

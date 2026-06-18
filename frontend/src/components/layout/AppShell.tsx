@@ -28,20 +28,20 @@ export function AppShell() {
         <main className="px-4 py-6 xl:px-6">
           <div className="mx-auto max-w-[1600px] space-y-6">
             {isDemoMode && (
-              <div className="flex items-center justify-center rounded-2xl bg-teal-100 px-5 py-2 text-sm font-medium text-teal-800">
+              <div className="flex items-center justify-center rounded-3xl bg-teal-100 px-5 py-2 text-sm font-medium text-teal-800">
                 Chế độ Demo (Offline) - Không kết nối với backend thực.
               </div>
             )}
 
             {apiStatus === 'error' && !isDemoMode && (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-800">
+              <div className="rounded-3xl border border-amber-300 bg-amber-50 px-5 py-4 text-amber-800">
                 <p className="font-semibold">Mất kết nối backend hoặc phiên đăng nhập đã hết hạn</p>
                 {apiError && <p className="text-sm mt-1">{apiError}</p>}
               </div>
             )}
 
             {settings.maintenanceMode && !maintenanceDismissed ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900">
                 <div>
                   <p className="font-semibold">Hệ thống đang ở chế độ bảo trì</p>
                   <p className="text-sm">{settings.maintenanceMessage}</p>
@@ -53,7 +53,7 @@ export function AppShell() {
             ) : null}
 
             {warningVisible ? (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-800">
+              <div className="rounded-3xl border border-amber-300 bg-amber-50 px-5 py-4 text-amber-800">
                 Phiên đăng nhập sẽ hết hạn sau {remainingSeconds} giây nếu không có tương tác.
               </div>
             ) : null}

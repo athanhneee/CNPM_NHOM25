@@ -38,7 +38,7 @@ const ForbiddenPage = lazy(() => import('@/features/system/ForbiddenPage'))
 const NotFoundPage = lazy(() => import('@/features/system/NotFoundPage'))
 
 function RouteFallback() {
-  return <div className="mx-auto mt-20 h-28 max-w-3xl rounded-2xl bg-white shadow-soft" />
+  return <div className="mx-auto mt-20 h-28 max-w-3xl rounded-3xl bg-white shadow-soft" />
 }
 
 export function AppRouter() {

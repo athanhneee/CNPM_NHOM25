@@ -217,7 +217,7 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-10">
       <PageTitleBlock
         title="Sinh viên - Đăng ký học phần"
         subtitle="Kiểm tra điều kiện theo từng quy tắc học vụ, theo dõi credit meter và gửi đăng ký theo section."
@@ -230,9 +230,9 @@ export function RegisterPage() {
         <StatCard label="Cảnh báo" value={checkResult?.checks.filter((item) => !item.passed).length ? String(checkResult.checks.filter((item) => !item.passed).length) : '0'} hint="Số rule fail của section đang xem" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.62fr_0.38fr]">
+      <div className="grid gap-8 xl:grid-cols-[0.62fr_0.38fr]">
         <Card title="Bảng chọn lớp học phần" description="Sử dụng tìm kiếm, lọc theo lớp sinh viên, khoa quản lý, kiểm tra điều kiện và đăng ký trực tiếp">
-          <div className="mb-4 grid gap-3 xl:grid-cols-3">
+          <div className="mb-5 grid gap-3 xl:grid-cols-3">
             <SearchInput label="Tìm theo mã / tên môn học" placeholder="Nhập từ khóa..." value={query} onChange={(event) => setQuery(event.target.value)} />
             <Input
               label="Lớp sinh viên"
@@ -259,26 +259,29 @@ export function RegisterPage() {
               <option key={faculty} value={faculty} />
             ))}
           </datalist>
-          <div className="mb-4 flex flex-wrap gap-2">
-            <span className="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-medium text-teal-700">
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
               Lớp áp dụng: {classFilter.trim() ? classFilter : 'Tất cả lớp'}
             </span>
-            <span className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-sm font-medium text-cyan-700">
+            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
               Ngành suy luận: {classFilter.trim() ? classScope.program ?? 'Cần rà soát' : 'Không ràng buộc'}
             </span>
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
+            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-muted)]">
               Khoa quản lý: {facultyFilter.trim() ? facultyFilter : 'Tất cả khoa'}
             </span>
           </div>
           {sectionRows.length ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {sectionRows.map((row) => (
-                <div key={row.section.id} className="rounded-2xl border border-slate-200 bg-white p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                <div
+                  key={row.section.id}
+                  className="rounded-2xl border border-[var(--color-hairline)] bg-white p-5 transition-shadow duration-200 hover:shadow-[var(--shadow-airbnb)]"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-slate-900">{row.course?.name ?? row.section.sectionCode}</p>
-                      <p className="text-sm text-slate-500">{row.section.sectionCode} • {row.section.courseCode} • {row.course?.credits ?? '--'} tín chỉ</p>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-base font-semibold text-[var(--color-ink)]">{row.course?.name ?? row.section.sectionCode}</p>
+                      <p className="mt-0.5 text-sm text-[var(--color-muted)]">{row.section.sectionCode} • {row.section.courseCode} • {row.course?.credits ?? '--'} tín chỉ</p>
+                      <p className="text-sm text-[var(--color-muted)]">
                         {row.course?.courseType ?? 'Danh mục chung'} • {row.course?.majorsSupported?.join(', ') ?? 'Áp dụng chung'} • {row.course?.faculty ?? row.course?.department ?? 'Đang cập nhật khoa'}
                       </p>
                     </div>
@@ -287,7 +290,7 @@ export function RegisterPage() {
                   <div className="mt-3">
                     <SectionCapacityBar capacity={row.section.capacity} registeredCount={row.section.registeredCount} waitlistCount={row.section.waitlistCount} />
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
                     <Button
                       loading={checkingId === row.section.id}
                       variant="secondary"

@@ -355,7 +355,7 @@ export function UserAccountsPage() {
       key: 'actions',
       header: 'Thao tác',
       render: (row) => (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {row.status === 'LOCKED' ? (
             <Button
               variant="secondary"
@@ -432,11 +432,11 @@ export function UserAccountsPage() {
               placeholder="N23DCCN001"
               value={manualCode}
             />
-            <div className="rounded-2xl border border-cyan-100 bg-cyan-50/70 px-4 py-4 text-sm text-cyan-900">
+            <div className="rounded-3xl border border-cyan-100 bg-cyan-50/70 px-4 py-4 text-sm text-cyan-900">
               Tài khoản mặc định là <span className="font-semibold">MSSV</span>. Mật khẩu mặc định là{' '}
               <span className="font-semibold">{STUDENT_IMPORT_DEFAULT_PASSWORD}</span>.
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Button
                 leftIcon={<UserPlus className="size-4" />}
                 loading={manualSubmitting}
@@ -464,7 +464,7 @@ export function UserAccountsPage() {
           description="Hỗ trợ tải tệp Excel hoặc dán trực tiếp từ bảng tính. Cột 1 là Họ tên, cột 2 là MSSV; các cột sau được bỏ qua."
         >
           <div className="grid gap-4">
-            <div className="rounded-2xl border border-dashed border-cyan-200 bg-gradient-to-r from-cyan-50 to-white px-5 py-5">
+            <div className="rounded-3xl border border-dashed border-cyan-200 bg-gradient-to-r from-cyan-50 to-white px-5 py-5">
               <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
                 <FileSpreadsheet className="size-5 text-cyan-600" />
                 <span>Chấp nhận tệp {STUDENT_IMPORT_ACCEPT}. Với Excel, hệ thống sẽ đọc sheet đầu tiên.</span>
@@ -490,7 +490,7 @@ export function UserAccountsPage() {
               value={studentImportText}
             />
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Button onClick={handlePreviewText} type="button" variant="secondary">
                 Phân tích nội dung dán
               </Button>
@@ -507,7 +507,7 @@ export function UserAccountsPage() {
               </Button>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
               <p className="font-semibold text-slate-900">Quy tắc nhập liệu</p>
               <p className="mt-2">- Cột 1: Họ và tên đầy đủ.</p>
               <p>- Cột 2: MSSV.</p>
@@ -523,7 +523,7 @@ export function UserAccountsPage() {
           title="Xem trước danh sách nhập"
           description={`Nguồn dữ liệu: ${preview.sourceLabel}`}
           actions={
-            <div className="flex flex-wrap gap-2 text-sm font-semibold">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
               <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
                 Hợp lệ: {preview.candidates.length}
               </span>
@@ -554,7 +554,7 @@ export function UserAccountsPage() {
             )}
 
             {preview.issues.length ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
+              <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-4">
                 <p className="text-sm font-semibold text-amber-900">Các dòng cần rà soát trước khi nhập</p>
                 <div className="mt-3 grid gap-2 text-sm text-amber-900">
                   {preview.issues.slice(0, 8).map((issue) => (
@@ -579,7 +579,7 @@ export function UserAccountsPage() {
             <StatCard label="Bị bỏ qua" value={String(lastImportSummary.skipped.length)} hint="Thường do trùng MSSV" />
             <StatCard label="Lỗi dữ liệu" value={String(lastImportSummary.issues.length)} hint="Cần chỉnh lại trước khi nhập" />
           </div>
-          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
+          <div className="mt-4 rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
             Mật khẩu mặc định của sinh viên mới là <span className="font-semibold">{lastImportSummary.defaultPassword}</span>.
           </div>
           {lastImportSummary.skipped.length ? (

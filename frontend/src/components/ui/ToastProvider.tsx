@@ -11,7 +11,7 @@ const iconMap = {
 
 const toneMap = {
   success: 'border-teal-200 bg-teal-50 text-teal-700',
-  error: 'border-rose-200 bg-rose-50 text-rose-700',
+  error: 'border-amber-300 bg-amber-50 text-amber-800',
   warning: 'border-amber-200 bg-amber-50 text-amber-700',
   info: 'border-cyan-200 bg-cyan-50 text-cyan-700',
 } as const
@@ -37,10 +37,10 @@ export function ToastProvider() {
         return (
           <div
             key={toast.id}
-            className={`app-panel-enter pointer-events-auto rounded-2xl border px-4 py-3 shadow-lg ${toneMap[toast.tone]}`}
+            className={`app-panel-enter pointer-events-auto rounded-3xl border px-4 py-3 shadow-lg ${toneMap[toast.tone]}`}
           >
-            <div className="flex items-start gap-3">
-              <Icon className="mt-0.5 h-5 w-5 shrink-0" />
+            <div className="flex items-center gap-3">
+              <Icon className="h-5 w-5 shrink-0" />
               <div className="space-y-1">
                 <p className="text-sm font-semibold">{toast.title}</p>
                 {toast.description ? <p className="text-sm opacity-90">{toast.description}</p> : null}

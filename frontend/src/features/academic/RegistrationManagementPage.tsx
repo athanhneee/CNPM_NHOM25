@@ -128,7 +128,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   PENDING: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   REVIEWED: 'bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200',
   APPROVED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  REJECTED: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  REJECTED: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
@@ -182,7 +182,7 @@ export function RegistrationManagementPage() {
             {sections.map((row) => (
               <button
                 key={row.section.id}
-                className={`rounded-2xl border px-4 py-4 text-left ${selected?.section.id === row.section.id ? 'border-teal-200 bg-teal-50' : 'border-slate-200 bg-white'}`}
+                className={`rounded-3xl border px-4 py-4 text-left ${selected?.section.id === row.section.id ? 'border-teal-200 bg-teal-50' : 'border-slate-200 bg-white'}`}
                 onClick={() => {
                   setSelectedSectionId(row.section.id)
                   setCapacity(String(row.section.capacity))
@@ -209,7 +209,7 @@ export function RegistrationManagementPage() {
                 <div className="grid gap-3">
                   <Input label="Sức chứa mới" value={capacity} onChange={(event) => setCapacity(event.target.value)} />
                   <Textarea label="Lý do điều chỉnh" value={reason} onChange={(event) => setReason(event.target.value)} />
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <Button
                       onClick={async () => {
                         try {

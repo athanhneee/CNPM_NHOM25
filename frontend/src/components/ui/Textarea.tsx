@@ -16,13 +16,13 @@ export function Textarea({ label, hint, error, className, id, ...props }: Textar
       <textarea
         id={resolvedId}
         className={cn(
-          'brand-ring min-h-28 rounded-2xl border border-slate-200 bg-white/96 px-5 py-4 text-sm text-slate-900 shadow-[0_12px_28px_rgba(15,23,42,0.04)] placeholder:text-slate-400',
-          error ? 'border-rose-300 focus-visible:ring-rose-400' : 'focus-visible:ring-teal-500',
+          'brand-ring min-h-28 rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-4 text-sm leading-normal text-[var(--color-ink)] placeholder:text-[var(--color-muted-soft)]',
+          error ? 'border-amber-300 focus-visible:ring-amber-400' : 'focus-visible:ring-teal-500',
           className,
         )}
         {...props}
       />
-      {error ? <span className="text-sm text-rose-600">{error}</span> : null}
+      {error ? <span className="text-sm text-amber-700">{error}</span> : null}
       {!error && hint ? <span className="text-sm text-slate-500">{hint}</span> : null}
     </label>
   )

@@ -11,7 +11,7 @@ export const pdfEnrollmentStatusMap: Record<
   DK_TC: {
     label: 'Đăng ký thành công',
     tooltip: 'Sinh viên đăng ký thành công lớp học phần và kết quả đăng ký hợp lệ.',
-    className: 'bg-teal-50 text-teal-700 ring-teal-200',
+    className: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
   },
   HUY_DK: {
     label: 'Đã hủy đăng ký',
@@ -21,7 +21,7 @@ export const pdfEnrollmentStatusMap: Record<
   KHONG_DU_DK: {
     label: 'Không đủ điều kiện',
     tooltip: 'Hệ thống từ chối đăng ký do chưa đáp ứng điều kiện đăng ký.',
-    className: 'bg-rose-50 text-rose-700 ring-rose-200',
+    className: 'bg-[var(--color-accent-100)] text-[var(--color-accent)] ring-[var(--color-accent-disabled)]',
   },
   NGOAI_TGDK: {
     label: 'Ngoài thời gian đăng ký',
@@ -37,7 +37,7 @@ export const pdfSectionStatusMap: Record<
   OPEN: {
     label: 'Lớp đang mở đăng ký',
     tooltip: 'Lớp học phần đang cho phép sinh viên đăng ký và vẫn còn khả năng tiếp nhận.',
-    className: 'bg-teal-50 text-teal-700 ring-teal-200',
+    className: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
   },
   FULL: {
     label: 'Lớp hết chỗ',

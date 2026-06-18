@@ -15,24 +15,24 @@ interface RuleCheckPanelProps {
 }
 
 export function RuleCheckPanel({
-  title = 'Ket qua kiem tra dieu kien',
+  title = 'Kết quả kiểm tra điều kiện',
   checks,
   summary,
 }: RuleCheckPanelProps) {
   return (
     <Card title={title} description={summary}>
-      <div className="space-y-3">
+      <div className="space-y-2">
         {checks.map((check) => (
           <div
             key={check.key}
-            className={`flex gap-3 rounded-2xl border px-4 py-3 ${check.passed ? 'border-teal-100 bg-teal-50/70' : 'border-rose-100 bg-rose-50/70'}`}
+            className={`flex items-center gap-3 rounded-2xl bg-[var(--color-surface-soft)] px-5 py-3.5 ${check.passed ? 'ring-1 ring-emerald-200' : 'ring-1 ring-amber-200'}`}
           >
-            <div className={check.passed ? 'text-teal-700' : 'text-rose-700'}>
+            <div className={check.passed ? 'text-[var(--color-ink)]' : 'text-[var(--color-accent)]'}>
               {check.passed ? <CircleCheck className="h-5 w-5" /> : <CircleAlert className="h-5 w-5" />}
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-slate-900">{check.label}</p>
-              <p className="text-sm text-slate-600">{check.message}</p>
+            <div className="space-y-0.5">
+              <p className="text-sm font-semibold text-[var(--color-ink)]">{check.label}</p>
+              <p className="text-sm text-[var(--color-body)]">{check.message}</p>
             </div>
           </div>
         ))}

@@ -151,7 +151,7 @@ export function SettingsPage() {
       <div className="grid gap-6 lg:grid-cols-[0.56fr_0.44fr]">
         <Card title="Tham số hệ thống" description="Thay đổi các tham số tác động trực tiếp lên logic đăng ký">
           <div className="grid gap-4 md:grid-cols-2">
-            <p className="md:col-span-2 rounded-2xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900">
+            <p className="md:col-span-2 rounded-3xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900">
               Thời điểm mô phỏng hiện tại: {formatDateTime(snapshot.settings.simulationNow)}
             </p>
             <Input label="Thời điểm mô phỏng" value={form.simulationNow} onChange={(event) => updateForm((value) => ({ ...value, simulationNow: event.target.value }))} />
@@ -173,7 +173,7 @@ export function SettingsPage() {
               <option value="false" />
             </datalist>
           </div>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button
               onClick={async () => {
                 const simulationNow = toValidIsoDate(form.simulationNow)
@@ -306,7 +306,7 @@ export function SettingsPage() {
         }}
         onConfirm={() => void handleConfirmSnapshotAction()}
       >
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+        <div className="rounded-3xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Hãy export snapshot trước nếu cần giữ lại dữ liệu đang demo. Không dùng thao tác này trên dữ liệu thật khi chưa được xác nhận.
         </div>
       </ConfirmDialog>

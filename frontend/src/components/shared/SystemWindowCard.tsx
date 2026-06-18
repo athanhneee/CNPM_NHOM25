@@ -32,7 +32,7 @@ export function SystemWindowCard({ settings }: SystemWindowCardProps) {
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+            className="flex items-center justify-between rounded-3xl bg-slate-50 px-4 py-3"
           >
             <span className="text-sm text-slate-600">{row.label}</span>
             <span className="text-sm font-semibold text-slate-900">{row.value}</span>

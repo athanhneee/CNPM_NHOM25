@@ -125,7 +125,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   PENDING: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   REVIEWED: 'bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200',
   APPROVED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  REJECTED: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  REJECTED: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
@@ -194,7 +194,7 @@ export function CreateSectionPage() {
             <Input label="Số tiết" value={form.periodCount} onChange={(event) => setForm((value) => ({ ...value, periodCount: event.target.value }))} />
             <Input label="Sức chứa" value={form.capacity} onChange={(event) => setForm((value) => ({ ...value, capacity: event.target.value }))} />
           </div>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button
               onClick={async () => {
                 try {
@@ -245,7 +245,7 @@ export function CreateSectionPage() {
         <Card title="Lớp học phần tạo gần đây" description="Danh sách nhanh để đối chiếu xung đột và tình trạng mở lớp">
           <div className="grid gap-3">
             {rows.map((row) => (
-              <div key={row.section.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+              <div key={row.section.id} className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="font-semibold text-slate-900">{row.section.sectionCode}</p>

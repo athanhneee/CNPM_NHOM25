@@ -170,7 +170,7 @@ export function WithdrawPage() {
         <Card title="Danh sách học phần đang học" description="Rút học phần sẽ giữ lịch sử và tạo nhật ký hệ thống">
           <div className="grid gap-3">
             {rows.map((row) => (
-              <div key={row.enrollment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4">
+              <div key={row.enrollment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                 <div>
                   <p className="font-semibold text-slate-900">{row.course?.name ?? row.section?.sectionCode}</p>
                   <p className="text-sm text-slate-500">{row.section?.sectionCode} • Rút trước {snapshot.settings.withdrawalDeadline.slice(0, 10)}</p>

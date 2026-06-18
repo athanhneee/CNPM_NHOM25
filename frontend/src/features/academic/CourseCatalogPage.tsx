@@ -124,7 +124,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   PENDING: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   REVIEWED: 'bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200',
   APPROVED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  REJECTED: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  REJECTED: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
@@ -246,7 +246,7 @@ export function CourseCatalogPage() {
       key: 'actions',
       header: 'Thao tác',
       render: (row) => (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="ghost"
             onClick={() => {
@@ -347,7 +347,7 @@ export function CourseCatalogPage() {
           <Input label="Khối kiến thức" value={form.academicBlock} onChange={(event) => setForm((value) => ({ ...value, academicBlock: event.target.value as AcademicBlockValue }))} list="form-course-block-options" />
           <Input label="Học kỳ gợi ý" value={form.suggestedSemester} onChange={(event) => setForm((value) => ({ ...value, suggestedSemester: event.target.value }))} />
           <Textarea label="Mô tả" value={form.description} onChange={(event) => setForm((value) => ({ ...value, description: event.target.value }))} />
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button
               onClick={async () => {
                 try {

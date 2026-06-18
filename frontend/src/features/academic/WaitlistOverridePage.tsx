@@ -126,7 +126,7 @@ const wishStatusClassNames: Record<WishRequest['status'], string> = {
   PENDING: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   REVIEWED: 'bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200',
   APPROVED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-  REJECTED: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  REJECTED: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
   CANCELLED: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
 }
 
@@ -173,7 +173,7 @@ export function WaitlistOverridePage() {
             {sections.map((row) => (
               <button
                 key={row.section.id}
-                className={`rounded-2xl border px-4 py-4 text-left ${selected?.section.id === row.section.id ? 'border-teal-200 bg-teal-50' : 'border-slate-200 bg-white'}`}
+                className={`rounded-3xl border px-4 py-4 text-left ${selected?.section.id === row.section.id ? 'border-teal-200 bg-teal-50' : 'border-slate-200 bg-white'}`}
                 onClick={() => setSelectedSectionId(row.section.id)}
                 type="button"
               >
@@ -194,7 +194,7 @@ export function WaitlistOverridePage() {
             {waitlistRows.length ? (
               <div className="grid gap-3">
                 {waitlistRows.map((row) => (
-                  <div key={row.enrollment.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+                  <div key={row.enrollment.id} className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                     <p className="font-semibold text-slate-900">{row.student?.fullName ?? row.student?.code}</p>
                     <p className="text-sm text-slate-500">Thứ tự chờ: {row.enrollment.waitlistOrder ?? '--'}</p>
                   </div>

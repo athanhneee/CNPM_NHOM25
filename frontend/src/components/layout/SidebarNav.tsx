@@ -93,7 +93,7 @@ export function SidebarNav() {
           <div className="flex items-center gap-3">
             <img
               alt="Logo Học Viện Công Nghệ Bưu Chính Viễn Thông"
-              className="h-14 w-14 rounded-[20px] border border-cyan-100 bg-white object-contain p-2 shadow-[0_10px_24px_rgba(6,182,212,0.16)]"
+              className="h-14 w-14 rounded-full border border-cyan-100 bg-white object-contain p-2 shadow-[0_10px_24px_rgba(6,182,212,0.16)]"
               src="/Logo-Hoc-Vien-Cong-Nghe-Buu-Chinh-Vien-Thong-PTIT.webp"
             />
             <div>
@@ -107,7 +107,7 @@ export function SidebarNav() {
           </div>
 
           <button
-            className="interactive-press rounded-[20px] bg-slate-100 p-2 text-slate-600 xl:hidden"
+            className="interactive-press rounded-full bg-slate-100 p-2 text-slate-600 xl:hidden"
             onClick={() => setSidebarOpen(false)}
             type="button"
           >
@@ -115,7 +115,7 @@ export function SidebarNav() {
           </button>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-cyan-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4 shadow-[0_14px_34px_rgba(15,118,110,0.08)]">
+        <div className="mb-6 rounded-3xl border border-cyan-100 bg-gradient-to-br from-teal-50 via-white to-cyan-50 px-4 py-4 shadow-[0_14px_34px_rgba(15,118,110,0.08)]">
           <p className="text-sm font-semibold text-slate-900">{user.fullName}</p>
           <p className="mt-1 text-sm text-slate-500">{user.email}</p>
           <p className="mt-3 inline-flex rounded-full bg-teal-500/12 px-3 py-1 text-sm font-medium text-teal-700 uppercase">
@@ -139,7 +139,7 @@ export function SidebarNav() {
                         key={item.to}
                         to={item.to}
                         className={({ isActive }) =>
-                          `interactive-press group flex items-center gap-3 rounded-xl px-3 py-2.5 transition ${isActive
+                          `interactive-press group flex items-center gap-3 rounded-3xl px-3 py-2.5 transition ${isActive
                             ? 'bg-gradient-to-r from-teal-50 via-cyan-50 to-white text-teal-700 ring-1 ring-teal-100 shadow-[0_12px_26px_rgba(13,148,136,0.10)]'
                             : 'text-slate-600 hover:bg-cyan-50/80 hover:text-slate-900'
                           }`

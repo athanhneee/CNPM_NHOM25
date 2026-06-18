@@ -25,32 +25,32 @@ export function Input({
 
   return (
     <label className={cn('grid gap-2', wrapperClassName)}>
-      {label ? <span className="text-sm font-semibold text-slate-700">{label}</span> : null}
+      {label ? <span className="text-sm font-medium text-[var(--color-ink)]">{label}</span> : null}
       <div className="relative">
         {leftIcon ? (
-          <span className="pointer-events-none absolute inset-y-0 left-5 flex items-center text-slate-400">
+          <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[var(--color-muted-soft)]">
             {leftIcon}
           </span>
         ) : null}
         <input
           id={resolvedId}
           className={cn(
-            'brand-ring w-full rounded-2xl border border-slate-200 bg-white/96 px-5 py-4 text-sm text-slate-900 shadow-[0_12px_28px_rgba(15,23,42,0.04)] placeholder:text-slate-400 transition',
-            leftIcon ? 'pl-14' : '',
-            rightAdornment ? 'pr-14' : '',
-            error ? 'border-rose-300 focus-visible:ring-rose-400' : 'focus-visible:ring-teal-500',
+            'brand-ring w-full rounded-full border border-[var(--color-hairline)] bg-white px-5 py-3.5 text-sm leading-normal text-[var(--color-ink)] placeholder:text-[var(--color-muted-soft)] transition focus:border-[var(--color-ink)] focus:border-2 focus:outline-none',
+            leftIcon ? 'pl-12' : '',
+            rightAdornment ? 'pr-12' : '',
+            error ? 'border-amber-400 focus:border-amber-500' : '',
             className,
           )}
           {...props}
         />
         {rightAdornment ? (
-          <span className="absolute inset-y-0 right-5 flex items-center text-slate-400">
+          <span className="absolute inset-y-0 right-4 flex items-center text-[var(--color-muted-soft)]">
             {rightAdornment}
           </span>
         ) : null}
       </div>
-      {error ? <span className="text-sm text-rose-600">{error}</span> : null}
-      {!error && hint ? <span className="text-sm text-slate-500">{hint}</span> : null}
+      {error ? <span className="text-sm text-amber-700">{error}</span> : null}
+      {!error && hint ? <span className="text-sm text-[var(--color-muted)]">{hint}</span> : null}
     </label>
   )
 }

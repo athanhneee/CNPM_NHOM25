@@ -34,7 +34,7 @@ export function ConfirmDialog({
       description={description}
       onClose={onClose}
       footer={
-        <div className="flex justify-end gap-3">
+        <div className="flex items-center justify-end gap-3">
           <Button variant="ghost" onClick={onClose}>
             {cancelLabel}
           </Button>
