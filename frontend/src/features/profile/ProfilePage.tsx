@@ -451,6 +451,7 @@ function AcademicLeadershipCard({ leaders }: { leaders: User[] }) {
 
 export function ProfilePage() {
   const currentUser = useAuthStore((state) => state.currentUser)
+  const snapshot = useDataStore((state) => state)
   const pushToast = useUiStore((state) => state.pushToast)
   const [isEditing, setIsEditing] = useState(false)
   const [email, setEmail] = useState(currentUser?.email ?? '')
@@ -523,22 +524,25 @@ export function ProfilePage() {
       ],
     ]
 
-  const overviewItems = isStudent
-    ? [
-      { label: 'GPA tích lũy', value: user.gpa ? user.gpa.toFixed(2) : 'Chưa cập nhật' },
-      {
-        label: 'Điểm danh',
-        value: user.attendanceRate !== undefined ? `${Math.round(user.attendanceRate * 100)}%` : 'Chưa cập nhật',
-      },
-      { label: 'Tín chỉ hoàn thành', value: formatProfileValue(user.completedCredits) },
-      { label: 'Năm học hiện tại', value: formatProfileValue(user.yearLevel) },
-    ]
-    : [
-      { label: 'Vai trò', value: roleLabel },
-      { label: 'Chuyên môn', value: formatProfileValue(user.specialization) },
-      { label: 'Đơn vị', value: formatProfileValue(user.department) },
-      { label: 'Cơ sở', value: formatProfileValue(user.campus) },
-    ]
+  const overviewItems = useMemo(() => {
+    if (isStudent) {
+      return [
+        { label: 'GPA tích lũy', value: user.gpa ? user.gpa.toFixed(2) : 'Chưa cập nhật' },
+        {
+          label: 'Điểm danh',
+          value: user.attendanceRate !== undefined ? `${Math.round(user.attendanceRate * 100)}%` : 'Chưa cập nhật',
+        },
+        { label: 'Tín chỉ hoàn thành', value: formatProfileValue(user.completedCredits) },
+        { label: 'Năm học hiện tại', value: formatProfileValue(user.yearLevel) },
+      ]
+    }
+
+    const metrics = getRoleDashboardMetrics(snapshot, user)
+    return metrics.map((m) => ({
+      label: m.label,
+      value: m.value,
+    }))
+  }, [isStudent, user, snapshot])
 
   const profileBadgeClass =
     'inline-flex min-h-[48px] px-6 py-2 items-center justify-center rounded-full text-center text-sm font-medium leading-6'
@@ -628,9 +632,9 @@ export function ProfilePage() {
               <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em]">Hồ sơ cá nhân và học vụ</h2>
             </div>
 
-            <div className="grid gap-6 px-6 py-5 lg:grid-cols-[170px_1fr] lg:items-center">
-              <div className="rounded-3xl bg-gradient-to-br from-teal-50 via-cyan-50 to-white p-4">
-                <div className="grid h-36 place-items-center rounded-[2rem] border border-white/80 bg-white text-3xl font-semibold tracking-[-0.06em] text-teal-700 shadow-[0_24px_60px_-36px_rgba(8,145,178,0.45)]">
+            <div className="grid gap-6 px-6 py-5 md:grid-cols-[170px_1fr] md:items-center">
+              <div className="w-full max-w-[170px] mx-auto rounded-3xl bg-gradient-to-br from-teal-50 via-cyan-50 to-white p-4">
+                <div className="grid h-36 w-36 mx-auto place-items-center rounded-[2rem] border border-white/80 bg-white text-3xl font-semibold tracking-[-0.06em] text-teal-700 shadow-[0_24px_60px_-36px_rgba(8,145,178,0.45)]">
                   {getInitials(user.fullName)}
                 </div>
                 <div className="mt-4 space-y-2 text-center">
@@ -639,13 +643,13 @@ export function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid gap-5">
+              <div className="grid gap-5 text-center md:text-left">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-teal-600">{roleLabel}</p>
                   <h3 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">{user.fullName}</h3>
                 </div>
 
-                <div className="flex flex-wrap items-stretch gap-3">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                   <span className={`${profileBadgeClass} border border-teal-200 bg-teal-50 text-teal-700`}>
                     {isStudent ? formatProfileValue(user.studentClass) : formatProfileValue(user.position)}
                   </span>
@@ -661,11 +665,11 @@ export function ProfilePage() {
           </section>
 
           <Card title="Thông tin cá nhân">
-            <div className="grid items-start gap-6 xl:grid-cols-3">
+            <div className="grid items-start gap-6 md:grid-cols-3">
               {personalColumns.map((column, columnIndex) => (
                 <div
                   key={`personal-column-${columnIndex}`}
-                  className={`space-y-3 ${columnIndex < personalColumns.length - 1 ? 'xl:border-r xl:border-slate-200 xl:pr-6' : ''}`}
+                  className={`space-y-3 ${columnIndex < personalColumns.length - 1 ? 'md:border-r md:border-slate-200 md:pr-6' : ''}`}
                 >
                   {column.map((item) => (
                     <div key={item.label} className="space-y-1">
@@ -679,11 +683,11 @@ export function ProfilePage() {
           </Card>
 
           <Card title={isStudent ? 'Thông tin khóa học' : 'Thông tin công tác'}>
-            <div className="grid items-start gap-6 xl:grid-cols-2">
+            <div className="grid items-start gap-6 md:grid-cols-2">
               {profileColumns.map((column, columnIndex) => (
                 <div
                   key={`profile-column-${columnIndex}`}
-                  className={`space-y-3 ${columnIndex < profileColumns.length - 1 ? 'xl:border-r xl:border-slate-200 xl:pr-6' : ''}`}
+                  className={`space-y-3 ${columnIndex < profileColumns.length - 1 ? 'md:border-r md:border-slate-200 md:pr-6' : ''}`}
                 >
                   {column.map((item) => (
                     <div key={item.label} className="grid gap-1 md:grid-cols-[190px_1fr] md:items-start">
@@ -764,7 +768,7 @@ export function ProfilePage() {
           </Card>
 
           <Card title={isStudent ? 'Tổng quan học tập' : 'Tổng quan công việc'}>
-            <div className="grid gap-3">
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-2">
               {overviewItems.map((item, index) => (
                 <div
                   key={item.label}
@@ -774,32 +778,6 @@ export function ProfilePage() {
                   <p className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-slate-950">{item.value}</p>
                 </div>
               ))}
-            </div>
-          </Card>
-
-          <Card title={isStudent ? 'Dấu mốc hồ sơ' : 'Thông tin chuyên môn'}>
-            <div className="grid gap-3">
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
-                  <IdCard className="h-4 w-4 text-teal-600" />
-                  Căn cước công dân
-                </p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">{formatProfileValue(user.citizenId)}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
-                  <PhoneCall className="h-4 w-4 text-cyan-600" />
-                  Liên hệ nhanh
-                </p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">{formatProfileValue(user.phone)}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
-                  <MapPinHouse className="h-4 w-4 text-slate-500" />
-                  Địa chỉ hiện tại
-                </p>
-                <p className="mt-1 text-base font-semibold leading-7 text-slate-900">{formatProfileValue(user.address)}</p>
-              </div>
             </div>
           </Card>
 
@@ -824,24 +802,7 @@ export function ProfilePage() {
                     </span>
                   ))}
                 </div>
-              ) : (
-                <div className="grid gap-3">
-                  <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-3">
-                    <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
-                      <School className="h-4 w-4 text-teal-600" />
-                      Đơn vị
-                    </p>
-                    <p className="mt-1 font-semibold text-slate-900">{formatProfileValue(user.department)}</p>
-                  </div>
-                  <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-3">
-                    <p className="inline-flex items-center gap-2 text-sm font-medium text-slate-500">
-                      <Building2 className="h-4 w-4 text-cyan-600" />
-                      Chuyên môn
-                    </p>
-                    <p className="mt-1 font-semibold text-slate-900">{formatProfileValue(user.specialization)}</p>
-                  </div>
-                </div>
-              )}
+              ) : null}
             </div>
           </Card>
         </div>
