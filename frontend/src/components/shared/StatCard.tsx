@@ -10,16 +10,22 @@ interface StatCardProps {
 
 export function StatCard({ label, value, hint, icon }: StatCardProps) {
   return (
-    <Card className="h-full" contentClassName="flex items-center justify-between gap-4">
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-[var(--color-muted)]">{label}</p>
-        <p className="text-2xl font-semibold tracking-tight text-[var(--color-ink)]">{value}</p>
-        {hint ? <p className="text-sm text-[var(--color-muted)]">{hint}</p> : null}
+    <Card className="h-full" contentClassName="flex flex-col h-full gap-2">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[13px] sm:text-sm font-medium text-[var(--color-muted)] leading-snug">{label}</p>
+        {icon ? (
+          <div className="shrink-0 rounded-full bg-[var(--color-surface-strong)] p-2 sm:p-3 text-[var(--color-muted)]">
+            {icon}
+          </div>
+        ) : null}
       </div>
-      {icon ? (
-        <div className="rounded-full bg-[var(--color-surface-strong)] p-3 text-[var(--color-muted)]">
-          {icon}
-        </div>
+      <div className="mt-1">
+        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-ink)]">{value}</p>
+      </div>
+      {hint ? (
+        <p className="mt-auto pt-2 text-[11px] sm:text-[13px] text-[var(--color-muted)] leading-relaxed">
+          {hint}
+        </p>
       ) : null}
     </Card>
   )

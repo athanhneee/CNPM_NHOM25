@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { CreditMeter } from '@/components/shared/CreditMeter'
 import { RuleCheckPanel } from '@/components/shared/RuleCheckPanel'
 import { SearchInput } from '@/components/shared/SearchInput'
@@ -225,9 +226,9 @@ export function RegisterPage() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <CreditMeter current={currentCredits} min={snapshot.settings.minCredits} max={snapshot.settings.semesterType === 'SUMMER' ? snapshot.settings.maxCreditsSummer : snapshot.settings.maxCreditsMain} />
-        <StatCard label="Lớp đang học" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'REGISTERED').length)} hint="DK_TC trong học kỳ hiện tại" />
-        <StatCard label="Đang ở danh sách chờ" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'WAITLISTED').length)} hint="Theo dõi nội bộ, khi đối chiếu PDF quy về KHONG_DU_DK" />
-        <StatCard label="Cảnh báo" value={checkResult?.checks.filter((item) => !item.passed).length ? String(checkResult.checks.filter((item) => !item.passed).length) : '0'} hint="Số rule fail của section đang xem" />
+        <StatCard label="Lớp đang học" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'REGISTERED').length)} hint="Số lớp đã đăng ký thành công" />
+        <StatCard label="Đang ở danh sách chờ" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'WAITLISTED').length)} hint="Số lớp chờ xếp chỗ do hết slot" />
+        <StatCard label="Cảnh báo" value={checkResult?.checks.filter((item) => !item.passed).length ? String(checkResult.checks.filter((item) => !item.passed).length) : '0'} hint="Các điều kiện học vụ chưa đạt" />
       </div>
 
       <div className="grid gap-8 xl:grid-cols-[0.62fr_0.38fr]">
@@ -241,12 +242,11 @@ export function RegisterPage() {
               list="student-class-filter-list"
               placeholder={student.studentClass ?? 'D23CQCN01-N'}
             />
-            <Input
+            <Select
               label="Khoa quản lý"
               value={facultyFilter}
               onChange={(event) => setFacultyFilter(event.target.value)}
-              list="registration-faculty-filter-list"
-              placeholder="Tất cả khoa"
+              options={[{ label: 'Tất cả khoa', value: '' }, ...facultyOptions.map(f => ({ label: f, value: f }))]}
             />
           </div>
           <datalist id="student-class-filter-list">
@@ -254,17 +254,12 @@ export function RegisterPage() {
               <option key={classCode} value={classCode} />
             ))}
           </datalist>
-          <datalist id="registration-faculty-filter-list">
-            {facultyOptions.map((faculty) => (
-              <option key={faculty} value={faculty} />
-            ))}
-          </datalist>
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
               Lớp áp dụng: {classFilter.trim() ? classFilter : 'Tất cả lớp'}
             </span>
             <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
-              Ngành suy luận: {classFilter.trim() ? classScope.program ?? 'Cần rà soát' : 'Không ràng buộc'}
+              Chuyên ngành: {classFilter.trim() ? classScope.program ?? 'Áp dụng chung' : 'Tất cả'}
             </span>
             <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-muted)]">
               Khoa quản lý: {facultyFilter.trim() ? facultyFilter : 'Tất cả khoa'}
@@ -332,7 +327,7 @@ export function RegisterPage() {
 
         {checkResult && selectedSectionId ? (
           <RuleCheckPanel
-            title={`Lớp đang xem: ${snapshot.sections.find((item) => item.id === selectedSectionId)?.sectionCode ?? selectedSectionId}`}
+            title={`Kết quả kiểm tra điều kiện lớp: ${snapshot.sections.find((item) => item.id === selectedSectionId)?.sectionCode ?? 'Đang tải'}`}
             checks={checkResult.checks}
             summary={checkResult.message}
           />

@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Drawer } from '@/components/ui/Drawer'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { Table, type TableColumn } from '@/components/ui/Table'
 import { Textarea } from '@/components/ui/Textarea'
 import { FilterBar } from '@/components/shared/FilterBar'
@@ -305,35 +306,31 @@ export function CourseCatalogPage() {
 
       <FilterBar>
         <SearchInput label="Tìm môn học" placeholder="INT2102, an toàn mạng..." value={query} onChange={(event) => setQuery(event.target.value)} />
-        <Input label="Ngành" value={majorFilter} onChange={(event) => setMajorFilter(event.target.value)} list="course-major-options" />
-        <Input label="Khối kiến thức" value={blockFilter} onChange={(event) => setBlockFilter(event.target.value)} list="course-block-options" />
-        <Input label="Loại môn" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} list="course-type-options" />
-        <Input label="Học kỳ gợi ý" value={semesterFilter} onChange={(event) => setSemesterFilter(event.target.value)} list="course-semester-options" />
+        <Select
+          label="Ngành"
+          value={majorFilter}
+          onChange={(event) => setMajorFilter(event.target.value)}
+          options={[{ label: 'Tất cả ngành', value: 'ALL' }, ...majorOptions.map(m => ({ label: m, value: m }))]}
+        />
+        <Select
+          label="Khối kiến thức"
+          value={blockFilter}
+          onChange={(event) => setBlockFilter(event.target.value)}
+          options={[{ label: 'Tất cả khối', value: 'ALL' }, ...blockOptions.map(b => ({ label: b, value: b }))]}
+        />
+        <Select
+          label="Loại môn"
+          value={typeFilter}
+          onChange={(event) => setTypeFilter(event.target.value)}
+          options={[{ label: 'Tất cả loại', value: 'ALL' }, ...typeOptions.map(t => ({ label: t, value: t }))]}
+        />
+        <Select
+          label="Học kỳ gợi ý"
+          value={semesterFilter}
+          onChange={(event) => setSemesterFilter(event.target.value)}
+          options={[{ label: 'Tất cả học kỳ', value: 'ALL' }, ...[1, 2, 3, 4, 5, 6, 7, 8].map(s => ({ label: `Kỳ ${s}`, value: String(s) }))]}
+        />
       </FilterBar>
-      <datalist id="course-major-options">
-        <option value="ALL" />
-        {majorOptions.map((major) => (
-          <option key={major} value={major} />
-        ))}
-      </datalist>
-      <datalist id="course-block-options">
-        <option value="ALL" />
-        {blockOptions.map((block) => (
-          <option key={block} value={block} />
-        ))}
-      </datalist>
-      <datalist id="course-type-options">
-        <option value="ALL" />
-        {typeOptions.map((type) => (
-          <option key={type} value={type} />
-        ))}
-      </datalist>
-      <datalist id="course-semester-options">
-        <option value="ALL" />
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((semester) => (
-          <option key={semester} value={String(semester)} />
-        ))}
-      </datalist>
 
       <Table columns={columns} rows={rows} rowKey={(row) => row.id} />
 
@@ -343,9 +340,9 @@ export function CourseCatalogPage() {
           <Input label="Tên môn học" value={form.name} onChange={(event) => setForm((value) => ({ ...value, name: event.target.value }))} />
           <Input label="Tín chỉ" value={form.credits} onChange={(event) => setForm((value) => ({ ...value, credits: event.target.value }))} />
           <Input label="Ngành áp dụng" value={form.majorsSupported} onChange={(event) => setForm((value) => ({ ...value, majorsSupported: event.target.value }))} />
-          <Input label="Loại môn" value={form.courseType} onChange={(event) => setForm((value) => ({ ...value, courseType: event.target.value as CourseTypeValue }))} list="form-course-type-options" />
-          <Input label="Khối kiến thức" value={form.academicBlock} onChange={(event) => setForm((value) => ({ ...value, academicBlock: event.target.value as AcademicBlockValue }))} list="form-course-block-options" />
-          <Input label="Học kỳ gợi ý" value={form.suggestedSemester} onChange={(event) => setForm((value) => ({ ...value, suggestedSemester: event.target.value }))} />
+          <Select label="Loại môn" value={form.courseType} onChange={(event) => setForm((value) => ({ ...value, courseType: event.target.value as CourseTypeValue }))} options={typeOptions.map(t => ({ label: t, value: t }))} />
+          <Select label="Khối kiến thức" value={form.academicBlock} onChange={(event) => setForm((value) => ({ ...value, academicBlock: event.target.value as AcademicBlockValue }))} options={blockOptions.map(b => ({ label: b, value: b }))} />
+          <Select label="Học kỳ gợi ý" value={form.suggestedSemester} onChange={(event) => setForm((value) => ({ ...value, suggestedSemester: event.target.value }))} options={[{ label: 'Không xác định', value: '' }, ...[1, 2, 3, 4, 5, 6, 7, 8].map(s => ({ label: `Kỳ ${s}`, value: String(s) }))]} />
           <Textarea label="Mô tả" value={form.description} onChange={(event) => setForm((value) => ({ ...value, description: event.target.value }))} />
           <div className="flex flex-wrap items-center gap-3">
             <Button
@@ -410,16 +407,7 @@ export function CourseCatalogPage() {
               Hủy
             </Button>
           </div>
-          <datalist id="form-course-type-options">
-            {typeOptions.map((type) => (
-              <option key={type} value={type} />
-            ))}
-          </datalist>
-          <datalist id="form-course-block-options">
-            {blockOptions.map((block) => (
-              <option key={block} value={block} />
-            ))}
-          </datalist>
+
         </div>
       </Drawer>
 

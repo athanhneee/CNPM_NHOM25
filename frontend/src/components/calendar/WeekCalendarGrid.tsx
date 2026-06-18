@@ -72,28 +72,43 @@ export function WeekCalendarGrid({
       {entries.length ? (
         <div className="space-y-5">
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-teal-100/60 bg-gradient-to-b from-teal-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(20,184,166,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(20,184,166,0.25)] sm:p-5">
-              <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125 group-hover:opacity-10">
-                <BookOpenText className="h-16 w-16 text-teal-700" />
+            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-teal-300 hover:shadow-md gap-1 sm:gap-0">
+              <div className="flex sm:hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600 mb-1">
+                <BookOpenText className="h-4 w-4" />
               </div>
-              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-teal-600 sm:text-sm">Tổng buổi</p>
-              <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-teal-950 sm:text-3xl">{entries.length}</p>
+              <div className="text-center sm:text-left flex-1">
+                <p className="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Tổng buổi</p>
+                <p className="text-xl sm:text-3xl font-black tracking-tight text-slate-900 sm:mt-1">{entries.length}</p>
+              </div>
+              <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600 transition-transform duration-300 group-hover:scale-110 group-hover:bg-teal-100">
+                <BookOpenText className="h-6 w-6" />
+              </div>
             </div>
 
-            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-cyan-100/60 bg-gradient-to-b from-cyan-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(6,182,212,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(6,182,212,0.25)] sm:p-5">
-              <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125 group-hover:opacity-10">
-                <CalendarDays className="h-16 w-16 text-cyan-700" />
+            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-cyan-300 hover:shadow-md gap-1 sm:gap-0">
+              <div className="flex sm:hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-600 mb-1">
+                <CalendarDays className="h-4 w-4" />
               </div>
-              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-cyan-600 sm:text-sm">Ngày học</p>
-              <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-cyan-950 sm:text-3xl">{uniqueDays}</p>
+              <div className="text-center sm:text-left flex-1">
+                <p className="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Ngày học</p>
+                <p className="text-xl sm:text-3xl font-black tracking-tight text-slate-900 sm:mt-1">{uniqueDays}</p>
+              </div>
+              <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-600 transition-transform duration-300 group-hover:scale-110 group-hover:bg-cyan-100">
+                <CalendarDays className="h-6 w-6" />
+              </div>
             </div>
 
-            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-indigo-100/60 bg-gradient-to-b from-indigo-50/80 to-white p-3 text-center shadow-[0_2px_10px_-3px_rgba(99,102,241,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(99,102,241,0.25)] sm:p-5">
-              <div className="absolute -right-3 -top-3 opacity-[0.07] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-125 group-hover:opacity-10">
-                <MapPin className="h-16 w-16 text-indigo-700" />
+            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md gap-1 sm:gap-0">
+              <div className="flex sm:hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 mb-1">
+                <MapPin className="h-4 w-4" />
               </div>
-              <p className="relative z-10 text-[10px] font-bold uppercase tracking-widest text-indigo-600 sm:text-sm">Phòng học</p>
-              <p className="relative z-10 mt-1 text-2xl font-black tracking-tight text-indigo-950 sm:text-3xl">{uniqueRooms}</p>
+              <div className="text-center sm:text-left flex-1">
+                <p className="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Phòng học</p>
+                <p className="text-xl sm:text-3xl font-black tracking-tight text-slate-900 sm:mt-1">{uniqueRooms}</p>
+              </div>
+              <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition-transform duration-300 group-hover:scale-110 group-hover:bg-indigo-100">
+                <MapPin className="h-6 w-6" />
+              </div>
             </div>
           </div>
 

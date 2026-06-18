@@ -35,7 +35,7 @@ export function Input({
         <input
           id={resolvedId}
           className={cn(
-            'brand-ring w-full rounded-full border border-[var(--color-hairline)] bg-white px-5 py-3.5 text-sm leading-normal text-[var(--color-ink)] placeholder:text-[var(--color-muted-soft)] transition focus:border-[var(--color-ink)] focus:border-2 focus:outline-none',
+            'brand-ring w-full rounded-full border border-[var(--color-hairline)] bg-white px-5 py-3.5 text-sm leading-normal text-[var(--color-ink)] placeholder:text-[var(--color-muted-soft)] transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none',
             leftIcon ? 'pl-12' : '',
             rightAdornment ? 'pr-12' : '',
             error ? 'border-amber-400 focus:border-amber-500' : '',
