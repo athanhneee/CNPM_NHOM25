@@ -113,7 +113,16 @@ export class EnrollmentsController {
   @ApiConsumes('multipart/form-data')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'ACADEMIC_OFFICE')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+      if (!file.originalname.match(/\.(csv|xlsx?)$/i)) {
+        cb(new BadRequestException('Chỉ chấp nhận file CSV/Excel'), false)
+      } else {
+        cb(null, true)
+      }
+    }
+  }))
   @Post('bulk-import')
   async bulkImport(@CurrentUser() user: RequestUser, @UploadedFile() file: { buffer: Buffer; originalname: string }) {
     if (!file) {
