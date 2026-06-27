@@ -185,7 +185,7 @@ export class EnrollmentsController {
     return this.enrollmentsService.withdrawEnrollment(id, buildActor(user), body.reason, body.force)
   }
 
-  @ApiOperation({ summary: 'Cap nhat trang thai dang ky' })
+  @ApiOperation({ summary: 'Cap nhat trang thai dang ky (Đã vô hiệu hóa)' })
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'ACADEMIC_OFFICE')
   @Patch(':id')
@@ -194,7 +194,8 @@ export class EnrollmentsController {
     @Param('id') id: string,
     @Body() updateEnrollmentDto: UpdateEnrollmentDto,
   ) {
-    return this.enrollmentsService.update(id, updateEnrollmentDto, buildActor(user))
+    throw new BadRequestException('Vui lòng sử dụng các endpoint cụ thể (cancel, withdraw, v.v.) thay vì PATCH trực tiếp để đảm bảo tính toàn vẹn dữ liệu.');
+    // return this.enrollmentsService.update(id, updateEnrollmentDto, buildActor(user))
   }
 
   @ApiOperation({ summary: 'Xoa ban ghi dang ky' })
