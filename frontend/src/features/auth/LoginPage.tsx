@@ -15,6 +15,12 @@ export function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [now, setNow] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -41,6 +47,20 @@ export function LoginPage() {
     setPassword('ptithcm2026')
   }
 
+  const formattedDate = new Intl.DateTimeFormat('vi-VN', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(now)
+
+  // format returns e.g. "10:00 SA", handle some browser differences
+  const formattedTime = new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(now).replace('AM', 'SA').replace('PM', 'CH')
+
   return (
     <main 
       className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-8 font-sans selection:bg-teal-500/30 bg-slate-900 bg-cover bg-center"
@@ -60,7 +80,7 @@ export function LoginPage() {
             </div>
 
             <div>
-              <p className="text-slate-300 text-lg">Thứ Hai, 5 tháng 4, 2026<br />10:00 SA</p>
+              <p className="text-slate-300 text-lg capitalize">{formattedDate}<br />{formattedTime}</p>
             </div>
 
             <div className="flex items-center gap-6 mt-4">
