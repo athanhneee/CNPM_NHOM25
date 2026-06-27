@@ -163,10 +163,19 @@ export function SettingsPage() {
       <div className="grid gap-6 lg:grid-cols-[0.56fr_0.44fr]">
         <Card title="Tham số hệ thống" description="Thay đổi các tham số tác động trực tiếp lên logic đăng ký">
           <div className="grid gap-4 md:grid-cols-2">
-            <p className="md:col-span-2 rounded-3xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900">
-              Thời điểm mô phỏng hiện tại: {formatDateTime(snapshot.settings.simulationNow)}
-            </p>
-            <Input label="Thời điểm mô phỏng" type="datetime-local" value={form.simulationNow} onChange={(event) => updateForm((value) => ({ ...value, simulationNow: event.target.value }))} />
+            <div className="md:col-span-2 space-y-3">
+              <p className="rounded-3xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900">
+                Thời điểm mô phỏng hiện tại: {formatDateTime(snapshot.settings.simulationNow)}
+              </p>
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <Input label="Thời điểm mô phỏng" type="datetime-local" step="1" value={form.simulationNow} onChange={(event) => updateForm((value) => ({ ...value, simulationNow: event.target.value }))} />
+                </div>
+                <Button type="button" variant="secondary" onClick={() => updateForm((value) => ({ ...value, simulationNow: toDatetimeLocalString(new Date().toISOString()) }))}>
+                  Lấy giờ thực tế
+                </Button>
+              </div>
+            </div>
             <Input label="Thời gian mở đăng ký" type="datetime-local" value={form.registrationStart} onChange={(event) => updateForm((value) => ({ ...value, registrationStart: event.target.value }))} />
             <Input label="Thời gian đóng đăng ký" type="datetime-local" value={form.registrationEnd} onChange={(event) => updateForm((value) => ({ ...value, registrationEnd: event.target.value }))} />
             <Input label="Bắt đầu điều chỉnh" type="datetime-local" value={form.adjustmentStart} onChange={(event) => updateForm((value) => ({ ...value, adjustmentStart: event.target.value }))} />
