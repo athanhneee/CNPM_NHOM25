@@ -189,9 +189,9 @@ export function CourseCatalogPage() {
         new Set(
           snapshot.courses
             .map((course) => course.academicBlock)
-            .filter((value): value is AcademicBlockValue => value !== undefined),
+            .filter((value): value is AcademicBlockValue => Boolean(value)),
         ),
-      ),
+      ).sort((left, right) => left.localeCompare(right, 'vi')),
     [snapshot.courses],
   )
 
@@ -201,9 +201,9 @@ export function CourseCatalogPage() {
         new Set(
           snapshot.courses
             .map((course) => course.courseType)
-            .filter((value): value is CourseTypeValue => value !== undefined),
+            .filter((value): value is CourseTypeValue => Boolean(value)),
         ),
-      ),
+      ).sort((left, right) => left.localeCompare(right, 'vi')),
     [snapshot.courses],
   )
 
