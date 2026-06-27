@@ -681,7 +681,7 @@ export class EnrollmentsService {
         })
 
         
-        let promoted = [];
+        let promoted: any[] = [];
         if (enrollment.status === 'REGISTERED' && section && section.allowWaitlist) {
           promoted = await this._processWaitlist(tx, section.id, actor, now);
         }
@@ -817,7 +817,7 @@ export class EnrollmentsService {
         }
     
         
-        let promoted = [];
+        let promoted: any[] = [];
         if (enrollment.status === 'REGISTERED' && section && section.allowWaitlist) {
           promoted = await this._processWaitlist(tx, section.id, actor, now);
         }
@@ -1016,7 +1016,7 @@ export class EnrollmentsService {
       orderBy: [{ waitlistOrder: 'asc' }, { createdAt: 'asc' }],
     });
 
-    const promoted = [];
+    const promoted: any[] = [];
     let latestRegisteredCount = section.registeredCount;
     let latestWaitlistCount = section.waitlistCount;
 
