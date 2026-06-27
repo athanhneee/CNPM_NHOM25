@@ -31,6 +31,7 @@ export type RegistrationErrorCode =
   | 'REG_ERR_MAX_CLASS_PER_DAY'
   | 'REG_ERR_MAX_CLASS_PER_SEMESTER'
   | 'REG_ERR_SECTION_NOT_IN_CURRENT_SEMESTER'
+  | 'REG_ERR_NOT_ENOUGH_ACCUMULATED_CREDITS'
 
 export type PdfRegistrationStatusCode = 'DK_TC' | 'HUY_DK' | 'KHONG_DU_DK' | 'NGOAI_TGDK'
 
@@ -57,17 +58,22 @@ export const REGISTRATION_ERROR_MESSAGES: Record<RegistrationErrorCode, string> 
   REG_ERR_MAX_CLASS_PER_DAY: 'Vượt quá số lớp tối đa trong một ngày.',
   REG_ERR_MAX_CLASS_PER_SEMESTER: 'Vượt quá tổng số lớp tối đa trong học kỳ.',
   REG_ERR_SECTION_NOT_IN_CURRENT_SEMESTER: 'Lớp học phần không thuộc học kỳ hiện tại.',
+  REG_ERR_NOT_ENOUGH_ACCUMULATED_CREDITS: 'Sinh viên chưa tích lũy đủ số tín chỉ tối thiểu yêu cầu cho môn học này.',
 }
 
 export interface RuleUser {
   id: string
   roles: string[]
   status: string
+  completedCredits?: number
+  cohort?: string
+  majorCode?: string
 }
 
 export interface RuleCourse {
   code: string
   credits: number
+  requiredAccumulatedCredits?: number | null
   prerequisites: unknown
   prestudy: unknown
   corequisites: unknown
@@ -81,7 +87,11 @@ export interface RuleSection {
   startPeriod: number
   periodCount: number
   weeks: string
+  additionalSchedules?: unknown
+  makeUpSchedules?: unknown
+  cancelledDates?: unknown
   capacity: number
+  minCapacity: number
   registeredCount: number
   allowWaitlist: boolean
   status: string
@@ -121,7 +131,7 @@ export function mapRegistrationErrorToPdfStatus(errorCode?: RegistrationErrorCod
 export interface RuleCourseCondition {
   courseCode: string
   requiredCourseCode: string
-  type: 'PREREQUISITE' | 'PRESTUDY' | 'COREQUISITE'
+  type: 'PREREQUISITE' | 'PRESTUDY' | 'COREQUISITE' | 'EQUIVALENT' | 'REPLACEMENT'
 }
 
 export interface RuleStudentResult {
@@ -129,6 +139,39 @@ export interface RuleStudentResult {
   courseCode: string
   status: string
   passed: boolean
+}
+
+function getExpandedCourseCodes(baseCodes: Set<string>, courseConditions?: RuleCourseCondition[]): Set<string> {
+  const expanded = new Set(baseCodes)
+  let added = true
+  while (added) {
+    added = false
+    courseConditions?.forEach(cond => {
+      if (cond.type === 'EQUIVALENT' || cond.type === 'REPLACEMENT') {
+        if (expanded.has(cond.requiredCourseCode) && !expanded.has(cond.courseCode)) {
+          expanded.add(cond.courseCode)
+          added = true
+        }
+        if (expanded.has(cond.courseCode) && !expanded.has(cond.requiredCourseCode)) {
+          expanded.add(cond.requiredCourseCode)
+          added = true
+        }
+      }
+    })
+  }
+  return expanded
+}
+
+export interface RuleRegistrationPhase {
+  id: string
+  name: string
+  startDate: string
+  endDate: string
+  allowedCohorts: unknown
+  allowedMajors: unknown
+  maxCredits: number | null
+  allowRegister: boolean
+  allowCancel: boolean
 }
 
 export interface RuleSettings {
@@ -160,10 +203,13 @@ export interface EligibilityContext {
   courseConditions?: RuleCourseCondition[]
   studentResults?: RuleStudentResult[]
   settings: RuleSettings
+  phases?: RuleRegistrationPhase[]
+  semesterStartDate?: string
 }
 
 export interface EligibilityOptions {
   ignoreRegistrationWindow?: boolean
+  ignoreCapacity?: boolean
   excludedEnrollmentId?: string
 }
 
@@ -317,50 +363,152 @@ export function calculateCurrentCredits(
     }, 0)
 }
 
+interface FlattenedSchedule {
+  weekday: number
+  startPeriod: number
+  periodCount: number
+  weekIndex?: number
+  dateStr?: string // YYYY-MM-DD
+}
+
+function expandSchedules(section: RuleSection, semesterStartDate?: string): FlattenedSchedule[] {
+  const result: FlattenedSchedule[] = []
+
+  // Helper to parse specific structure
+  const addWeekly = (weekday: number, startPeriod: number, periodCount: number, weeksStr: string) => {
+    const activeWeeks = Array.from(parseWeeks(weeksStr))
+    if (activeWeeks.length === 0) {
+      // If no weeks info, push one record without weekIndex to represent "all weeks"
+      result.push({ weekday, startPeriod, periodCount })
+      return
+    }
+
+    for (const weekIdx of activeWeeks) {
+      let dateStr: string | undefined
+      if (semesterStartDate) {
+        const start = new Date(semesterStartDate)
+        // weekIdx is 1-based, weekday is 1=Sun, 2=Mon... (JS Date: 0=Sun)
+        // Wait, normally weekday in Vietnam: 2=Mon, 3=Tue, ..., 8=Sun. 
+        // Let's assume weekday 2-8. JS getDay: 0=Sun, 1=Mon...
+        // We just add (weekIdx - 1) * 7 days.
+        // Actually, without strict date math, let's just keep weekIndex for weekly comparisons.
+      }
+      result.push({ weekday, startPeriod, periodCount, weekIndex: weekIdx })
+    }
+  }
+
+  // 1. Primary Schedule
+  addWeekly(section.weekday, section.startPeriod, section.periodCount, section.weeks)
+
+  // 2. Additional Schedules
+  if (Array.isArray(section.additionalSchedules)) {
+    for (const sch of section.additionalSchedules as any[]) {
+      if (typeof sch.weekday === 'number' && typeof sch.startPeriod === 'number' && typeof sch.periodCount === 'number') {
+        addWeekly(sch.weekday, sch.startPeriod, sch.periodCount, sch.weeks || '')
+      }
+    }
+  }
+
+  // 3. MakeUp Schedules (Fallback to mapping Date to Weekday if possible)
+  if (Array.isArray(section.makeUpSchedules)) {
+    for (const mk of section.makeUpSchedules as any[]) {
+      if (mk.date && typeof mk.startPeriod === 'number' && typeof mk.periodCount === 'number') {
+        const d = new Date(mk.date)
+        const jsDay = d.getDay()
+        const weekday = jsDay === 0 ? 8 : jsDay + 1 // Map JS Day (0-6) to VN Weekday (2-8)
+        result.push({
+          weekday,
+          startPeriod: mk.startPeriod,
+          periodCount: mk.periodCount,
+          dateStr: mk.date, // Store exact date to avoid false positive
+        })
+      }
+    }
+  }
+
+  // 4. Filter out cancelled dates
+  if (Array.isArray(section.cancelledDates)) {
+    const cancelledSet = new Set(section.cancelledDates as string[])
+    return result.filter(r => !r.dateStr || !cancelledSet.has(r.dateStr))
+  }
+
+  return result
+}
+
+function checkPeriodOverlap(start1: number, count1: number, start2: number, count2: number) {
+  return start1 < start2 + count2 && start2 < start1 + count1
+}
+
 export function checkScheduleConflict(
   candidate: RuleSection,
   comparedSections: RuleSection[],
+  semesterStartDate?: string,
 ): ScheduleConflictDetail | null {
+  const candidateSchedules = expandSchedules(candidate, semesterStartDate)
+
   for (const section of comparedSections) {
-    if (section.weekday !== candidate.weekday) {
-      continue
-    }
+    const sectionSchedules = expandSchedules(section, semesterStartDate)
 
-    const candidateEnd = candidate.startPeriod + candidate.periodCount
-    const sectionEnd = section.startPeriod + section.periodCount
-    const periodsOverlap = candidate.startPeriod < sectionEnd && section.startPeriod < candidateEnd
-    if (!periodsOverlap) {
-      continue
-    }
+    // Compare Cartesian product of schedules
+    for (const cSch of candidateSchedules) {
+      for (const sSch of sectionSchedules) {
+        if (cSch.weekday !== sSch.weekday) continue
+        if (!checkPeriodOverlap(cSch.startPeriod, cSch.periodCount, sSch.startPeriod, sSch.periodCount)) continue
 
-    const candidateWeeks = parseWeeks(candidate.weeks)
-    const sectionWeeks = parseWeeks(section.weeks)
-
-    // If either has no weeks info, treat as overlapping (all weeks)
-    if (candidateWeeks.size === 0 || sectionWeeks.size === 0) {
-      return {
-        conflictSectionId: section.id,
-        weekday: candidate.weekday,
-        candidatePeriods: `${candidate.startPeriod}-${candidateEnd - 1}`,
-        conflictPeriods: `${section.startPeriod}-${sectionEnd - 1}`,
-        overlappingWeeks: [],
-      }
-    }
-
-    const overlapping: number[] = []
-    const candidateArr = Array.from(candidateWeeks)
-    for (let i = 0; i < candidateArr.length; i++) {
-      if (sectionWeeks.has(candidateArr[i])) overlapping.push(candidateArr[i])
-    }
-
-    if (overlapping.length > 0) {
-      overlapping.sort((a, b) => a - b)
-      return {
-        conflictSectionId: section.id,
-        weekday: candidate.weekday,
-        candidatePeriods: `${candidate.startPeriod}-${candidateEnd - 1}`,
-        conflictPeriods: `${section.startPeriod}-${sectionEnd - 1}`,
-        overlappingWeeks: overlapping,
+        // If both have exact dates, they must match
+        if (cSch.dateStr && sSch.dateStr) {
+          if (cSch.dateStr === sSch.dateStr) {
+            return {
+              conflictSectionId: section.id,
+              weekday: cSch.weekday,
+              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
+              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
+              overlappingWeeks: cSch.weekIndex ? [cSch.weekIndex] : [],
+            }
+          }
+        } 
+        // If both have weekIndex, they must match
+        else if (cSch.weekIndex !== undefined && sSch.weekIndex !== undefined) {
+          if (cSch.weekIndex === sSch.weekIndex) {
+            return {
+              conflictSectionId: section.id,
+              weekday: cSch.weekday,
+              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
+              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
+              overlappingWeeks: [cSch.weekIndex],
+            }
+          }
+        }
+        // If one is generic (no week/date), it overlaps everything on that weekday
+        else if (cSch.weekIndex === undefined && !cSch.dateStr) {
+          return {
+              conflictSectionId: section.id,
+              weekday: cSch.weekday,
+              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
+              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
+              overlappingWeeks: [],
+            }
+        }
+        else if (sSch.weekIndex === undefined && !sSch.dateStr) {
+          return {
+              conflictSectionId: section.id,
+              weekday: sSch.weekday,
+              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
+              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
+              overlappingWeeks: [],
+            }
+        }
+        // Mixed dateStr and weekIndex: This requires converting weekIndex to dateStr which is complex without strict start bounds.
+        // For safety, assume conflict if weekday matches.
+        else {
+           return {
+              conflictSectionId: section.id,
+              weekday: cSch.weekday,
+              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
+              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
+              overlappingWeeks: cSch.weekIndex ? [cSch.weekIndex] : [],
+            }
+        }
       }
     }
   }
@@ -386,7 +534,7 @@ export function evaluateEnrollmentEligibility(
     .map((item) => sections.find((sectionItem) => sectionItem.id === item.sectionId))
     .filter((item): item is RuleSection => Boolean(item))
 
-  const completedCourseCodes = new Set([
+  const completedCourseCodes = getExpandedCourseCodes(new Set([
     ...(context.studentResults ?? [])
       .filter((item) => item.studentId === student?.id && item.passed)
       .map((item) => item.courseCode),
@@ -394,9 +542,9 @@ export function evaluateEnrollmentEligibility(
       .filter((item) => HISTORY_PASS_STATUSES.has(item.status))
       .map((item) => sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode)
       .filter((item): item is string => Boolean(item)),
-  ])
+  ]), context.courseConditions)
 
-  const completedOrAttemptedCourseCodes = new Set([
+  const completedOrAttemptedCourseCodes = getExpandedCourseCodes(new Set([
     ...(context.studentResults ?? [])
       .filter((item) => item.studentId === student?.id)
       .map((item) => item.courseCode),
@@ -404,7 +552,7 @@ export function evaluateEnrollmentEligibility(
       .filter((item) => HISTORY_RESULT_STATUSES.has(item.status))
       .map((item) => sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode)
       .filter((item): item is string => Boolean(item)),
-  ])
+  ]), context.courseConditions)
 
   const currentSemesterCourseCodes = new Set(currentSections.map((item) => item.courseCode))
   const hasDuplicateSection = Boolean(
@@ -441,6 +589,30 @@ export function evaluateEnrollmentEligibility(
   const failedCount = context.studentResults?.filter(r => r.courseCode === targetCourse?.code && !r.passed).length ?? 0
   const isRetake = Boolean(targetCourse && failedCount > 0)
 
+  // Registration Phase Evaluation
+  let activePhase: RuleRegistrationPhase | null = null
+  let isWithinPhase = false
+  if (context.phases && context.phases.length > 0) {
+    const simulationNow = new Date(settings.simulationNow).getTime()
+    activePhase = context.phases.find(p => {
+      const start = new Date(p.startDate).getTime()
+      const end = new Date(p.endDate).getTime()
+      if (simulationNow < start || simulationNow > end) return false
+
+      if (p.allowedCohorts && Array.isArray(p.allowedCohorts) && p.allowedCohorts.length > 0) {
+        if (!student?.cohort || !p.allowedCohorts.includes(student.cohort)) return false
+      }
+      if (p.allowedMajors && Array.isArray(p.allowedMajors) && p.allowedMajors.length > 0) {
+        if (!student?.majorCode || !p.allowedMajors.includes(student.majorCode)) return false
+      }
+      return true
+    }) ?? null
+
+    if (activePhase && activePhase.allowRegister) {
+      isWithinPhase = true
+    }
+  }
+
   const checks = [
     buildRuleResult(
       'account',
@@ -469,7 +641,7 @@ export function evaluateEnrollmentEligibility(
     buildRuleResult(
       'section-status',
       'Trạng thái lớp',
-      Boolean(section && (section.status === 'OPEN' || section.status === 'FULL')),
+      Boolean(section && (section.status === 'OPEN' || section.status === 'FULL' || options.ignoreCapacity)),
       'Lớp học phần đang mở đăng ký.',
       section?.status === 'CANCELLED'
         ? REGISTRATION_ERROR_MESSAGES.REG_ERR_CLASS_CANCELLED
@@ -480,7 +652,9 @@ export function evaluateEnrollmentEligibility(
       'registration-window',
       'Cửa sổ đăng ký',
       options.ignoreRegistrationWindow ||
-        isWithinRange(settings.simulationNow, settings.registrationStart, settings.registrationEnd),
+        (context.phases && context.phases.length > 0
+          ? isWithinPhase
+          : isWithinRange(settings.simulationNow, settings.registrationStart, settings.registrationEnd)),
       'Hệ thống đang nằm trong cửa sổ đăng ký.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_OUTSIDE_REGISTRATION_WINDOW,
       'REG_ERR_OUTSIDE_REGISTRATION_WINDOW',
@@ -518,6 +692,14 @@ export function evaluateEnrollmentEligibility(
       'REG_ERR_MAX_RETAKE_EXCEEDED',
     ),
     buildRuleResult(
+      'accumulated-credits',
+      'Điều kiện tổng tín chỉ tích lũy',
+      Boolean(!targetCourse?.requiredAccumulatedCredits || (student?.completedCredits ?? 0) >= targetCourse.requiredAccumulatedCredits),
+      `Sinh viên đã tích lũy đủ số tín chỉ tối thiểu yêu cầu (${targetCourse?.requiredAccumulatedCredits ?? 0} tín chỉ).`,
+      REGISTRATION_ERROR_MESSAGES.REG_ERR_NOT_ENOUGH_ACCUMULATED_CREDITS,
+      'REG_ERR_NOT_ENOUGH_ACCUMULATED_CREDITS',
+    ),
+    buildRuleResult(
       'prerequisite',
       'Điều kiện tiên quyết',
       Boolean(prerequisiteCodes.every((code) => completedCourseCodes.has(code))),
@@ -546,7 +728,7 @@ export function evaluateEnrollmentEligibility(
       'REG_ERR_COREQUISITE_NOT_MET',
     ),
     (() => {
-      const conflict = section ? checkScheduleConflict(section, currentSections) : null
+      const conflict = section ? checkScheduleConflict(section, currentSections, context.semesterStartDate) : null
       const passed = Boolean(section && !conflict)
       let failMessage = REGISTRATION_ERROR_MESSAGES.REG_ERR_SCHEDULE_CONFLICT
       if (conflict) {
@@ -574,7 +756,7 @@ export function evaluateEnrollmentEligibility(
           targetCourse &&
           calculateCurrentCredits(student?.id ?? '', settings.currentSemesterId, enrollments, sections, courses, settings) +
             targetCourse.credits <=
-            (settings.semesterType === 'SUMMER' ? settings.maxCreditsSummer : settings.maxCreditsMain),
+            (activePhase?.maxCredits ?? (settings.semesterType === 'SUMMER' ? settings.maxCreditsSummer : settings.maxCreditsMain)),
       ),
       'Tổng tín chỉ sau đăng ký vẫn nằm trong ngưỡng cho phép.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_CREDIT_LIMIT_EXCEEDED,
@@ -630,6 +812,19 @@ export function evaluateEnrollmentEligibility(
   }
 
   const isFull = section.registeredCount >= section.capacity || section.status === 'FULL'
+  
+  if (isFull && options.ignoreCapacity) {
+    return {
+      canRegister: true,
+      finalStatus: 'REGISTERED',
+      pdfStatusCode: mapEnrollmentStatusToPdfStatus('REGISTERED'),
+      message: 'Lớp đã đủ sĩ số nhưng được cấp quyền đăng ký vượt rào.',
+      isRetake,
+      isImprovement,
+      checks,
+    }
+  }
+
   if (isFull && section.allowWaitlist && settings.allowWaitlist) {
     return {
       canRegister: true,
@@ -666,11 +861,45 @@ export function evaluateEnrollmentEligibility(
   }
 }
 
-export function canCancelEnrollment(nowIso: string, settings: RuleSettings) {
+export function canCancelEnrollment(nowIso: string, settings: RuleSettings, phases?: RuleRegistrationPhase[], student?: RuleUser) {
+  if (phases && phases.length > 0) {
+    const simulationNow = new Date(nowIso).getTime()
+    const activePhase = phases.find(p => {
+      const start = new Date(p.startDate).getTime()
+      const end = new Date(p.endDate).getTime()
+      if (simulationNow < start || simulationNow > end) return false
+      if (p.allowedCohorts && Array.isArray(p.allowedCohorts) && p.allowedCohorts.length > 0) {
+        if (!student?.cohort || !p.allowedCohorts.includes(student.cohort)) return false
+      }
+      if (p.allowedMajors && Array.isArray(p.allowedMajors) && p.allowedMajors.length > 0) {
+        if (!student?.majorCode || !p.allowedMajors.includes(student.majorCode)) return false
+      }
+      return true
+    })
+    if (activePhase) return activePhase.allowCancel
+  }
   return isWithinRange(nowIso, settings.adjustmentStart, settings.adjustmentEnd)
 }
 
-export function canWithdrawEnrollment(nowIso: string, settings: RuleSettings) {
+export function canWithdrawEnrollment(nowIso: string, settings: RuleSettings, phases?: RuleRegistrationPhase[], student?: RuleUser) {
+  if (phases && phases.length > 0) {
+    const simulationNow = new Date(nowIso).getTime()
+    const activePhase = phases.find(p => {
+      const start = new Date(p.startDate).getTime()
+      const end = new Date(p.endDate).getTime()
+      if (simulationNow < start || simulationNow > end) return false
+      if (p.allowedCohorts && Array.isArray(p.allowedCohorts) && p.allowedCohorts.length > 0) {
+        if (!student?.cohort || !p.allowedCohorts.includes(student.cohort)) return false
+      }
+      if (p.allowedMajors && Array.isArray(p.allowedMajors) && p.allowedMajors.length > 0) {
+        if (!student?.majorCode || !p.allowedMajors.includes(student.majorCode)) return false
+      }
+      return true
+    })
+    // For withdraw, we can assume allowCancel implies both cancel/withdraw, or fallback.
+    // If phase system is fully in use, this controls it.
+    if (activePhase) return activePhase.allowCancel
+  }
   return (
     new Date(nowIso).getTime() > new Date(settings.adjustmentEnd).getTime() &&
     new Date(nowIso).getTime() <= new Date(settings.withdrawalDeadline).getTime()

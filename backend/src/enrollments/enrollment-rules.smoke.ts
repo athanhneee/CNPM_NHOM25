@@ -39,7 +39,8 @@ const openSection: RuleSection = {
   startPeriod: 1,
   periodCount: 3,
   weeks: '1-15',
-  capacity: 2,
+  capacity: 1,
+  minCapacity: 0,
   registeredCount: 1,
   allowWaitlist: true,
   status: 'OPEN',
@@ -273,12 +274,14 @@ console.log('✓ weeksOverlap tests passed.')
   const candidate: RuleSection = {
     id: 'candidate', courseCode: 'C1', semesterId: 's1',
     weekday: 2, startPeriod: 1, periodCount: 3, weeks: '1-10',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const existing: RuleSection = {
     id: 'existing', courseCode: 'C2', semesterId: 's1',
     weekday: 2, startPeriod: 2, periodCount: 3, weeks: '1-10',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const result = checkScheduleConflict(candidate, [existing])
   assert.notEqual(result, null, 'Same weekday/period/weeks should conflict')
@@ -292,12 +295,14 @@ console.log('✓ weeksOverlap tests passed.')
   const candidate: RuleSection = {
     id: 'candidate', courseCode: 'C1', semesterId: 's1',
     weekday: 2, startPeriod: 1, periodCount: 3, weeks: '1-5',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const existing: RuleSection = {
     id: 'existing', courseCode: 'C2', semesterId: 's1',
     weekday: 2, startPeriod: 2, periodCount: 3, weeks: '6-10',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const result = checkScheduleConflict(candidate, [existing])
   assert.equal(result, null, 'Same weekday/period but different weeks should NOT conflict')
@@ -309,12 +314,14 @@ console.log('✓ weeksOverlap tests passed.')
   const candidate: RuleSection = {
     id: 'candidate', courseCode: 'C1', semesterId: 's1',
     weekday: 2, startPeriod: 1, periodCount: 3, weeks: '1-15',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const existing: RuleSection = {
     id: 'existing', courseCode: 'C2', semesterId: 's1',
     weekday: 4, startPeriod: 1, periodCount: 3, weeks: '1-15',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const result = checkScheduleConflict(candidate, [existing])
   assert.equal(result, null, 'Different weekday should NOT conflict')
@@ -326,12 +333,14 @@ console.log('✓ weeksOverlap tests passed.')
   const candidate: RuleSection = {
     id: 'candidate', courseCode: 'C1', semesterId: 's1',
     weekday: 2, startPeriod: 1, periodCount: 3, weeks: '1-15',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const existing: RuleSection = {
     id: 'existing', courseCode: 'C2', semesterId: 's1',
     weekday: 2, startPeriod: 4, periodCount: 3, weeks: '1-15',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const result = checkScheduleConflict(candidate, [existing])
   assert.equal(result, null, 'Adjacent periods (1-3 and 4-6) should NOT conflict')
@@ -343,12 +352,14 @@ console.log('✓ weeksOverlap tests passed.')
   const candidate: RuleSection = {
     id: 'candidate', courseCode: 'C1', semesterId: 's1',
     weekday: 3, startPeriod: 1, periodCount: 2, weeks: '1-8',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const existing: RuleSection = {
     id: 'existing', courseCode: 'C2', semesterId: 's1',
     weekday: 3, startPeriod: 1, periodCount: 2, weeks: '5-12',
-    capacity: 30, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 0, allowWaitlist: true, status: 'OPEN',
   }
   const result = checkScheduleConflict(candidate, [existing])
   assert.notEqual(result, null, 'Partial week overlap should conflict')
@@ -363,12 +374,14 @@ console.log('✓ weeksOverlap tests passed.')
   const sectionA: RuleSection = {
     id: 'sec-A', courseCode: 'CSE201', semesterId: 'semester-1',
     weekday: 3, startPeriod: 1, periodCount: 3, weeks: '1-7',
-    capacity: 30, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
   }
   const sectionB: RuleSection = {
     id: 'sec-B', courseCode: 'CSE202', semesterId: 'semester-1',
     weekday: 3, startPeriod: 1, periodCount: 3, weeks: '8-15',
-    capacity: 30, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
   }
 
   const result = evaluateEnrollmentEligibility({
@@ -400,12 +413,14 @@ console.log('✓ weeksOverlap tests passed.')
   const sectionA: RuleSection = {
     id: 'sec-conflict-A', courseCode: 'CSE301', semesterId: 'semester-1',
     weekday: 4, startPeriod: 1, periodCount: 3, weeks: '1-10',
-    capacity: 30, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
   }
   const sectionB: RuleSection = {
     id: 'sec-conflict-B', courseCode: 'CSE302', semesterId: 'semester-1',
     weekday: 4, startPeriod: 2, periodCount: 3, weeks: '5-15',
-    capacity: 30, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
+    capacity: 1,
+  minCapacity: 0, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
   }
 
   const result = evaluateEnrollmentEligibility({
