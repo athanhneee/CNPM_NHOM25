@@ -9,9 +9,13 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Multer } from 'multer'
 import { Roles } from '../common/decorators/roles.decorator'
 import { CurrentUser } from '../common/decorators/user.decorator'
 import { JwtAuthGuard } from '../common/guards/jwt.guard'
@@ -23,6 +27,7 @@ import { EnrollmentQueryDto } from './dto/enrollment-query.dto'
 import {
   EnrollmentReasonDto,
   OverrideEnrollmentDto,
+  TransferEnrollmentDto,
   UpdateEnrollmentDto,
   WithdrawEnrollmentDto,
 } from './dto/update-enrollment.dto'
@@ -85,6 +90,7 @@ export class EnrollmentsController {
       this.resolveStudentId(user, body.studentId),
       body.sectionId,
       buildActor(user),
+      body.force
     )
   }
 
@@ -94,6 +100,47 @@ export class EnrollmentsController {
   @Post('override')
   async override(@CurrentUser() user: RequestUser, @Body() body: OverrideEnrollmentDto) {
     return this.enrollmentsService.overrideEnrollment(body, buildActor(user))
+  }
+
+  @ApiOperation({ summary: 'Chuyển sinh viên sang lớp khác (Atomic Transfer)' })
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'ACADEMIC_OFFICE')
+  @Post('transfer')
+  async transfer(@CurrentUser() user: RequestUser, @Body() body: TransferEnrollmentDto) {
+    return this.enrollmentsService.transferEnrollment(body, buildActor(user))
+  }
+
+  @ApiOperation({ summary: 'Nhập đăng ký hàng loạt từ file CSV' })
+  @ApiConsumes('multipart/form-data')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'ACADEMIC_OFFICE')
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('bulk-import')
+  async bulkImport(@CurrentUser() user: RequestUser, @UploadedFile() file: { buffer: Buffer; originalname: string }) {
+    if (!file) {
+      throw new BadRequestException('Vui lòng upload file CSV.')
+    }
+
+    const content = file.buffer.toString('utf-8')
+    const lines = content.split(/\r?\n/).filter((line: string) => line.trim())
+
+    if (lines.length < 2) {
+      throw new BadRequestException('File CSV phải có ít nhất 1 dòng header và 1 dòng dữ liệu.')
+    }
+
+    // Parse CSV: expected header "studentId,sectionId"
+    const rows: Array<{ studentId: string; sectionId: string }> = []
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(',').map((c: string) => c.trim())
+      if (cols.length < 2 || !cols[0] || !cols[1]) continue
+      rows.push({ studentId: cols[0], sectionId: cols[1] })
+    }
+
+    if (rows.length === 0) {
+      throw new BadRequestException('Không tìm thấy dữ liệu hợp lệ trong file CSV.')
+    }
+
+    return this.enrollmentsService.bulkRegister(rows, buildActor(user))
   }
 
   @ApiOperation({ summary: 'Xu ly danh sach cho cua mot lop hoc phan' })
@@ -126,7 +173,7 @@ export class EnrollmentsController {
     @Param('id') id: string,
     @Body() body: EnrollmentReasonDto,
   ) {
-    return this.enrollmentsService.cancelEnrollment(id, buildActor(user), body.reason)
+    return this.enrollmentsService.cancelEnrollment(id, buildActor(user), body.reason, body.force)
   }
 
   @ApiOperation({ summary: 'Rut hoc phan truoc han rut' })
@@ -136,7 +183,7 @@ export class EnrollmentsController {
     @Param('id') id: string,
     @Body() body: WithdrawEnrollmentDto,
   ) {
-    return this.enrollmentsService.withdrawEnrollment(id, buildActor(user), body.reason)
+    return this.enrollmentsService.withdrawEnrollment(id, buildActor(user), body.reason, body.force)
   }
 
   @ApiOperation({ summary: 'Cap nhat trang thai dang ky' })
