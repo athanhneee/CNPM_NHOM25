@@ -606,7 +606,7 @@ export function DashboardPage() {
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/12 px-4 py-2 text-sm font-medium text-white/90">
                   <CalendarDays className="h-4 w-4" />
-                  {formatLongDate(snapshot.settings.simulationNow)}
+                  {formatLongDate(new Date().toISOString())}
                 </div>
                 <div>
                   <h2 className="text-2xl font-semibold tracking-[-0.05em] text-white lg:text-3xl">
