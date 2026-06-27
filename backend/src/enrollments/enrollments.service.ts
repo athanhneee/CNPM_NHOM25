@@ -819,7 +819,8 @@ export class EnrollmentsService {
         
         if (section) {
           const existingResult = await tx.studentResult.findFirst({
-            where: { studentId: enrollment.studentId, courseCode: section.courseCode, semesterId: section.semesterId }
+            where: { studentId: enrollment.studentId, courseCode: section.courseCode, semesterId: section.semesterId },
+            orderBy: { attemptNo: 'desc' }
           });
           if (existingResult) {
             await tx.studentResult.update({
@@ -827,6 +828,12 @@ export class EnrollmentsService {
               data: { letterGrade: 'W', passed: false, status: 'WITHDRAWN' }
             });
           } else {
+            const lastResult = await tx.studentResult.findFirst({
+              where: { studentId: enrollment.studentId, courseCode: section.courseCode },
+              orderBy: { attemptNo: 'desc' }
+            });
+            const nextAttempt = lastResult ? lastResult.attemptNo + 1 : 1;
+
             await tx.studentResult.create({
               data: {
                 studentId: enrollment.studentId,
@@ -835,6 +842,7 @@ export class EnrollmentsService {
                 letterGrade: 'W',
                 passed: false,
                 status: 'WITHDRAWN',
+                attemptNo: nextAttempt,
               }
             });
           }

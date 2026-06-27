@@ -184,7 +184,12 @@ export class WishesService {
 
     const wish = await this.prisma.wishRequest.update({
       where: { id },
-      data: { status },
+      data: {
+        status,
+        reviewNote: normalizedReviewNote,
+        reviewerId: user.userId,
+        reviewedAt: new Date(),
+      },
     })
 
     await appendAuditLog(

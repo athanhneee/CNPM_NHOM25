@@ -238,12 +238,14 @@ model StudentResult {
   numericGrade Float?
   status       StudentResultStatus
   passed       Boolean             @default(false)
+  attemptNo    Int                 @default(1)
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   course       Course              @relation(fields: [courseCode], references: [code])
   semester     SemesterOption?     @relation(fields: [semesterId], references: [id])
   student      User                @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
+  @@unique([studentId, courseCode, semesterId, attemptNo])
   @@index([studentId])
   @@index([courseCode])
   @@index([semesterId])
@@ -265,6 +267,9 @@ model WishRequest {
   courseCode     String
   preferredGroup String?
   reason         String
+  reviewNote     String?
+  reviewerId     String?
+  reviewedAt     DateTime?
   createdAt      DateTime       @default(now())
   status         WishStatus     @default(PENDING)
   semester       SemesterOption @relation(fields: [semesterId], references: [id])
