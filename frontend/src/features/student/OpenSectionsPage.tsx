@@ -150,7 +150,7 @@ export function OpenSectionsPage() {
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [currentPage, setCurrentPage] = useState(1)
-  const PAGE_SIZE = 15
+  const PAGE_SIZE = 10
   const [submittingId, setSubmittingId] = useState('')
 
   if (!currentUser || !actor) {
