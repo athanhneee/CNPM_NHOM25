@@ -39,7 +39,9 @@ export function isWeekInWeeksString(week: number, weeksString: string): boolean 
   const parts = weeksString.split(',')
   for (const part of parts) {
     if (part.includes('-')) {
-      const [start, end] = part.split('-').map(Number)
+      const splitPart = part.split('-').map(Number)
+      const start = splitPart[0] ?? 0
+      const end = splitPart[1] ?? 0
       if (week >= start && week <= end) return true
     } else {
       if (week === Number(part)) return true
@@ -55,7 +57,8 @@ export function getMaxWeek(entries: { weeks?: string | null }[]): number {
     const parts = entry.weeks.split(',')
     for (const part of parts) {
       if (part.includes('-')) {
-        const end = Number(part.split('-')[1])
+        const splitPart = part.split('-')
+        const end = Number(splitPart[1] ?? 0)
         if (end > max) max = end
       } else {
         const val = Number(part)
