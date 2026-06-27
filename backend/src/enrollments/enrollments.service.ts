@@ -478,18 +478,42 @@ export class EnrollmentsService {
             : undefined
 
         const now = settings.simulationNow
-        const enrollment = await tx.enrollment.create({
-          data: {
-            studentId,
-            sectionId,
-            semesterId: section.semesterId,
-            status: finalStatus,
-            waitlistOrder,
-            isRetake: result.isRetake ?? false,
-            isImprovement: result.isImprovement ?? false,
-            timeline: [buildTimelineItem(actor, finalStatus, result.message, now)],
-          },
+        
+        const existingEnrollment = await tx.enrollment.findUnique({
+          where: { studentId_sectionId: { studentId, sectionId } }
         })
+
+        let enrollment;
+        if (existingEnrollment) {
+          enrollment = await tx.enrollment.update({
+            where: { id: existingEnrollment.id },
+            data: {
+              status: finalStatus,
+              waitlistOrder,
+              isRetake: result.isRetake ?? false,
+              isImprovement: result.isImprovement ?? false,
+              timeline: [
+                ...(Array.isArray(existingEnrollment.timeline) ? existingEnrollment.timeline : []),
+                buildTimelineItem(actor, finalStatus, result.message, now)
+              ],
+              cancelledAt: null,
+              droppedAt: null,
+            },
+          })
+        } else {
+          enrollment = await tx.enrollment.create({
+            data: {
+              studentId,
+              sectionId,
+              semesterId: section.semesterId,
+              status: finalStatus,
+              waitlistOrder,
+              isRetake: result.isRetake ?? false,
+              isImprovement: result.isImprovement ?? false,
+              timeline: [buildTimelineItem(actor, finalStatus, result.message, now)],
+            },
+          })
+        }
 
         const registeredCount =
           finalStatus === EnrollmentStatus.REGISTERED ? section.registeredCount + 1 : section.registeredCount
