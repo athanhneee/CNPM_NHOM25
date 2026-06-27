@@ -440,66 +440,52 @@ export function checkScheduleConflict(
   for (const section of comparedSections) {
     const sectionSchedules = expandSchedules(section, semesterStartDate)
 
-    // Compare Cartesian product of schedules
+    const overlappingWeeks: number[] = []
+    let conflictWeekday = 0
+    let conflictCandidatePeriods = ''
+    let conflictPeriods = ''
+    let hasGenericOverlap = false
+
     for (const cSch of candidateSchedules) {
       for (const sSch of sectionSchedules) {
         if (cSch.weekday !== sSch.weekday) continue
         if (!checkPeriodOverlap(cSch.startPeriod, cSch.periodCount, sSch.startPeriod, sSch.periodCount)) continue
 
+        conflictWeekday = cSch.weekday
+        conflictCandidatePeriods = `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`
+        conflictPeriods = `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`
+
         // If both have exact dates, they must match
         if (cSch.dateStr && sSch.dateStr) {
           if (cSch.dateStr === sSch.dateStr) {
-            return {
-              conflictSectionId: section.id,
-              weekday: cSch.weekday,
-              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
-              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
-              overlappingWeeks: cSch.weekIndex ? [cSch.weekIndex] : [],
+            if (cSch.weekIndex && !overlappingWeeks.includes(cSch.weekIndex)) {
+              overlappingWeeks.push(cSch.weekIndex)
             }
           }
-        } 
+        }
         // If both have weekIndex, they must match
         else if (cSch.weekIndex !== undefined && sSch.weekIndex !== undefined) {
           if (cSch.weekIndex === sSch.weekIndex) {
-            return {
-              conflictSectionId: section.id,
-              weekday: cSch.weekday,
-              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
-              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
-              overlappingWeeks: [cSch.weekIndex],
+            if (!overlappingWeeks.includes(cSch.weekIndex)) {
+              overlappingWeeks.push(cSch.weekIndex)
             }
           }
         }
         // If one is generic (no week/date), it overlaps everything on that weekday
-        else if (cSch.weekIndex === undefined && !cSch.dateStr) {
-          return {
-              conflictSectionId: section.id,
-              weekday: cSch.weekday,
-              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
-              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
-              overlappingWeeks: [],
-            }
-        }
-        else if (sSch.weekIndex === undefined && !sSch.dateStr) {
-          return {
-              conflictSectionId: section.id,
-              weekday: sSch.weekday,
-              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
-              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
-              overlappingWeeks: [],
-            }
-        }
-        // Mixed dateStr and weekIndex: This requires converting weekIndex to dateStr which is complex without strict start bounds.
-        // For safety, assume conflict if weekday matches.
         else {
-           return {
-              conflictSectionId: section.id,
-              weekday: cSch.weekday,
-              candidatePeriods: `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`,
-              conflictPeriods: `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`,
-              overlappingWeeks: cSch.weekIndex ? [cSch.weekIndex] : [],
-            }
+          hasGenericOverlap = true
         }
+      }
+    }
+
+    if (overlappingWeeks.length > 0 || hasGenericOverlap) {
+      overlappingWeeks.sort((a, b) => a - b)
+      return {
+        conflictSectionId: section.id,
+        weekday: conflictWeekday,
+        candidatePeriods: conflictCandidatePeriods,
+        conflictPeriods,
+        overlappingWeeks,
       }
     }
   }

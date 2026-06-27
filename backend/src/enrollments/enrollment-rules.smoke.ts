@@ -39,9 +39,9 @@ const openSection: RuleSection = {
   startPeriod: 1,
   periodCount: 3,
   weeks: '1-15',
-  capacity: 1,
+  capacity: 2,
   minCapacity: 0,
-  registeredCount: 1,
+  registeredCount: 0,
   allowWaitlist: true,
   status: 'OPEN',
 }
