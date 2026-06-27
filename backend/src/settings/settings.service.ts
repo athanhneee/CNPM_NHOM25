@@ -95,6 +95,7 @@ export class SettingsService {
           minCredits: updateDto.minCredits,
           maintenanceMode: updateDto.maintenanceMode,
           allowWaitlist: updateDto.allowWaitlist,
+          countWaitlistCredits: updateDto.countWaitlistCredits,
           allowGradeImprovement: updateDto.allowGradeImprovement,
           maxRetakeAttempts: updateDto.maxRetakeAttempts,
           sessionTimeoutMinutes: updateDto.sessionTimeoutMinutes,
