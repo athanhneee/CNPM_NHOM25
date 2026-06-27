@@ -46,3 +46,37 @@ export interface User {
   bio?: string
   avatarUrl?: string
 }
+
+export interface CompletedCourse {
+  courseCode: string
+  courseName: string
+  credits: number
+  semesterId?: string
+  letterGrade?: string
+  numericGrade?: number
+  status: string
+  passed: boolean
+}
+
+export interface OngoingCourse {
+  sectionId: string
+  sectionCode: string
+  courseCode: string
+  courseName: string
+  credits: number
+  status: string
+}
+
+export interface PendingCourse {
+  courseCode: string
+  courseName: string
+  credits: number
+  suggestedSemester?: number
+}
+
+export interface AcademicRecords {
+  completedCourses: CompletedCourse[]
+  ongoingCourses: OngoingCourse[]
+  pendingCourses: PendingCourse[]
+  warnings: string[]
+}

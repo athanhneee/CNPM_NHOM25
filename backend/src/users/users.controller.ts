@@ -41,6 +41,20 @@ export class UsersController {
     return this.usersService.update(user.userId, updateUserDto, buildActor(user), false)
   }
 
+  @ApiOperation({ summary: 'Kết quả học tập của người dùng hiện tại' })
+  @Get('me/academic-records')
+  async getMyAcademicRecords(@CurrentUser('userId') userId: string) {
+    return this.usersService.getAcademicRecords(userId)
+  }
+
+  @ApiOperation({ summary: 'Kết quả học tập của tài khoản (dành cho Admin)' })
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'ACADEMIC_OFFICE')
+  @Get(':id/academic-records')
+  async getAcademicRecords(@Param('id') id: string) {
+    return this.usersService.getAcademicRecords(id)
+  }
+
   @ApiOperation({ summary: 'Tạo nhiều tài khoản sinh viên từ danh sách import' })
   @UseGuards(RolesGuard)
   @Roles('ADMIN')

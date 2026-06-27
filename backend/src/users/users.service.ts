@@ -313,4 +313,100 @@ export class UsersService {
     await appendAuditLog(this.prisma, actor, 'DEACTIVATE_USER', id, 'WARNING', 'Vô hiệu hóa tài khoản.')
     return toPublicUser(user)
   }
+
+  async getAcademicRecords(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } })
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy tài khoản người dùng.')
+    }
+
+    const completedResults = await this.prisma.studentResult.findMany({
+      where: { studentId: id },
+      include: { course: true },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: {
+        studentId: id,
+        status: { in: ['REGISTERED', 'WAITLISTED', 'PENDING'] }
+      },
+      include: { section: { include: { course: true } } },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    const completedCourses = completedResults.map(r => ({
+      courseCode: r.courseCode,
+      courseName: r.course.name,
+      credits: r.course.credits,
+      semesterId: r.semesterId ?? undefined,
+      letterGrade: r.letterGrade ?? undefined,
+      numericGrade: r.numericGrade ?? undefined,
+      status: r.status,
+      passed: r.passed
+    }))
+
+    const ongoingCourses = enrollments.map(e => ({
+      sectionId: e.sectionId,
+      sectionCode: e.section.sectionCode,
+      courseCode: e.section.courseCode,
+      courseName: e.section.course.name,
+      credits: e.section.course.credits,
+      status: e.status
+    }))
+
+    const completedOrOngoingCodes = new Set([
+      ...completedCourses.filter(c => c.passed).map(c => c.courseCode),
+      ...ongoingCourses.map(c => c.courseCode)
+    ])
+
+    const allCourses = await this.prisma.course.findMany({
+      where: { status: 'ACTIVE' }
+    })
+    
+    let pendingCoursesRaw = allCourses
+    if (user.majorCode) {
+      pendingCoursesRaw = allCourses.filter(c => {
+        if (!c.majorCodesSupported || !Array.isArray(c.majorCodesSupported)) return false;
+        return (c.majorCodesSupported as string[]).includes(user.majorCode!);
+      })
+    } else {
+      pendingCoursesRaw = allCourses.filter(c => c.category === 'FOUNDATION' || c.category === 'CORE')
+    }
+
+    const pendingCourses = pendingCoursesRaw
+      .filter(c => !completedOrOngoingCodes.has(c.code))
+      .map(c => ({
+        courseCode: c.code,
+        courseName: c.name,
+        credits: c.credits,
+        suggestedSemester: c.suggestedSemester ?? undefined
+      }))
+
+    const warnings: string[] = []
+    
+    if (user.status !== 'ACTIVE') {
+      warnings.push('Tài khoản bị khóa hoặc vô hiệu hóa. Sinh viên không thể đăng ký học phần.')
+    }
+    
+    if (user.studentStatus && ['Bảo lưu', 'Thôi học', 'Tạm ngừng', 'Bị đình chỉ'].includes(user.studentStatus)) {
+      warnings.push(`Trạng thái học tập hiện tại: ${user.studentStatus}. Hệ thống hạn chế đăng ký học phần.`)
+    }
+
+    if (user.gpa !== null && user.gpa < 2.0) {
+      warnings.push('Cảnh báo học vụ: Điểm trung bình tích lũy (GPA) dưới 2.0.')
+    }
+
+    const failedCoursesCount = completedCourses.filter(c => !c.passed && c.status === 'FAILED').length
+    if (failedCoursesCount > 0) {
+      warnings.push(`Cảnh báo nợ môn: Sinh viên đang nợ ${failedCoursesCount} môn học.`)
+    }
+
+    return {
+      completedCourses,
+      ongoingCourses,
+      pendingCourses,
+      warnings
+    }
+  }
 }

@@ -7,7 +7,7 @@ import {
   writeStoredAuth,
 } from '@/lib/api-client'
 import type { AccountStatus, AuthCredentials, AuthSession, UserRole } from '@/types/auth'
-import type { User } from '@/types/user'
+import type { AcademicRecords, User } from '@/types/user'
 
 interface BackendUser {
   id: string
@@ -263,4 +263,9 @@ export const authApiService = {
       }),
     )
   },
+
+  async getAcademicRecords() {
+    return apiRequest<AcademicRecords>('/users/me/academic-records')
+  },
 }
+

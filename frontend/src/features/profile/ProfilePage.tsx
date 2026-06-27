@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ArrowRight,
   BadgeCheck,
@@ -49,7 +49,7 @@ import {
   getStudentPerformanceSeries,
 } from '@/lib/selectors'
 import type { UserRole } from '@/types/auth'
-import type { User } from '@/types/user'
+import type { User, AcademicRecords } from '@/types/user'
 
 function getPrimaryRole(user: User | null): UserRole {
   return (user?.roles[0] ?? 'STUDENT') as UserRole
@@ -462,6 +462,136 @@ function AcademicLeadershipCard({ leaders }: { leaders: User[] }) {
   )
 }
 
+function AcademicRecordsView({ records }: { records: AcademicRecords }) {
+  const [activeTab, setActiveTab] = useState<'completed' | 'ongoing' | 'pending'>('completed')
+
+  return (
+    <Card title="Kết quả học tập & Chương trình đào tạo">
+      <div className="flex gap-4 border-b border-slate-200 mb-4">
+        <button
+          onClick={() => setActiveTab('completed')}
+          className={`pb-2 font-medium ${activeTab === 'completed' ? 'border-b-2 border-teal-600 text-teal-700' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Đã học ({records.completedCourses.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('ongoing')}
+          className={`pb-2 font-medium ${activeTab === 'ongoing' ? 'border-b-2 border-teal-600 text-teal-700' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Đang học ({records.ongoingCourses.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('pending')}
+          className={`pb-2 font-medium ${activeTab === 'pending' ? 'border-b-2 border-teal-600 text-teal-700' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Chưa học ({records.pendingCourses.length})
+        </button>
+      </div>
+
+      <div className="overflow-x-auto">
+        {activeTab === 'completed' && (
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-500">
+                <th className="pb-2 font-medium">Mã HP</th>
+                <th className="pb-2 font-medium">Tên học phần</th>
+                <th className="pb-2 font-medium">Tín chỉ</th>
+                <th className="pb-2 font-medium">Điểm số</th>
+                <th className="pb-2 font-medium">Điểm chữ</th>
+                <th className="pb-2 font-medium">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.completedCourses.length > 0 ? (
+                records.completedCourses.map((c, i) => (
+                  <tr key={i} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2">{c.courseCode}</td>
+                    <td className="py-2">{c.courseName}</td>
+                    <td className="py-2">{c.credits}</td>
+                    <td className="py-2">{c.numericGrade ?? '-'}</td>
+                    <td className="py-2 font-semibold text-slate-700">{c.letterGrade ?? '-'}</td>
+                    <td className="py-2">
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${c.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {c.passed ? 'Đạt' : 'Chưa đạt'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-4 text-center text-slate-500">Không có dữ liệu</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+
+        {activeTab === 'ongoing' && (
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-500">
+                <th className="pb-2 font-medium">Mã lớp HP</th>
+                <th className="pb-2 font-medium">Mã HP</th>
+                <th className="pb-2 font-medium">Tên học phần</th>
+                <th className="pb-2 font-medium">Tín chỉ</th>
+                <th className="pb-2 font-medium">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.ongoingCourses.length > 0 ? (
+                records.ongoingCourses.map((c, i) => (
+                  <tr key={i} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2">{c.sectionCode}</td>
+                    <td className="py-2">{c.courseCode}</td>
+                    <td className="py-2">{c.courseName}</td>
+                    <td className="py-2">{c.credits}</td>
+                    <td className="py-2">
+                      <span className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {c.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-4 text-center text-slate-500">Không có dữ liệu</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+
+        {activeTab === 'pending' && (
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-500">
+                <th className="pb-2 font-medium">Mã HP</th>
+                <th className="pb-2 font-medium">Tên học phần</th>
+                <th className="pb-2 font-medium">Tín chỉ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.pendingCourses.length > 0 ? (
+                records.pendingCourses.map((c, i) => (
+                  <tr key={i} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2">{c.courseCode}</td>
+                    <td className="py-2">{c.courseName}</td>
+                    <td className="py-2">{c.credits}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="py-4 text-center text-slate-500">Không có dữ liệu</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </Card>
+  )
+}
+
 export function ProfilePage() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
@@ -471,6 +601,20 @@ export function ProfilePage() {
   const [phone, setPhone] = useState(currentUser?.phone ?? '')
   const [secondaryEmail, setSecondaryEmail] = useState(currentUser?.secondaryEmail ?? '')
   const [address, setAddress] = useState(currentUser?.address ?? '')
+  const [academicRecords, setAcademicRecords] = useState<AcademicRecords | null>(null)
+
+  const isStudent = getPrimaryRole(currentUser) === 'STUDENT'
+
+  useEffect(() => {
+    if (isStudent && currentUser) {
+      authApiService
+        .getAcademicRecords()
+        .then((res) => {
+          setAcademicRecords(res)
+        })
+        .catch(console.error)
+    }
+  }, [isStudent, currentUser])
 
   if (!currentUser) {
     return <EmptyState title="Không tìm thấy hồ sơ" description="Vui lòng đăng nhập lại để tiếp tục." />
@@ -478,7 +622,6 @@ export function ProfilePage() {
 
   const user = currentUser
   const primaryRole = getPrimaryRole(user)
-  const isStudent = primaryRole === 'STUDENT'
   const roleLabel = user.roles.map((role) => ROLE_LABELS[role] ?? role).join(' • ')
   const codeLabel = getCodeLabelByRole(primaryRole)
   const displayEmail = email
@@ -636,6 +779,20 @@ export function ProfilePage() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[0.65fr_0.35fr] xl:grid-cols-[0.7fr_0.3fr]">
         <div className="grid gap-6">
+          {academicRecords?.warnings && academicRecords.warnings.length > 0 && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm">
+              <div className="flex items-center gap-2 text-red-700 font-semibold mb-3">
+                <ShieldAlert className="h-5 w-5" />
+                <span>Cảnh báo học vụ</span>
+              </div>
+              <ul className="list-disc list-inside text-sm text-red-600 space-y-1.5 ml-1">
+                {academicRecords.warnings.map((warning, i) => (
+                  <li key={i}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <section className="surface-panel overflow-hidden border border-teal-100">
             <div className="bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 px-6 py-5 text-white">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/14 px-4 py-2 text-sm font-medium text-white/90">
@@ -741,6 +898,10 @@ export function ProfilePage() {
               />
             </div>
           </Card>
+
+          {isStudent && academicRecords && (
+            <AcademicRecordsView records={academicRecords} />
+          )}
         </div>
 
         <div className="grid gap-6">
