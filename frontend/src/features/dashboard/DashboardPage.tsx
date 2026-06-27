@@ -818,7 +818,7 @@ export function DashboardPage() {
 
       {primaryRole === 'ADMIN' ? (
         <>
-          <section className="surface-panel overflow-hidden border border-cyan-100 bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-900 px-6 py-5 text-white shadow-[0_28px_70px_rgba(15,23,42,0.22)]">
+          <section className="surface-panel overflow-hidden border border-indigo-200 bg-gradient-to-br from-indigo-600 to-blue-700 px-6 py-5 text-white shadow-[0_28px_70px_rgba(15,23,42,0.15)]">
             <div className="grid gap-6 lg:grid-cols-[0.6fr_0.4fr]">
               <div className="space-y-3">
                 <p className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-medium text-white/90">
