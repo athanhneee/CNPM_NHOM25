@@ -1,4 +1,4 @@
-import { removeStorageKey, safeReadLocalStorage, safeWriteLocalStorage, STORAGE_KEYS } from '@/lib/storage'
+import { removeStorageKey, safeReadLocalStorage, safeWriteLocalStorage, STORAGE_KEYS, removeSessionStorageKey, safeReadSessionStorage, safeWriteSessionStorage } from '@/lib/storage'
 import type { AuthSession } from '@/types/auth'
 
 const DEFAULT_API_BASE_URL = 'http://localhost:3000/api'
@@ -70,15 +70,26 @@ function errorMessage(payload: unknown, fallback: string) {
 }
 
 export function readStoredAuth() {
-  return safeReadLocalStorage<StoredAuthState | null>(STORAGE_KEYS.auth, null)
+  const localAuth = safeReadLocalStorage<StoredAuthState | null>(STORAGE_KEYS.auth, null)
+  if (localAuth) {
+    return localAuth
+  }
+  return safeReadSessionStorage<StoredAuthState | null>(STORAGE_KEYS.auth, null)
 }
 
 export function writeStoredAuth(auth: StoredAuthState) {
-  safeWriteLocalStorage(STORAGE_KEYS.auth, auth)
+  if (auth.session.rememberMe) {
+    safeWriteLocalStorage(STORAGE_KEYS.auth, auth)
+    removeSessionStorageKey(STORAGE_KEYS.auth)
+  } else {
+    safeWriteSessionStorage(STORAGE_KEYS.auth, auth)
+    removeStorageKey(STORAGE_KEYS.auth)
+  }
 }
 
 export function clearStoredAuth() {
   removeStorageKey(STORAGE_KEYS.auth)
+  removeSessionStorageKey(STORAGE_KEYS.auth)
 }
 
 async function refreshAccessToken() {

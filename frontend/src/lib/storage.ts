@@ -41,3 +41,36 @@ export function removeStorageKey(key: string) {
 
   window.localStorage.removeItem(key)
 }
+
+export function safeReadSessionStorage<T>(key: string, fallback: T) {
+  if (typeof window === 'undefined') {
+    return fallback
+  }
+
+  try {
+    const rawValue = window.sessionStorage.getItem(key)
+    if (!rawValue) {
+      return fallback
+    }
+
+    return JSON.parse(rawValue) as T
+  } catch {
+    return fallback
+  }
+}
+
+export function safeWriteSessionStorage<T>(key: string, value: T) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.sessionStorage.setItem(key, JSON.stringify(value))
+}
+
+export function removeSessionStorageKey(key: string) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.sessionStorage.removeItem(key)
+}
