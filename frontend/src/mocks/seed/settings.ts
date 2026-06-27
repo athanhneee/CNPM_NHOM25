@@ -38,6 +38,18 @@ export const seedSemesters: SemesterOption[] = [
     adjustmentStart: new Date('2026-06-16T00:00:00Z').toISOString(),
     adjustmentEnd: new Date('2026-06-20T23:59:59Z').toISOString(),
   },
+  {
+    id: 'sem-2026-1',
+    label: 'Học kỳ 1 năm học 2026-2027',
+    termCode: 'HK1',
+    type: 'MAIN',
+    isCurrent: true,
+    registrationStatus: 'OPEN',
+    registrationStart: new Date('2026-04-10T00:00:00Z').toISOString(),
+    registrationEnd: new Date('2026-04-20T23:59:59Z').toISOString(),
+    adjustmentStart: new Date('2026-04-21T00:00:00Z').toISOString(),
+    adjustmentEnd: new Date('2026-04-25T23:59:59Z').toISOString(),
+  },
 ]
 
 export const seedSettings: SystemSettings = {
