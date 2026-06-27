@@ -130,11 +130,40 @@ export function AuditLogsPage() {
     return <EmptyState title="Không thể tải nhật ký hệ thống" description={error} />
   }
 
+  const actionLabels: Record<string, string> = {
+    'LOGIN_SUCCESS': 'Đăng nhập',
+    'LOGOUT': 'Đăng xuất',
+    'LOGIN_FAILURE': 'Đăng nhập thất bại',
+    'ENROLLMENT_REGISTER': 'Đăng ký học phần',
+    'ENROLLMENT_CANCEL': 'Hủy đăng ký',
+    'ENROLLMENT_WITHDRAW': 'Rút học phần',
+    'ENROLLMENT_WAITLIST': 'Vào danh sách chờ',
+    'WAITLIST_PROMOTED': 'Duyệt danh sách chờ',
+    'WAITLIST_OVERRIDE': 'Can thiệp danh sách chờ',
+    'WISH_CREATED': 'Tạo nguyện vọng',
+    'WISH_REVIEWED': 'Duyệt nguyện vọng',
+    'WISH_REJECTED': 'Từ chối nguyện vọng',
+    'WISH_APPROVED': 'Chấp nhận nguyện vọng',
+    'SETTINGS_UPDATE': 'Cập nhật hệ thống',
+    'USER_IMPORT': 'Nhập danh sách người dùng',
+    'USER_CREATED': 'Tạo tài khoản',
+    'USER_UPDATED': 'Cập nhật tài khoản',
+    'ROLE_ASSIGNED': 'Phân quyền',
+    'ROLE_REVOKED': 'Thu hồi quyền',
+    'PASSWORD_CHANGED': 'Đổi mật khẩu',
+    'PASSWORD_RESET': 'Đặt lại mật khẩu',
+    'COURSE_CREATED': 'Tạo học phần',
+    'COURSE_UPDATED': 'Cập nhật học phần',
+    'SECTION_CREATED': 'Tạo lớp học phần',
+    'SECTION_UPDATED': 'Cập nhật lớp học phần',
+    'SECTION_DELETED': 'Xóa lớp học phần',
+  }
+
   const columns: TableColumn<(typeof rows)[number]>[] = [
     { key: 'timestamp', header: 'Thời gian', render: (row) => formatDateTime(row.timestamp) },
     { key: 'actorId', header: 'Người thực hiện', render: (row) => row.actorId },
     { key: 'role', header: 'Vai trò', render: (row) => row.actorRole },
-    { key: 'action', header: 'Chức năng', render: (row) => row.action },
+    { key: 'action', header: 'Chức năng', render: (row) => actionLabels[row.action] || row.action },
     { key: 'message', header: 'Nội dung', render: (row) => row.message },
     { key: 'result', header: 'Kết quả', render: (row) => <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">{row.result}</span> },
   ]
