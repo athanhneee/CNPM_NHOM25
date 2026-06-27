@@ -4,7 +4,7 @@ export type UserRole =
   | 'ACADEMIC_OFFICE'
   | 'ADMIN'
 
-export type AccountStatus = 'ACTIVE' | 'LOCKED' | 'INACTIVE'
+export type AccountStatus = 'ACTIVE' | 'LOCKED' | 'INACTIVE' | 'DEFERRED' | 'SUSPENDED'
 
 export interface AuthSession {
   userId: string
