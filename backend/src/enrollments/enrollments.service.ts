@@ -12,6 +12,7 @@ import {
   canCancelEnrollment,
   canWithdrawEnrollment,
   evaluateEnrollmentEligibility,
+  checkScheduleConflict,
   EligibilityOptions,
   RuleCourseCondition,
   EnrollmentStatus as RuleEnrollmentStatus,
