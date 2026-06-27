@@ -209,8 +209,18 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token không hợp lệ.')
     }
 
+    const newRefreshToken = this.signRefreshToken(user)
+    const newRefreshTokenHash = await bcrypt.hash(newRefreshToken, 10)
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: newRefreshTokenHash,
+      },
+    })
+
     return {
       accessToken: this.signAccessToken(user),
+      refreshToken: newRefreshToken,
       tokenType: 'Bearer',
       expiresIn: this.accessTokenExpiresIn(),
       user: toPublicUser(user),
