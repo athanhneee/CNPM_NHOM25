@@ -40,9 +40,14 @@ export function Dialog({ open, title, description, children, onClose, footer }: 
               <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
               {description ? <p className="text-sm text-slate-500">{description}</p> : null}
             </div>
-            <Button variant="ghost" onClick={onClose} aria-label="Đóng hộp thoại" className="h-8 w-8 p-0">
-              <X className="h-5 w-5 text-slate-500" />
-            </Button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Đóng hộp thoại"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
         </div>
         <div className="max-h-[70vh] overflow-y-auto px-6 py-5">{children}</div>
