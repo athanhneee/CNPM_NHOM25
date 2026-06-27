@@ -8,10 +8,7 @@ interface WeatherData {
   description: string
 }
 
-/**
- * Maps WMO weather codes to our simplified conditions.
- * See: https://open-meteo.com/en/docs#weathervariables
- */
+
 function mapWMOCode(code: number): { condition: WeatherCondition; description: string } {
   if (code === 0 || code === 1) return { condition: 'sunny', description: 'Trời nắng' }
   if (code === 2 || code === 3) return { condition: 'cloudy', description: 'Trời nhiều mây' }
