@@ -1218,7 +1218,7 @@ export class EnrollmentsService {
           )
           if (conflict) {
             throw new BadRequestException(
-              `Lớp đích ${toSection.sectionCode} bị trùng lịch với lớp ${conflict.section.courseCode} (Thứ ${conflict.section.weekday}, tiết ${conflict.section.startPeriod}-${conflict.section.startPeriod + conflict.section.periodCount - 1}).`
+              `Lớp đích ${toSection.sectionCode} bị trùng lịch với lớp (ID: ${conflict.conflictSectionId}).`
             )
           }
         }
