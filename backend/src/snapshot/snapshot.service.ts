@@ -4,8 +4,6 @@ import { seedDemoData } from '../../prisma/seed'
 import { toPublicUsers } from '../common/utils/public-user'
 import { PrismaService } from '../prisma/prisma.service'
 
-const DEFAULT_PASSWORD = 'ptithcm2026'
-
 @Injectable()
 export class SnapshotService {
   constructor(private prisma: PrismaService) {}
@@ -66,7 +64,7 @@ export class SnapshotService {
       throw new Error(`Thiếu dữ liệu bắt buộc: ${missingFields.join(', ')}.`)
     }
 
-    const defaultPasswordDigest = await bcrypt.hash(DEFAULT_PASSWORD, 10)
+    const defaultPasswordDigest = await bcrypt.hash('ptithcm2026', 10)
     const users = (payload.users ?? []).map((user: any) => ({
       ...user,
       passwordDigest: user.passwordDigest ?? defaultPasswordDigest,
@@ -87,7 +85,8 @@ export class SnapshotService {
     const auditLogs = payload.auditLogs ?? []
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.auditLog.deleteMany()
+      // Bảo vệ AuditLog: không xóa khi import
+      // await tx.auditLog.deleteMany()
       await tx.enrollment.deleteMany()
       await tx.wishRequest.deleteMany()
       await tx.studentResult.deleteMany()
@@ -111,12 +110,11 @@ export class SnapshotService {
       if (studentResults.length) await tx.studentResult.createMany({ data: studentResults })
       if (enrollments.length) await tx.enrollment.createMany({ data: enrollments })
       if (wishRequests.length) await tx.wishRequest.createMany({ data: wishRequests })
-      if (auditLogs.length) await tx.auditLog.createMany({ data: auditLogs })
+      // if (auditLogs.length) await tx.auditLog.createMany({ data: auditLogs })
     }, { timeout: 60000 })
 
     return {
       imported: true,
-      defaultPassword: DEFAULT_PASSWORD,
       summary: {
         users: users.length,
         courses: courses.length,
