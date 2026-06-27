@@ -33,3 +33,35 @@ export function getRandomDelay() {
 export function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
 }
+
+export function isWeekInWeeksString(week: number, weeksString: string): boolean {
+  if (!weeksString) return true
+  const parts = weeksString.split(',')
+  for (const part of parts) {
+    if (part.includes('-')) {
+      const [start, end] = part.split('-').map(Number)
+      if (week >= start && week <= end) return true
+    } else {
+      if (week === Number(part)) return true
+    }
+  }
+  return false
+}
+
+export function getMaxWeek(entries: { weeks?: string | null }[]): number {
+  let max = 15
+  for (const entry of entries) {
+    if (!entry.weeks) continue
+    const parts = entry.weeks.split(',')
+    for (const part of parts) {
+      if (part.includes('-')) {
+        const end = Number(part.split('-')[1])
+        if (end > max) max = end
+      } else {
+        const val = Number(part)
+        if (val > max) max = val
+      }
+    }
+  }
+  return max
+}

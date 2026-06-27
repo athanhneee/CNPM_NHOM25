@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { ApiError } from '@/lib/api-client'
 import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
+import { Button } from '@/components/ui/Button'
 import { WeekCalendarGrid } from '@/components/calendar/WeekCalendarGrid'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { courseService } from '@/services/course.api'
 import { scheduleService } from '@/services/schedule.api'
 import { sectionService } from '@/services/section.api'
 import type { ScheduleEntry } from '@/types/schedule'
+import { isWeekInWeeksString, getMaxWeek, clamp } from '@/lib/utils'
 
 function useLecturerContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
@@ -52,6 +55,7 @@ export function WeekTeachingPage() {
   const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedWeek, setSelectedWeek] = useState(1)
   const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
 
   useEffect(() => {
@@ -96,13 +100,36 @@ export function WeekTeachingPage() {
     return <EmptyState title="Không thể tải lịch giảng dạy" description={error} />
   }
 
-  const entries = apiEntries ?? []
+  const maxWeek = getMaxWeek(apiEntries ?? [])
+  const entries = (apiEntries ?? []).filter(e => isWeekInWeeksString(selectedWeek, e.weeks ?? ''))
+
   return (
     <div className="grid gap-6">
-      <PageTitleBlock
-        title="Giảng viên - TKB giảng dạy dạng tuần"
-        subtitle="Hiển thị lịch dạy theo thứ, tiết và dải tuần học trong học kỳ hiện tại; màn này chưa lọc theo một tuần lịch cụ thể."
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <PageTitleBlock
+          title="Giảng viên - TKB giảng dạy dạng tuần"
+          subtitle="Hiển thị lịch dạy theo thứ, tiết và dải tuần học trong học kỳ hiện tại."
+        />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => setSelectedWeek(w => clamp(w - 1, 1, maxWeek))}
+            disabled={selectedWeek <= 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-semibold text-slate-700 min-w-[80px] text-center">
+            Tuần {selectedWeek}
+          </span>
+          <Button
+            variant="secondary"
+            onClick={() => setSelectedWeek(w => clamp(w + 1, 1, maxWeek))}
+            disabled={selectedWeek >= maxWeek}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       <WeekCalendarGrid entries={entries} />
     </div>
   )

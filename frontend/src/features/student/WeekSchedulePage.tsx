@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ApiError } from '@/lib/api-client'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
 import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
+import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { StatCard } from '@/components/shared/StatCard'
 import { WeekCalendarGrid } from '@/components/calendar/WeekCalendarGrid'
@@ -15,7 +17,7 @@ import { wishService } from '@/services/wish.api'
 import type { Course } from '@/types/course'
 import type { ScheduleEntry } from '@/types/schedule'
 import type { User } from '@/types/user'
-
+import { isWeekInWeeksString, getMaxWeek, clamp } from '@/lib/utils'
 function useStudentContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
@@ -145,6 +147,7 @@ export function WeekSchedulePage() {
   const [apiSchedule, setApiSchedule] = useState<{ key: string; entries: ScheduleEntry[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedWeek, setSelectedWeek] = useState(1)
   const apiEntries = apiSchedule?.key === scheduleKey ? apiSchedule.entries : null
 
   useEffect(() => {
@@ -189,17 +192,39 @@ export function WeekSchedulePage() {
     return <EmptyState title="Không thể tải lịch học" description={error} />
   }
 
-  const entries = apiEntries ?? []
+  const maxWeek = getMaxWeek(apiEntries ?? [])
+  const entries = (apiEntries ?? []).filter(e => isWeekInWeeksString(selectedWeek, e.weeks ?? ''))
   const morning = entries.filter((entry) => entry.startPeriod <= 4).length
   const afternoon = entries.filter((entry) => entry.startPeriod >= 5 && entry.startPeriod <= 8).length
   const evening = entries.filter((entry) => entry.startPeriod > 8).length
 
   return (
     <div className="grid gap-6">
-      <PageTitleBlock
-        title="Sinh viên - Thời khóa biểu dạng tuần"
-        subtitle="Hiển thị lịch theo thứ, tiết và dải tuần học trong học kỳ hiện tại; màn này chưa lọc theo một tuần lịch cụ thể."
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <PageTitleBlock
+          title="Sinh viên - Thời khóa biểu dạng tuần"
+          subtitle="Hiển thị lịch theo thứ, tiết và dải tuần học trong học kỳ hiện tại."
+        />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => setSelectedWeek(w => clamp(w - 1, 1, maxWeek))}
+            disabled={selectedWeek <= 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-semibold text-slate-700 min-w-[80px] text-center">
+            Tuần {selectedWeek}
+          </span>
+          <Button
+            variant="secondary"
+            onClick={() => setSelectedWeek(w => clamp(w + 1, 1, maxWeek))}
+            disabled={selectedWeek >= maxWeek}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Tổng buổi" value={String(entries.length)} hint="Các buổi học theo khung tuần của học kỳ" />
         <StatCard label="Buổi sáng" value={String(morning)} hint="Tiết 1-4" />
