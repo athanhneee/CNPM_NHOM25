@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { EnrollmentStatus } from '@prisma/client'
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 
 export class UpdateEnrollmentDto {
   @ApiPropertyOptional({ enum: EnrollmentStatus })
@@ -19,6 +19,11 @@ export class EnrollmentReasonDto {
   @IsString()
   @IsOptional()
   reason?: string
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  force?: boolean
 }
 
 export class WithdrawEnrollmentDto {
@@ -26,6 +31,11 @@ export class WithdrawEnrollmentDto {
   @IsString()
   @IsNotEmpty()
   reason: string
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  force?: boolean
 }
 
 export class OverrideEnrollmentDto {
@@ -44,3 +54,26 @@ export class OverrideEnrollmentDto {
   @IsNotEmpty()
   reason: string
 }
+
+export class TransferEnrollmentDto {
+  @ApiProperty({ description: 'ID sinh viên cần chuyển lớp' })
+  @IsString()
+  @IsNotEmpty()
+  studentId: string
+
+  @ApiProperty({ description: 'ID lớp học phần hiện tại' })
+  @IsString()
+  @IsNotEmpty()
+  fromSectionId: string
+
+  @ApiProperty({ description: 'ID lớp học phần đích' })
+  @IsString()
+  @IsNotEmpty()
+  toSectionId: string
+
+  @ApiProperty({ description: 'Lý do chuyển lớp' })
+  @IsString()
+  @IsNotEmpty()
+  reason: string
+}
+
