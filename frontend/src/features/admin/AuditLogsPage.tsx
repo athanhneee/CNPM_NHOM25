@@ -165,7 +165,7 @@ export function AuditLogsPage() {
       >
         <SearchInput label="Lọc log" value={query} onChange={(event) => setQuery(event.target.value)} />
       </FilterBar>
-      <Table columns={columns} rows={rows} rowKey={(row) => row.id} />
+      <Table columns={columns} rows={rows} rowKey={(row) => row.id} pageSize={10} />
     </div>
   )
 }

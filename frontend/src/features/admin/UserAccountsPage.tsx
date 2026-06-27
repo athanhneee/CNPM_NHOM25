@@ -601,7 +601,7 @@ export function UserAccountsPage() {
         <SearchInput label="Tìm tài khoản" value={query} onChange={(event) => setQuery(event.target.value)} />
       </FilterBar>
       {rows.length ? (
-        <Table columns={columns} rows={rows} rowKey={(row) => row.id} />
+        <Table columns={columns} rows={rows} rowKey={(row) => row.id} pageSize={10} />
       ) : (
         <EmptyState title="Không tìm thấy tài khoản phù hợp" description="Hãy thử lại với MSSV, họ tên, email hoặc ngành đào tạo." />
       )}

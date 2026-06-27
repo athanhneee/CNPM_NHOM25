@@ -186,7 +186,7 @@ export function RegisteredPage() {
         <option value="CANCELLED">HUY_DK</option>
         <option value="DROPPED">HUY_DK</option>
       </datalist>
-      <Table columns={columns} rows={rows} rowKey={(row) => row.enrollment.id} />
+      <Table columns={columns} rows={rows} rowKey={(row) => row.enrollment.id} pageSize={10} />
     </div>
   )
 }

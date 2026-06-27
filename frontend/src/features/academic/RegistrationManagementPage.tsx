@@ -273,7 +273,7 @@ export function RegistrationManagementPage() {
             </Card>
 
             <Card title="Danh sách sinh viên" description="Hiển thị trạng thái đăng ký thực tế (Đăng ký thành công, Hủy đăng ký, v.v.)">
-              <Table columns={columns} rows={students} rowKey={(row) => row.enrollment.id} />
+              <Table columns={columns} rows={students} rowKey={(row) => row.enrollment.id} pageSize={10} />
             </Card>
           </div>
         ) : (

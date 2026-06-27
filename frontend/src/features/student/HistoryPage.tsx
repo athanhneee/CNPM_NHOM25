@@ -201,7 +201,7 @@ export function HistoryPage() {
         <option value="DROPPED">HUY_DK</option>
         <option value="REJECTED">KHONG_DU_DK</option>
       </datalist>
-      <Table columns={columns} rows={rows} rowKey={(row) => row.enrollment.id} />
+      <Table columns={columns} rows={rows} rowKey={(row) => row.enrollment.id} pageSize={10} />
       <Dialog open={Boolean(selected)} title="Timeline đăng ký" description="Chỉ để tra cứu, không cho phép chỉnh sửa." onClose={() => setSelectedId('')}>
         {selected ? <TimelineList items={selected.enrollment.timeline} /> : null}
       </Dialog>
