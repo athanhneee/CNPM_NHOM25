@@ -27,7 +27,6 @@ import {
   EnrollmentReasonDto,
   OverrideEnrollmentDto,
   TransferEnrollmentDto,
-  UpdateEnrollmentDto,
   WithdrawEnrollmentDto,
 } from './dto/update-enrollment.dto'
 import { EnrollmentsService } from './enrollments.service'
@@ -198,13 +197,8 @@ export class EnrollmentsController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'ACADEMIC_OFFICE')
   @Patch(':id')
-  async update(
-    @CurrentUser() user: RequestUser,
-    @Param('id') id: string,
-    @Body() updateEnrollmentDto: UpdateEnrollmentDto,
-  ) {
+  async update() {
     throw new BadRequestException('Vui lòng sử dụng các endpoint cụ thể (cancel, withdraw, v.v.) thay vì PATCH trực tiếp để đảm bảo tính toàn vẹn dữ liệu.');
-    // return this.enrollmentsService.update(id, updateEnrollmentDto, buildActor(user))
   }
 
   @ApiOperation({ summary: 'Xoa ban ghi dang ky' })

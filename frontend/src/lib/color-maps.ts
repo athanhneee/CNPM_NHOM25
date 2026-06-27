@@ -36,4 +36,6 @@ export const accountStatusMap: Record<
   ACTIVE: { label: 'Hoạt động', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
   LOCKED: { label: 'Bị khóa', className: 'bg-[var(--color-accent-100)] text-[var(--color-accent)] ring-[var(--color-accent-disabled)]' },
   INACTIVE: { label: 'Tạm ngưng', className: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  DEFERRED: { label: 'Bảo lưu', className: 'bg-yellow-100 text-yellow-800' },
+  SUSPENDED: { label: 'Đình chỉ', className: 'bg-orange-100 text-orange-800' },
 }

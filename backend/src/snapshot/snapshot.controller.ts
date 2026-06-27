@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common'
+import { Controller, ForbiddenException, Get, Post, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Roles } from '../common/decorators/roles.decorator'
 import { JwtAuthGuard } from '../common/guards/jwt.guard'
@@ -21,13 +21,13 @@ export class SnapshotController {
 
   @ApiOperation({ summary: 'Import snapshot dữ liệu demo' })
   @Post('import')
-  async importSnapshot(@Body() body: any) {
-    return this.snapshotService.importSnapshot(body)
+  async importSnapshot() {
+    throw new ForbiddenException('Tính năng import dữ liệu đã bị khóa trong môi trường production để bảo mật.');
   }
 
   @ApiOperation({ summary: 'Xóa dữ liệu demo hiện tại' })
   @Post('reset')
   async resetSeed() {
-    return this.snapshotService.resetSeed()
+    throw new ForbiddenException('Tính năng này đã bị khóa vì lý do bảo mật.')
   }
 }

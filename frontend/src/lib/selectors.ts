@@ -61,6 +61,16 @@ export const ACCOUNT_LABELS: Record<AccountStatus, string> = {
   ACTIVE: 'Hoạt động',
   LOCKED: 'Bị khóa',
   INACTIVE: 'Tạm ngưng',
+  DEFERRED: 'Bảo lưu',
+  SUSPENDED: 'Đình chỉ',
+}
+
+export const accountStatusOptions: Record<AccountStatus, string> = {
+  ACTIVE: 'Đang hoạt động',
+  LOCKED: 'Bị khóa',
+  INACTIVE: 'Chưa kích hoạt',
+  DEFERRED: 'Bảo lưu',
+  SUSPENDED: 'Đình chỉ',
 }
 
 const ACTIVE_ENROLLMENTS = new Set<EnrollmentStatus>(['REGISTERED', 'WAITLISTED'])
