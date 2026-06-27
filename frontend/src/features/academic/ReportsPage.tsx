@@ -239,7 +239,7 @@ export function ReportsPage() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         <StatCard label="Tổng lớp" value={String(stats.totalSections)} hint="Học kỳ hiện tại" />
         <StatCard label="Tổng sức chứa" value={String(stats.totalCapacity)} hint="Tất cả lớp đang mở" />
-        <StatCard label="Đã đăng ký" value={String(stats.totalRegistered)} hint="Sinh viên DK_TC" />
+        <StatCard label="Đã đăng ký" value={String(stats.totalRegistered)} hint="Sinh viên đăng ký thành công" />
         <StatCard label="Tỷ lệ lấp đầy" value={`${Math.round(stats.averageUtilization * 100)}%`} hint="Theo tổng sức chứa" />
         <StatCard label="Lớp full" value={String(stats.fullSections)} hint="Cần cân nhắc mở thêm lớp" />
         <StatCard label="Waitlist" value={String(stats.totalWaitlisted)} hint="Sinh viên đang chờ" />

@@ -239,7 +239,7 @@ export function WaitlistOverridePage() {
                       return
                     }
                     const promoted = await enrollmentService.processWaitlist(selected.section.id, actor)
-                    pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang DK_TC.` : 'Không có bản ghi nào đủ điều kiện.' })
+                    pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang Đăng ký thành công.` : 'Không có bản ghi nào đủ điều kiện.' })
                   }}
                   type="button"
                 >

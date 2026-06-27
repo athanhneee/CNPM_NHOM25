@@ -195,7 +195,7 @@ export function SemesterSchedulePage() {
     <div className="grid gap-6">
       <PageTitleBlock title="Sinh viên - Thời khóa biểu dạng học kỳ" subtitle="Bảng tổng hợp học phần đang học để đối chiếu lịch, in ấn và rà soát phòng học trong toàn học kỳ." />
       <Card title="Bảng lịch học kỳ" description="Tổng hợp theo môn học, lớp học phần, tiết học, phòng và giảng viên phụ trách">
-        {entries.length ? <SemesterScheduleTable entries={entries} /> : <EmptyState title="Chưa có lịch học" description="Không có buổi học DK_TC nào để hiển thị." />}
+        {entries.length ? <SemesterScheduleTable entries={entries} /> : <EmptyState title="Chưa có lịch học" description="Không có buổi học đã đăng ký thành công nào để hiển thị." />}
       </Card>
     </div>
   )

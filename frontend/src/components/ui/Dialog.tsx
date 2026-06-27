@@ -1,5 +1,4 @@
 import { useEffect, type ReactNode } from 'react'
-import { Button } from '@/components/ui/Button'
 import { X } from 'lucide-react'
 
 interface DialogProps {

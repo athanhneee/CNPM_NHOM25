@@ -164,7 +164,7 @@ export function CancelRegistrationPage() {
       <PageTitleBlock title="Sinh viên - Hủy đăng ký học phần" subtitle="Chỉ cho phép thao tác trong cửa sổ điều chỉnh và cập nhật lại sĩ số lớp học phần." />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-3">
-        <StatCard label="Có thể hủy" value={String(rows.length)} hint="DK_TC hoặc bản ghi chờ nội bộ" />
+        <StatCard label="Có thể hủy" value={String(rows.length)} hint="Đăng ký thành công hoặc chờ xử lý" />
         <StatCard label="Hạn điều chỉnh" value={snapshot.settings.adjustmentEnd.slice(0, 10)} hint="Hạn cuối hiện tại" />
         <StatCard label="Tín chỉ đang ảnh hưởng" value={String(rows.reduce((sum, item) => sum + (item.course?.credits ?? 0), 0))} hint="Tổng tín chỉ của danh sách hủy" />
       </div>

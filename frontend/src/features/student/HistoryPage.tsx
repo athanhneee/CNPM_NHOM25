@@ -195,7 +195,7 @@ export function HistoryPage() {
       </FilterBar>
       <datalist id="enrollment-status-list">
         <option value="ALL" />
-        <option value="REGISTERED">DK_TC</option>
+        <option value="REGISTERED">Đăng ký thành công</option>
         <option value="WAITLISTED">KHONG_DU_DK</option>
         <option value="CANCELLED">HUY_DK</option>
         <option value="DROPPED">HUY_DK</option>

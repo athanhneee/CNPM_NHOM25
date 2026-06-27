@@ -104,7 +104,7 @@ export function formatPdfEnrollmentStatus(status: EnrollmentStatus) {
   const config = pdfEnrollmentStatusMap[code]
   return {
     code,
-    label: `${code} - ${config.label}`,
+    label: config.label,
     tooltip: config.tooltip,
     className: config.className,
   }
@@ -115,7 +115,7 @@ export function formatPdfSectionStatus(status: SectionStatus) {
   const config = pdfSectionStatusMap[code]
   return {
     code,
-    label: `${code} - ${config.label}`,
+    label: config.label,
     tooltip: config.tooltip,
     className: config.className,
   }

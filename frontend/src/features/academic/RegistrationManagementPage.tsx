@@ -261,7 +261,7 @@ export function RegistrationManagementPage() {
                       variant="secondary"
                       onClick={async () => {
                         const promoted = await enrollmentService.processWaitlist(selected.section.id, actor)
-                        pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang DK_TC.` : 'Chưa có bản ghi nào đủ điều kiện.' })
+                        pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang Đăng ký thành công.` : 'Chưa có bản ghi nào đủ điều kiện.' })
                       }}
                       type="button"
                     >
@@ -272,7 +272,7 @@ export function RegistrationManagementPage() {
               </div>
             </Card>
 
-            <Card title="Danh sách sinh viên" description="Hiển thị theo quy ước PDF: DK_TC, HUY_DK, KHONG_DU_DK hoặc NGOAI_TGDK">
+            <Card title="Danh sách sinh viên" description="Hiển thị trạng thái đăng ký thực tế (Đăng ký thành công, Hủy đăng ký, v.v.)">
               <Table columns={columns} rows={students} rowKey={(row) => row.enrollment.id} />
             </Card>
           </div>
