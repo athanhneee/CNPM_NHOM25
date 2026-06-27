@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { SectionStatus } from '@prisma/client'
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger'
+import { LearningMode, SectionStatus } from '@prisma/client'
 import {
   IsBoolean,
   IsEnum,
@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsDateString,
   Max,
   Min,
 } from 'class-validator'
@@ -97,4 +98,19 @@ export class CreateSectionDto {
   @IsString()
   @IsOptional()
   examSlot?: string
+
+  @ApiPropertyOptional()
+  @IsDateString()
+  @IsOptional()
+  startDate?: Date
+
+  @ApiPropertyOptional()
+  @IsDateString()
+  @IsOptional()
+  endDate?: Date
+
+  @ApiPropertyOptional({ enum: LearningMode })
+  @IsEnum(LearningMode)
+  @IsOptional()
+  learningMode?: LearningMode
 }
