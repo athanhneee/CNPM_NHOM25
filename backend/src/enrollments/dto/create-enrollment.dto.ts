@@ -16,6 +16,10 @@ export class CreateEnrollmentDto {
   @IsString()
   @IsNotEmpty()
   semesterId: string
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  force?: boolean
 }
 
 export class RegisterEnrollmentDto {
@@ -28,6 +32,10 @@ export class RegisterEnrollmentDto {
   @IsString()
   @IsNotEmpty()
   sectionId: string
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  force?: boolean
 }
 
 export class CheckEligibilityDto extends RegisterEnrollmentDto {}
