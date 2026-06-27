@@ -14,50 +14,7 @@ import {
   UpdateSectionDto,
 } from './dto/update-section.dto'
 
-function overlaps(startA: number, countA: number, startB: number, countB: number) {
-  const endA = startA + countA
-  const endB = startB + countB
-  return startA < endB && startB < endA
-}
-
-export function parseWeeks(weeks: string | null | undefined): Set<number> {
-  if (!weeks || !weeks.trim()) {
-    return new Set()
-  }
-
-  const result = new Set<number>()
-  for (const segment of weeks.split(',')) {
-    const trimmed = segment.trim()
-    if (!trimmed) continue
-    const rangeParts = trimmed.split('-')
-    if (rangeParts.length === 1) {
-      const num = Number(rangeParts[0])
-      if (Number.isNaN(num) || num <= 0) continue
-      result.add(num)
-    } else if (rangeParts.length === 2) {
-      const start = Number(rangeParts[0])
-      const end = Number(rangeParts[1])
-      if (Number.isNaN(start) || Number.isNaN(end) || start <= 0 || end < start) continue
-      for (let i = start; i <= end; i++) {
-        result.add(i)
-      }
-    }
-  }
-
-  return result
-}
-
-function weeksOverlap(weeksA: string | null | undefined, weeksB: string | null | undefined): boolean {
-  const setA = parseWeeks(weeksA)
-  const setB = parseWeeks(weeksB)
-  if (setA.size === 0 || setB.size === 0) {
-    return true
-  }
-  for (const w of setA) {
-    if (setB.has(w)) return true
-  }
-  return false
-}
+import { checkScheduleConflict, RuleSection } from '../enrollments/enrollment-rules'
 
 const PRESERVED_SECTION_STATUSES: SectionStatus[] = [
   SectionStatus.CANCELLED,
@@ -156,38 +113,68 @@ export class SectionsService {
   }
 
   private async assertScheduleAvailable(
-    payload: Pick<Section, 'id' | 'semesterId' | 'lecturerId' | 'room' | 'weekday' | 'startPeriod' | 'periodCount' | 'weeks'>,
+    payload: Partial<Section> & {
+      semesterId: string;
+      lecturerId: string;
+      room: string;
+      weekday: number;
+      startPeriod: number;
+      periodCount: number;
+      weeks: string;
+      id?: string;
+    },
   ) {
     const comparedSections = await this.prisma.section.findMany({
       where: {
-        id: { not: payload.id },
+        id: payload.id ? { not: payload.id } : undefined,
         semesterId: payload.semesterId,
         status: { not: SectionStatus.CANCELLED },
-        weekday: payload.weekday,
         OR: [{ lecturerId: payload.lecturerId }, { room: payload.room }],
       },
     })
+    
+    if (comparedSections.length === 0) return;
+    
+    const semester = await this.prisma.semesterOption.findUnique({
+      where: { id: payload.semesterId },
+    })
 
-    const lecturerConflict = comparedSections.some(
-      (section) =>
-        section.lecturerId === payload.lecturerId &&
-        overlaps(section.startPeriod, section.periodCount, payload.startPeriod, payload.periodCount) &&
-        weeksOverlap(section.weeks, payload.weeks),
-    )
+    const toRuleSection = (sec: any): RuleSection => ({
+      id: sec.id ?? 'candidate',
+      courseCode: sec.courseCode ?? '',
+      semesterId: sec.semesterId,
+      weekday: sec.weekday,
+      startPeriod: sec.startPeriod,
+      periodCount: sec.periodCount,
+      weeks: sec.weeks,
+      additionalSchedules: sec.additionalSchedules,
+      makeUpSchedules: sec.makeUpSchedules,
+      cancelledDates: sec.cancelledDates,
+      startDate: sec.startDate?.toISOString?.()?.slice(0, 10) ?? null,
+      endDate: sec.endDate?.toISOString?.()?.slice(0, 10) ?? null,
+      capacity: sec.capacity ?? 0,
+      minCapacity: sec.minCapacity ?? 0,
+      registeredCount: sec.registeredCount ?? 0,
+      allowWaitlist: sec.allowWaitlist ?? true,
+      status: sec.status ?? 'OPEN',
+    })
 
-    if (lecturerConflict) {
-      throw new BadRequestException('Giảng viên bị trùng lịch giảng dạy.')
+    const candidateRuleSection = toRuleSection(payload)
+    
+    const lecturerSections = comparedSections.filter(s => s.lecturerId === payload.lecturerId)
+    if (lecturerSections.length > 0) {
+      const conflict = checkScheduleConflict(candidateRuleSection, lecturerSections.map(toRuleSection), semester?.startDate?.toISOString())
+      if (conflict) {
+        throw new BadRequestException('Giảng viên bị trùng lịch giảng dạy.')
+      }
     }
 
-    const roomConflict = comparedSections.some(
-      (section) =>
-        section.room === payload.room &&
-        overlaps(section.startPeriod, section.periodCount, payload.startPeriod, payload.periodCount) &&
-        weeksOverlap(section.weeks, payload.weeks),
-    )
-
-    if (roomConflict) {
-      throw new BadRequestException('Phòng học đã được gán tại khung giờ này.')
+    const roomSections = comparedSections.filter(s => s.room === payload.room)
+    if (roomSections.length > 0) {
+      const conflict = checkScheduleConflict(candidateRuleSection, roomSections.map(toRuleSection), semester?.startDate?.toISOString())
+      if (conflict) {
+        throw new BadRequestException('Phòng học đã được gán tại khung giờ này.')
+      }
     }
   }
 

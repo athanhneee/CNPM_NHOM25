@@ -1201,14 +1201,16 @@ export class EnrollmentsService {
           include: { section: true },
         })
 
-        for (const other of otherEnrollments) {
-          if (
-            other.section.weekday === toSection.weekday &&
-            other.section.startPeriod < toSection.startPeriod + toSection.periodCount &&
-            toSection.startPeriod < other.section.startPeriod + other.section.periodCount
-          ) {
+        if (otherEnrollments.length > 0) {
+          const semester = await tx.semesterOption.findUnique({ where: { id: toSection.semesterId } })
+          const conflict = checkScheduleConflict(
+            asRuleSection(toSection),
+            otherEnrollments.map(e => asRuleSection(e.section)),
+            semester?.startDate?.toISOString()
+          )
+          if (conflict) {
             throw new BadRequestException(
-              `Lớp đích ${toSection.sectionCode} bị trùng lịch với lớp ${other.section.sectionCode} (Thứ ${toSection.weekday}, tiết ${toSection.startPeriod}-${toSection.startPeriod + toSection.periodCount - 1}).`
+              `Lớp đích ${toSection.sectionCode} bị trùng lịch với lớp ${conflict.section.courseCode} (Thứ ${conflict.section.weekday}, tiết ${conflict.section.startPeriod}-${conflict.section.startPeriod + conflict.section.periodCount - 1}).`
             )
           }
         }
