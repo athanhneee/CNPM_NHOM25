@@ -2,6 +2,7 @@ import { BadRequestException, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import * as dotenv from 'dotenv'
+import helmet from 'helmet'
 import { AppModule } from './app.module'
 
 dotenv.config()
@@ -18,6 +19,10 @@ async function bootstrap() {
   assertRequiredEnv()
 
   const app = await NestFactory.create(AppModule)
+
+  // Security headers (XSS, clickjacking, MIME sniffing protection)
+  app.use(helmet())
+
   const corsOrigin =
     process.env.CORS_ORIGIN ?? process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173'
 
