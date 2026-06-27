@@ -371,7 +371,7 @@ interface FlattenedSchedule {
   dateStr?: string // YYYY-MM-DD
 }
 
-function expandSchedules(section: RuleSection, semesterStartDate?: string): FlattenedSchedule[] {
+function expandSchedules(section: RuleSection, _semesterStartDate?: string): FlattenedSchedule[] {
   const result: FlattenedSchedule[] = []
 
   // Helper to parse specific structure
@@ -384,15 +384,6 @@ function expandSchedules(section: RuleSection, semesterStartDate?: string): Flat
     }
 
     for (const weekIdx of activeWeeks) {
-      let dateStr: string | undefined
-      if (semesterStartDate) {
-        const start = new Date(semesterStartDate)
-        // weekIdx is 1-based, weekday is 1=Sun, 2=Mon... (JS Date: 0=Sun)
-        // Wait, normally weekday in Vietnam: 2=Mon, 3=Tue, ..., 8=Sun. 
-        // Let's assume weekday 2-8. JS getDay: 0=Sun, 1=Mon...
-        // We just add (weekIdx - 1) * 7 days.
-        // Actually, without strict date math, let's just keep weekIndex for weekly comparisons.
-      }
       result.push({ weekday, startPeriod, periodCount, weekIndex: weekIdx })
     }
   }
