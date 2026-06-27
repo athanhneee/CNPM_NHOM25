@@ -887,7 +887,7 @@ export function evaluateEnrollmentEligibility(
       const passed = Boolean(section && !conflict)
       let failMessage = REGISTRATION_ERROR_MESSAGES.REG_ERR_SCHEDULE_CONFLICT
       if (conflict) {
-        const weekdayNames = ['', 'Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+        const weekdayNames = ['', '', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật']
         const dayName = weekdayNames[conflict.weekday] ?? `Thứ ${conflict.weekday}`
         const weeksInfo = conflict.overlappingWeeks.length > 0
           ? `, tuần ${conflict.overlappingWeeks.join(', ')}`
