@@ -1,6 +1,5 @@
 import { useState, useMemo, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/Button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export interface TableColumn<T> {
@@ -68,30 +67,30 @@ export function Table<T>({ columns, rows, rowKey, onRowClick, pageSize }: TableP
         </table>
       </div>
       {pageSize && totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 px-2">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-2 py-1">
           <span className="text-sm text-slate-500">
             Hiển thị {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, rows.length)} trong số {rows.length} bản ghi
           </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="flex items-center gap-1"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent"
             >
-              <ChevronLeft className="h-4 w-4" /> Trước
-            </Button>
-            <span className="text-sm font-medium text-slate-700">
-              Trang {currentPage} / {totalPages}
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-base font-medium text-slate-900">
+              {currentPage} / {totalPages}
             </span>
-            <Button
-              variant="secondary"
+            <button
+              type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-1"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent"
             >
-              Sau <ChevronRight className="h-4 w-4" />
-            </Button>
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
