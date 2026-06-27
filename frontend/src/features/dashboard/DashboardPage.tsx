@@ -393,8 +393,8 @@ function StudentProfileCard({ user }: { user: User }) {
       title="Hồ sơ học tập"
       description="Thông tin nhanh để bạn theo dõi học kỳ và định hướng học tập."
     >
-      <div className="grid gap-3 flex-1 justify-between">
-        <div className="space-y-3">
+      <div className="flex flex-col gap-3 flex-1 h-full">
+        <div className="flex flex-col gap-3">
           <div className="rounded-3xl bg-slate-50 px-4 py-3">
             <p className="text-sm font-medium text-slate-500">Sinh viên</p>
             <p className="mt-1 text-xl font-semibold text-slate-950">{user.fullName}</p>
@@ -414,7 +414,7 @@ function StudentProfileCard({ user }: { user: User }) {
         </div>
 
         {hasInterests && (
-          <div className="rounded-3xl border border-cyan-100 bg-cyan-50/60 px-4 py-3 mt-3">
+          <div className="rounded-3xl border border-cyan-100 bg-cyan-50/60 px-4 py-3 mt-auto">
             <p className="text-sm font-medium text-slate-700">Mối quan tâm</p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {user.interests?.map((interest) => (

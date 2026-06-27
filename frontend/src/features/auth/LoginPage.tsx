@@ -342,16 +342,16 @@ export function LoginPage() {
               <div className="space-y-3">
                 <p className="text-sm font-medium text-slate-300 text-center sm:text-left">Thử tài khoản demo</p>
                 <div className="flex flex-nowrap overflow-x-auto gap-2 justify-start sm:justify-between w-full pb-1">
-                  <button type="button" onClick={() => handleDemoClick('n23dccn001@student.ptithcm.edu.vn')} className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-3xl border border-teal-500/30 bg-teal-500/10 text-teal-300 text-xs font-medium hover:bg-teal-500/20 transition-colors">
+                  <button type="button" onClick={() => handleDemoClick('n23dccn001@student.ptithcm.edu.vn')} className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-3xl border text-xs font-medium transition-colors ${identifier === 'n23dccn001@student.ptithcm.edu.vn' ? 'border-teal-500/30 bg-teal-500/10 text-teal-300 hover:bg-teal-500/20' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'}`}>
                     <GraduationCap className="w-3.5 h-3.5" /> Sinh viên
                   </button>
-                  <button type="button" onClick={() => handleDemoClick('nguyenvana@ptithcm.edu.vn')} className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-3xl border border-white/10 bg-white/5 text-slate-300 text-xs font-medium hover:bg-white/10 transition-colors">
+                  <button type="button" onClick={() => handleDemoClick('minh.tuan@ptithcm.edu.vn')} className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-3xl border text-xs font-medium transition-colors ${identifier === 'minh.tuan@ptithcm.edu.vn' ? 'border-teal-500/30 bg-teal-500/10 text-teal-300 hover:bg-teal-500/20' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'}`}>
                     <UserRound className="w-3.5 h-3.5" /> Giảng viên
                   </button>
-                  <button type="button" onClick={() => handleDemoClick('admin@ptithcm.edu.vn')} className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-3xl border border-white/10 bg-white/5 text-slate-300 text-xs font-medium hover:bg-white/10 transition-colors">
+                  <button type="button" onClick={() => handleDemoClick('admin@ptithcm.edu.vn')} className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-3xl border text-xs font-medium transition-colors ${identifier === 'admin@ptithcm.edu.vn' ? 'border-teal-500/30 bg-teal-500/10 text-teal-300 hover:bg-teal-500/20' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'}`}>
                     <ShieldAlert className="w-3.5 h-3.5" /> Quản trị
                   </button>
-                  <button type="button" onClick={() => handleDemoClick('giaovu@ptithcm.edu.vn')} className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-3xl border border-white/10 bg-white/5 text-slate-300 text-xs font-medium hover:bg-white/10 transition-colors">
+                  <button type="button" onClick={() => handleDemoClick('academic.office@ptithcm.edu.vn')} className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-3xl border text-xs font-medium transition-colors ${identifier === 'academic.office@ptithcm.edu.vn' ? 'border-teal-500/30 bg-teal-500/10 text-teal-300 hover:bg-teal-500/20' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'}`}>
                     <UserRound className="w-3.5 h-3.5" /> Giáo vụ
                   </button>
                 </div>
