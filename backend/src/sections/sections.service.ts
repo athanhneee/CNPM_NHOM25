@@ -345,13 +345,25 @@ export class SectionsService {
       },
     })
 
+    // Compute changed fields for audit trail
+    const changedFields: Record<string, { before: any; after: any }> = {}
+    for (const key of Object.keys(updateSectionDto) as Array<keyof typeof updateSectionDto>) {
+      const oldVal = (currentSection as any)[key]
+      const newVal = (section as any)[key]
+      if (oldVal !== newVal && newVal !== undefined) {
+        changedFields[key] = { before: oldVal ?? null, after: newVal }
+      }
+    }
+
     await appendAuditLog(
       this.prisma,
       actor,
       'UPDATE_SECTION',
       section.id,
       'SUCCESS',
-      `Cập nhật lớp ${section.sectionCode}.`,
+      `Cập nhật lớp ${section.sectionCode}. Các trường thay đổi: ${Object.keys(changedFields).join(', ') || 'không có'}.`,
+      { before: Object.fromEntries(Object.entries(changedFields).map(([k, v]) => [k, v.before])),
+        after: Object.fromEntries(Object.entries(changedFields).map(([k, v]) => [k, v.after])) },
     )
 
     return section
@@ -401,6 +413,10 @@ export class SectionsService {
       const cancellationSummary = summarizeSectionCancellation(activeEnrollments)
       const cancellationReason = `Lớp học phần ${currentSection.sectionCode} bị hủy.`
 
+      // Collect affected student IDs
+      const affectedStudentIds = activeEnrollments.map((e) => e.studentId)
+
+      // Cancel all active enrollments + set tuitionStatus to REFUNDED
       await Promise.all(
         activeEnrollments.map((enrollment) =>
           tx.enrollment.update({
@@ -409,6 +425,7 @@ export class SectionsService {
               status: EnrollmentStatus.CANCELLED,
               cancelledAt: now,
               reasonCode: cancellationReason,
+              tuitionStatus: 'REFUNDED',
               timeline: [
                 ...timelineArray(enrollment.timeline),
                 {
@@ -433,17 +450,45 @@ export class SectionsService {
         },
       })
 
+      // Find alternative sections (same courseCode, same semester, not cancelled)
+      const alternativeSections = await tx.section.findMany({
+        where: {
+          courseCode: currentSection.courseCode,
+          semesterId: currentSection.semesterId,
+          id: { not: id },
+          status: { notIn: [SectionStatus.CANCELLED] },
+        },
+        select: {
+          id: true,
+          sectionCode: true,
+          weekday: true,
+          startPeriod: true,
+          periodCount: true,
+          room: true,
+          campus: true,
+          capacity: true,
+          registeredCount: true,
+          status: true,
+          lecturerId: true,
+        },
+      })
+
       await appendAuditLog(
         tx,
         actor,
         'CANCEL_SECTION',
         id,
         'WARNING',
-        `Hủy lớp học phần ${section.sectionCode}. Đã hủy ${cancellationSummary.cancelledEnrollmentCount} bản ghi đăng ký.`,
-        cancellationSummary,
+        `Hủy lớp học phần ${section.sectionCode}. Đã hủy ${cancellationSummary.cancelledEnrollmentCount} bản ghi đăng ký. Học phí: REFUNDED.`,
+        { ...cancellationSummary, affectedStudentIds },
       )
 
-      return section
+      return {
+        section,
+        affectedStudentIds,
+        cancellationSummary,
+        alternativeSections,
+      }
     })
   }
 }
