@@ -6,19 +6,20 @@ import { useUiStore } from '@/app/store/ui.store'
 import { fetchWeather, type RealWeather } from '@/services/weather.api'
 import '@/styles/weather.css'
 
+const DROPS = Array.from({ length: 60 }).map(() => ({
+  left: `${Math.random() * 100}%`,
+  animationDelay: `${Math.random() * 2}s`,
+  animationDuration: `${0.6 + Math.random() * 0.4}s`,
+  opacity: 0.2 + Math.random() * 0.4,
+  width: `${1 + Math.random() * 1.5}px`,
+  height: `${10 + Math.random() * 15}px`
+}))
+
 function RainEffect() {
-  const drops = useMemo(() => Array.from({ length: 60 }).map(() => ({
-    left: `${Math.random() * 100}%`,
-    animationDelay: `${Math.random() * 2}s`,
-    animationDuration: `${0.6 + Math.random() * 0.4}s`,
-    opacity: 0.2 + Math.random() * 0.4,
-    width: `${1 + Math.random() * 1.5}px`,
-    height: `${10 + Math.random() * 15}px`
-  })), [])
 
   return (
     <div className="weather-rain-container pointer-events-none z-0">
-      {drops.map((drop, i) => (
+      {DROPS.map((drop, i) => (
         <div
           key={i}
           className="weather-raindrop"
