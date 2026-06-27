@@ -41,6 +41,37 @@ const PRESERVED_SECTION_STATUSES: SectionStatus[] = [
   SectionStatus.IN_PROGRESS,
 ]
 
+// BUG-007 FIX: Retry helper cho Serializable transaction xung đột
+const MAX_SERIALIZATION_RETRIES = 3
+const BASE_RETRY_DELAY_MS = 50
+
+async function withSerializableRetry<T>(
+  prisma: PrismaService,
+  fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  retries = MAX_SERIALIZATION_RETRIES,
+): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await prisma.$transaction(fn, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      })
+    } catch (err: any) {
+      const isPrismaConflict = err?.code === 'P2034'
+      const isSerializationFailure =
+        err?.message?.includes('could not serialize') ||
+        err?.message?.includes('deadlock detected')
+
+      if ((isPrismaConflict || isSerializationFailure) && attempt < retries) {
+        const jitter = Math.random() * BASE_RETRY_DELAY_MS
+        await new Promise((resolve) => setTimeout(resolve, BASE_RETRY_DELAY_MS * (attempt + 1) + jitter))
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error('Không thể hoàn thành thao tác sau nhiều lần thử lại.')
+}
+
 function buildTimelineItem(actor: AuditActor, status: EnrollmentStatus, note: string, timestamp: Date) {
   return {
     status,
@@ -104,6 +135,8 @@ function asRuleSection(section: Section): RuleSection {
     additionalSchedules: (section as any).additionalSchedules,
     makeUpSchedules: (section as any).makeUpSchedules,
     cancelledDates: (section as any).cancelledDates,
+    startDate: (section as any).startDate?.toISOString?.()?.slice(0, 10) ?? (section as any).startDate ?? null,
+    endDate: (section as any).endDate?.toISOString?.()?.slice(0, 10) ?? (section as any).endDate ?? null,
     capacity: section.capacity,
     minCapacity: (section as any).minCapacity,
     registeredCount: section.registeredCount,
@@ -172,8 +205,12 @@ export class EnrollmentsService {
               id: student.id,
               roles: normalizeRoles(student.roles),
               status: student.status,
+              completedCredits: student.completedCredits ?? 0,
               cohort: (student as any).cohort,
               majorCode: (student as any).majorCode,
+              // BUG-013 FIX: Truyền cờ khóa học vụ vào rule engine
+              registrationLocked: student.registrationLocked ?? false,
+              studentStatus: (student as any).studentStatus ?? undefined,
             } satisfies RuleUser)
           : undefined,
         section: section ? asRuleSection(section) : undefined,
@@ -351,8 +388,8 @@ export class EnrollmentsService {
 
   async registerSection(studentId: string, sectionId: string, actor: AuditActor, force?: boolean) {
     this.assertActorMayActForStudent(studentId, actor)
-    return this.prisma.$transaction(
-      async (tx) => {
+    try {
+      return await withSerializableRetry(this.prisma, async (tx) => {
         await this.assertStudentActive(tx, studentId, actor)
 
         // Check per-student registration lock
@@ -484,9 +521,20 @@ export class EnrollmentsService {
           pdfStatusCode: result.pdfStatusCode,
           checks: result.checks,
         }
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    )
+      })
+    } catch (err: any) {
+      // BUG-007 FIX: Bắt lỗi unique constraint (P2002) từ @@unique([studentId, sectionId])
+      if (err?.code === 'P2002') {
+        return {
+          success: false,
+          message: 'Sinh viên đã có bản ghi đăng ký cho lớp này.',
+          errorCode: 'REG_ERR_ALREADY_REGISTERED' as const,
+          pdfStatusCode: 'KHONG_DU_DK' as const,
+          checks: [],
+        }
+      }
+      throw err
+    }
   }
 
   async update(id: string, updateEnrollmentDto: UpdateEnrollmentDto, actor: AuditActor) {
@@ -954,8 +1002,13 @@ export class EnrollmentsService {
     return violations;
   }
 
-  private async _processWaitlist(tx: any, sectionId: string, actor: any, now: Date) {
-    const section = await tx.section.findUnique({ where: { id: sectionId } });
+  private async _processWaitlist(tx: Prisma.TransactionClient, sectionId: string, actor: AuditActor, now: Date) {
+    // BUG-016 FIX: Lock the section row (SELECT ... FOR UPDATE) to prevent concurrent waitlist processing
+    const sections = await tx.$queryRawUnsafe<any[]>(
+      `SELECT * FROM "Section" WHERE "id" = $1 FOR UPDATE`,
+      sectionId,
+    );
+    const section = sections[0];
     if (!section || section.registeredCount >= section.capacity) return [];
 
     const waitlisted = await tx.enrollment.findMany({
@@ -964,15 +1017,15 @@ export class EnrollmentsService {
     });
 
     const promoted = [];
-    let latestSection = section;
+    let latestRegisteredCount = section.registeredCount;
+    let latestWaitlistCount = section.waitlistCount;
 
     for (const candidate of waitlisted) {
-      if (latestSection.registeredCount >= latestSection.capacity) {
+      if (latestRegisteredCount >= section.capacity) {
         break;
       }
 
       const { context } = await this.loadEligibilityContext(tx, candidate.studentId, sectionId);
-      // Ensure we import evaluateEnrollmentEligibility if it isn't, but it is.
       const result = evaluateEnrollmentEligibility(context, {
         ignoreRegistrationWindow: true,
         excludedEnrollmentId: candidate.id,
@@ -982,6 +1035,7 @@ export class EnrollmentsService {
         continue;
       }
 
+      // BUG-016 FIX: Dùng đúng properties actorId/actorRole thay vì actor.id/actor.role
       const updatedEnrollment = await tx.enrollment.update({
         where: { id: candidate.id },
         data: {
@@ -990,41 +1044,47 @@ export class EnrollmentsService {
           timeline: [
             ...(Array.isArray(candidate.timeline) ? candidate.timeline : []),
             {
-              actorId: actor.id,
-              actorRole: actor.role,
-              action: 'REGISTERED',
-              message: 'Được chuyển từ danh sách chờ sang đăng ký thành công.',
+              status: 'REGISTERED',
+              actorId: actor.actorId,
+              actorRole: actor.actorRole,
+              note: 'Được chuyển từ danh sách chờ sang đăng ký thành công.',
               timestamp: now.toISOString(),
             }
           ],
         },
       });
 
-      const registeredCount = latestSection.registeredCount + 1;
-      const waitlistCount = Math.max(latestSection.waitlistCount - 1, 0);
-      
-      const statusMapping: Record<string, string> = {
-        'OPEN': 'OPEN',
-        'CLOSED': 'CLOSED',
-        'FULL': 'FULL',
-        'CANCELLED': 'CANCELLED',
-        'IN_PROGRESS': 'IN_PROGRESS',
-        'COMPLETED': 'COMPLETED'
-      };
-      
-      latestSection = await tx.section.update({
-        where: { id: sectionId },
-        data: {
-          registeredCount,
-          waitlistCount,
-          status: registeredCount >= latestSection.capacity ? 'FULL' : statusMapping[latestSection.status] ?? 'OPEN',
-        },
-      });
+      latestRegisteredCount += 1;
+      latestWaitlistCount = Math.max(latestWaitlistCount - 1, 0);
       promoted.push(updatedEnrollment);
     }
 
     if (promoted.length > 0) {
-      // Create audit logs for promotion
+      // Update section counters once after all promotions
+      await tx.section.update({
+        where: { id: sectionId },
+        data: {
+          registeredCount: latestRegisteredCount,
+          waitlistCount: latestWaitlistCount,
+          status: latestRegisteredCount >= section.capacity ? 'FULL' : section.status === 'FULL' ? 'OPEN' : section.status,
+        },
+      });
+
+      // Reorder remaining waitlist entries
+      const remainingWaitlisted = await tx.enrollment.findMany({
+        where: { sectionId, status: 'WAITLISTED' },
+        orderBy: [{ waitlistOrder: 'asc' }, { createdAt: 'asc' }],
+      });
+      for (let i = 0; i < remainingWaitlisted.length; i++) {
+        if (remainingWaitlisted[i].waitlistOrder !== i + 1) {
+          await tx.enrollment.update({
+            where: { id: remainingWaitlisted[i].id },
+            data: { waitlistOrder: i + 1 },
+          });
+        }
+      }
+
+      // Audit logs for each promotion
       for (const p of promoted) {
         await appendAuditLog(
           tx,
@@ -1223,15 +1283,21 @@ export class EnrollmentsService {
 
     for (const row of rows) {
       try {
-        const result = await this.overrideEnrollment(
-          { studentId: row.studentId, sectionId: row.sectionId, reason: 'Nhập đăng ký hàng loạt' },
-          actor,
-        )
-        results.success.push({
-          studentId: row.studentId,
-          sectionId: row.sectionId,
-          enrollmentId: result.id,
-        })
+        const result = await this.registerSection(row.studentId, row.sectionId, actor)
+        
+        if (result.success && result.enrollment) {
+          results.success.push({
+            studentId: row.studentId,
+            sectionId: row.sectionId,
+            enrollmentId: result.enrollment.id,
+          })
+        } else {
+          results.failed.push({
+            studentId: row.studentId,
+            sectionId: row.sectionId,
+            error: result.message ?? 'Lỗi kiểm tra điều kiện',
+          })
+        }
       } catch (err: any) {
         results.failed.push({
           studentId: row.studentId,

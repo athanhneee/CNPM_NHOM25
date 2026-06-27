@@ -1,5 +1,5 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger'
-import { LearningMode, SectionStatus } from '@prisma/client'
+import { LearningMode } from '@prisma/client'
 import { IsBoolean, IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator'
 
 export class UpdateSectionDto {
@@ -8,15 +8,9 @@ export class UpdateSectionDto {
   @IsOptional()
   sectionCode?: string
 
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  courseCode?: string
-
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  semesterId?: string
+  // BUG-010 FIX: courseCode và semesterId bị loại bỏ khỏi DTO cập nhật.
+  // Đây là các trường định danh học vụ, bất biến sau khi tạo lớp.
+  // Muốn đổi môn/học kỳ → phải hủy lớp cũ và tạo lớp mới.
 
   @ApiPropertyOptional()
   @IsString()
@@ -73,10 +67,10 @@ export class UpdateSectionDto {
   @IsOptional()
   allowWaitlist?: boolean
 
-  @ApiPropertyOptional({ enum: SectionStatus })
-  @IsEnum(SectionStatus)
-  @IsOptional()
-  status?: SectionStatus
+  // BUG-009 FIX: status bị loại bỏ khỏi DTO cập nhật chung.
+  // Chuyển trạng thái phải đi qua workflow riêng:
+  //   - Hủy lớp → DELETE /api/sections/:id (workflow cancel đầy đủ)
+  //   - Trạng thái OPEN/FULL được tính tự động từ sĩ số.
 
   @ApiPropertyOptional()
   @IsString()

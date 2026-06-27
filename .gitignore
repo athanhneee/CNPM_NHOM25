@@ -25,6 +25,7 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+.agents/
 
 # Project files
 *.zip
@@ -32,6 +33,7 @@ Thumbs.db
 baocao.md
 checklist.md
 loicansua.md
+loichinh.md
 duan.zip
 *.md
 !README.md

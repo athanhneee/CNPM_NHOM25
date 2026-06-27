@@ -285,6 +285,10 @@ export class SectionsService {
         campus: createSectionDto.campus ?? 'PTIT HCM',
         notes: createSectionDto.notes,
         examSlot: createSectionDto.examSlot,
+        // BUG-017 FIX: Lưu đầy đủ startDate, endDate, learningMode từ FE
+        startDate: createSectionDto.startDate ?? null,
+        endDate: createSectionDto.endDate ?? null,
+        learningMode: createSectionDto.learningMode,
       },
     })
 
@@ -308,17 +312,22 @@ export class SectionsService {
       throw new BadRequestException('Sức chứa không được nhỏ hơn số sinh viên đã đăng ký.')
     }
 
-    if (
-      nextSection.sectionCode !== currentSection.sectionCode ||
-      nextSection.semesterId !== currentSection.semesterId
-    ) {
-      await this.assertUniqueSectionCode(nextSection.sectionCode, nextSection.semesterId, id)
+    // BUG-009 FIX: Không cho phép cập nhật lớp đã bị hủy/hoàn thành
+    if (currentSection.status === SectionStatus.CANCELLED || currentSection.status === SectionStatus.COMPLETED) {
+      throw new BadRequestException(`Không thể cập nhật lớp đang ở trạng thái ${currentSection.status}.`)
     }
 
-    await this.assertCourseSemesterLecturer(nextSection.courseCode, nextSection.semesterId, nextSection.lecturerId)
+    if (
+      nextSection.sectionCode !== currentSection.sectionCode
+    ) {
+      // BUG-010 FIX: semesterId giờ là bất biến, chỉ check sectionCode thay đổi
+      await this.assertUniqueSectionCode(nextSection.sectionCode, currentSection.semesterId, id)
+    }
+
+    await this.assertCourseSemesterLecturer(currentSection.courseCode, currentSection.semesterId, nextSection.lecturerId)
     await this.assertScheduleAvailable({
       id,
-      semesterId: nextSection.semesterId,
+      semesterId: currentSection.semesterId,
       lecturerId: nextSection.lecturerId,
       room: nextSection.room,
       weekday: nextSection.weekday,
@@ -341,7 +350,8 @@ export class SectionsService {
       data: {
         ...updateSectionDto,
         roomId,
-        status: updateSectionDto.status ?? getSectionStatus(nextSection),
+        // BUG-009 FIX: status luôn được tính tự động, không nhận từ DTO
+        status: getSectionStatus(nextSection),
       },
     })
 

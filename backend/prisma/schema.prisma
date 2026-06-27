@@ -223,6 +223,7 @@ model Enrollment {
   semester         SemesterOption   @relation(fields: [semesterId], references: [id])
   student          User             @relation(fields: [studentId], references: [id])
 
+  @@unique([studentId, sectionId])
   @@index([studentId, semesterId])
   @@index([sectionId])
   @@index([status])

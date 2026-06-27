@@ -61,6 +61,7 @@ export const REGISTRATION_ERROR_MESSAGES: Record<RegistrationErrorCode, string> 
   REG_ERR_NOT_ENOUGH_ACCUMULATED_CREDITS: 'Sinh viên chưa tích lũy đủ số tín chỉ tối thiểu yêu cầu cho môn học này.',
 }
 
+// BUG-013 FIX: Thêm cờ khóa học vụ (holds) vào RuleUser
 export interface RuleUser {
   id: string
   roles: string[]
@@ -68,6 +69,8 @@ export interface RuleUser {
   completedCredits?: number
   cohort?: string
   majorCode?: string
+  registrationLocked?: boolean   // Cờ khóa đăng ký (nợ học phí, vi phạm, ...)
+  studentStatus?: string         // Trạng thái học vụ (Đang học, Bảo lưu, Đình chỉ, Thôi học, ...)
 }
 
 export interface RuleCourse {
@@ -90,11 +93,268 @@ export interface RuleSection {
   additionalSchedules?: unknown
   makeUpSchedules?: unknown
   cancelledDates?: unknown
+  startDate?: string | null  // BUG-012 FIX: date range support
+  endDate?: string | null    // BUG-012 FIX: date range support
   capacity: number
   minCapacity: number
   registeredCount: number
   allowWaitlist: boolean
   status: string
+}
+
+export interface ScheduleConflictDetail {
+  conflictSectionId: string
+  weekday: number
+  candidatePeriods: string
+  conflictPeriods: string
+  overlappingWeeks: number[]
+}
+
+// ── BUG-012 FIX: Occurrence-based schedule conflict engine ──
+
+/** A concrete occurrence: one specific date + period range */
+interface ScheduleOccurrence {
+  dateStr: string       // YYYY-MM-DD
+  weekday: number       // 2-8 (VN convention)
+  startPeriod: number
+  periodCount: number
+}
+
+/** Fallback entry when dates are not available */
+interface FallbackSchedule {
+  weekday: number
+  startPeriod: number
+  periodCount: number
+  weekIndex?: number
+}
+
+/** Convert JS Date.getDay() (0=Sun) to VN weekday (2=Mon..8=Sun) */
+function jsToVnWeekday(jsDay: number): number {
+  return jsDay === 0 ? 8 : jsDay + 1
+}
+
+/** Format date as YYYY-MM-DD */
+function toDateStr(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+/** Generate all dates between start and end (inclusive) matching a VN weekday */
+function generateWeeklyDates(
+  startDate: string,
+  endDate: string,
+  vnWeekday: number,
+): string[] {
+  const result: string[] = []
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  // VN weekday to JS day: 2->1, 3->2, ..., 7->6, 8->0
+  const jsDay = vnWeekday === 8 ? 0 : vnWeekday - 1
+
+  const cursor = new Date(start)
+  // Move cursor to the first matching day
+  while (cursor.getDay() !== jsDay && cursor <= end) {
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  while (cursor <= end) {
+    result.push(toDateStr(cursor))
+    cursor.setDate(cursor.getDate() + 7)
+  }
+  return result
+}
+
+/**
+ * Expand a section's schedules into concrete occurrences.
+ * If startDate/endDate are available, produces exact date occurrences.
+ * Otherwise falls back to weekday+weekIndex matching.
+ */
+function expandToOccurrences(
+  section: RuleSection,
+  semesterStartDate?: string,
+): { occurrences: ScheduleOccurrence[]; fallbacks: FallbackSchedule[] } {
+  const occurrences: ScheduleOccurrence[] = []
+  const fallbacks: FallbackSchedule[] = []
+  const cancelledSet = new Set(
+    Array.isArray(section.cancelledDates)
+      ? (section.cancelledDates as string[])
+      : [],
+  )
+
+  const sectionStart = section.startDate || semesterStartDate
+  const sectionEnd = section.endDate
+  const hasDates = Boolean(sectionStart && sectionEnd)
+
+  // Helper: add weekly schedule entries
+  const addWeekly = (weekday: number, startPeriod: number, periodCount: number, weeksStr: string) => {
+    if (hasDates) {
+      const allDates = generateWeeklyDates(sectionStart!, sectionEnd!, weekday)
+      const activeWeeks = parseWeeks(weeksStr)
+
+      for (const dateStr of allDates) {
+        // If weeks are specified, filter by week index
+        if (activeWeeks.size > 0) {
+          const daysSinceStart = Math.floor(
+            (new Date(dateStr).getTime() - new Date(sectionStart!).getTime()) / (1000 * 60 * 60 * 24),
+          )
+          const weekIdx = Math.floor(daysSinceStart / 7) + 1
+          if (!activeWeeks.has(weekIdx)) continue
+        }
+
+        // Skip cancelled dates
+        if (cancelledSet.has(dateStr)) continue
+
+        occurrences.push({ dateStr, weekday, startPeriod, periodCount })
+      }
+    } else {
+      // Fallback: no dates, use week index matching
+      const activeWeeks = Array.from(parseWeeks(weeksStr))
+      if (activeWeeks.length === 0) {
+        fallbacks.push({ weekday, startPeriod, periodCount })
+      } else {
+        for (const weekIdx of activeWeeks) {
+          fallbacks.push({ weekday, startPeriod, periodCount, weekIndex: weekIdx })
+        }
+      }
+    }
+  }
+
+  // 1. Primary schedule
+  addWeekly(section.weekday, section.startPeriod, section.periodCount, section.weeks)
+
+  // 2. Additional schedules
+  if (Array.isArray(section.additionalSchedules)) {
+    for (const sch of section.additionalSchedules as any[]) {
+      if (typeof sch.weekday === 'number' && typeof sch.startPeriod === 'number' && typeof sch.periodCount === 'number') {
+        addWeekly(sch.weekday, sch.startPeriod, sch.periodCount, sch.weeks || '')
+      }
+    }
+  }
+
+  // 3. Makeup schedules (always exact dates)
+  if (Array.isArray(section.makeUpSchedules)) {
+    for (const mk of section.makeUpSchedules as any[]) {
+      if (mk.date && typeof mk.startPeriod === 'number' && typeof mk.periodCount === 'number') {
+        const dateStr = typeof mk.date === 'string' ? mk.date : toDateStr(new Date(mk.date))
+        // Skip if this makeup date is also in cancelled list
+        if (cancelledSet.has(dateStr)) continue
+        const d = new Date(dateStr)
+        const weekday = jsToVnWeekday(d.getDay())
+        occurrences.push({ dateStr, weekday, startPeriod: mk.startPeriod, periodCount: mk.periodCount })
+      }
+    }
+  }
+
+  return { occurrences, fallbacks }
+}
+
+function checkPeriodOverlap(start1: number, count1: number, start2: number, count2: number) {
+  return start1 < start2 + count2 && start2 < start1 + count1
+}
+
+export function checkScheduleConflict(
+  candidate: RuleSection,
+  comparedSections: RuleSection[],
+  semesterStartDate?: string,
+): ScheduleConflictDetail | null {
+  const candidateExpanded = expandToOccurrences(candidate, semesterStartDate)
+
+  for (const section of comparedSections) {
+    const sectionExpanded = expandToOccurrences(section, semesterStartDate)
+
+    let conflictWeekday = 0
+    let conflictCandidatePeriods = ''
+    let conflictPeriods = ''
+    const overlappingWeeks: number[] = []
+    let hasConflict = false
+
+    // ── Date-based comparison (most accurate) ──
+    for (const cOcc of candidateExpanded.occurrences) {
+      for (const sOcc of sectionExpanded.occurrences) {
+        if (cOcc.dateStr !== sOcc.dateStr) continue
+        if (!checkPeriodOverlap(cOcc.startPeriod, cOcc.periodCount, sOcc.startPeriod, sOcc.periodCount)) continue
+
+        hasConflict = true
+        conflictWeekday = cOcc.weekday
+        conflictCandidatePeriods = `${cOcc.startPeriod}-${cOcc.startPeriod + cOcc.periodCount - 1}`
+        conflictPeriods = `${sOcc.startPeriod}-${sOcc.startPeriod + sOcc.periodCount - 1}`
+        break
+      }
+      if (hasConflict) break
+    }
+
+    // ── Cross: candidate occurrence vs section fallback ──
+    if (!hasConflict) {
+      for (const cOcc of candidateExpanded.occurrences) {
+        for (const sFb of sectionExpanded.fallbacks) {
+          if (cOcc.weekday !== sFb.weekday) continue
+          if (!checkPeriodOverlap(cOcc.startPeriod, cOcc.periodCount, sFb.startPeriod, sFb.periodCount)) continue
+          hasConflict = true
+          conflictWeekday = cOcc.weekday
+          conflictCandidatePeriods = `${cOcc.startPeriod}-${cOcc.startPeriod + cOcc.periodCount - 1}`
+          conflictPeriods = `${sFb.startPeriod}-${sFb.startPeriod + sFb.periodCount - 1}`
+          break
+        }
+        if (hasConflict) break
+      }
+    }
+
+    // ── Cross: candidate fallback vs section occurrence ──
+    if (!hasConflict) {
+      for (const cFb of candidateExpanded.fallbacks) {
+        for (const sOcc of sectionExpanded.occurrences) {
+          if (cFb.weekday !== sOcc.weekday) continue
+          if (!checkPeriodOverlap(cFb.startPeriod, cFb.periodCount, sOcc.startPeriod, sOcc.periodCount)) continue
+          hasConflict = true
+          conflictWeekday = cFb.weekday
+          conflictCandidatePeriods = `${cFb.startPeriod}-${cFb.startPeriod + cFb.periodCount - 1}`
+          conflictPeriods = `${sOcc.startPeriod}-${sOcc.startPeriod + sOcc.periodCount - 1}`
+          break
+        }
+        if (hasConflict) break
+      }
+    }
+
+    // ── Fallback-only comparison (old behavior, when no dates available) ──
+    if (!hasConflict) {
+      for (const cFb of candidateExpanded.fallbacks) {
+        for (const sFb of sectionExpanded.fallbacks) {
+          if (cFb.weekday !== sFb.weekday) continue
+          if (!checkPeriodOverlap(cFb.startPeriod, cFb.periodCount, sFb.startPeriod, sFb.periodCount)) continue
+
+          if (cFb.weekIndex !== undefined && sFb.weekIndex !== undefined) {
+            if (cFb.weekIndex === sFb.weekIndex) {
+              if (!overlappingWeeks.includes(cFb.weekIndex)) {
+                overlappingWeeks.push(cFb.weekIndex)
+              }
+              conflictWeekday = cFb.weekday
+              conflictCandidatePeriods = `${cFb.startPeriod}-${cFb.startPeriod + cFb.periodCount - 1}`
+              conflictPeriods = `${sFb.startPeriod}-${sFb.startPeriod + sFb.periodCount - 1}`
+            }
+          } else {
+            // One or both have no week info → generic overlap
+            hasConflict = true
+            conflictWeekday = cFb.weekday
+            conflictCandidatePeriods = `${cFb.startPeriod}-${cFb.startPeriod + cFb.periodCount - 1}`
+            conflictPeriods = `${sFb.startPeriod}-${sFb.startPeriod + sFb.periodCount - 1}`
+            break
+          }
+        }
+        if (hasConflict) break
+      }
+    }
+
+    if (hasConflict || overlappingWeeks.length > 0) {
+      overlappingWeeks.sort((a, b) => a - b)
+      return {
+        conflictSectionId: section.id,
+        weekday: conflictWeekday,
+        candidatePeriods: conflictCandidatePeriods,
+        conflictPeriods,
+        overlappingWeeks,
+      }
+    }
+  }
+
+  return null
 }
 
 export interface RuleEnrollment {
@@ -229,7 +489,9 @@ export interface EligibilityCheckResult {
   }>
 }
 
-const HISTORY_PASS_STATUSES = new Set<EnrollmentStatus>(['COMPLETED'])
+// BUG-011 FIX: Enrollment status 'COMPLETED' không được coi là đã đậu.
+// Việc kiểm tra tiên quyết chỉ dựa trên StudentResult.passed = true.
+const HISTORY_PASS_STATUSES = new Set<EnrollmentStatus>([])
 const HISTORY_RESULT_STATUSES = new Set<EnrollmentStatus>(['COMPLETED', 'FAILED'])
 const ACTIVE_ENROLLMENT_STATUSES = new Set<EnrollmentStatus>(['REGISTERED', 'WAITLISTED'])
 const DUPLICATE_ENROLLMENT_STATUSES = new Set<EnrollmentStatus>(['REGISTERED', 'WAITLISTED', 'PENDING'])
@@ -309,14 +571,6 @@ export function weeksOverlap(a: string, b: string): boolean {
   return false
 }
 
-export interface ScheduleConflictDetail {
-  conflictSectionId: string
-  weekday: number
-  candidatePeriods: string
-  conflictPeriods: string
-  overlappingWeeks: number[]
-}
-
 function buildRuleResult(
   key: string,
   label: string,
@@ -363,135 +617,6 @@ export function calculateCurrentCredits(
     }, 0)
 }
 
-interface FlattenedSchedule {
-  weekday: number
-  startPeriod: number
-  periodCount: number
-  weekIndex?: number
-  dateStr?: string // YYYY-MM-DD
-}
-
-function expandSchedules(section: RuleSection, _semesterStartDate?: string): FlattenedSchedule[] {
-  const result: FlattenedSchedule[] = []
-
-  // Helper to parse specific structure
-  const addWeekly = (weekday: number, startPeriod: number, periodCount: number, weeksStr: string) => {
-    const activeWeeks = Array.from(parseWeeks(weeksStr))
-    if (activeWeeks.length === 0) {
-      // If no weeks info, push one record without weekIndex to represent "all weeks"
-      result.push({ weekday, startPeriod, periodCount })
-      return
-    }
-
-    for (const weekIdx of activeWeeks) {
-      result.push({ weekday, startPeriod, periodCount, weekIndex: weekIdx })
-    }
-  }
-
-  // 1. Primary Schedule
-  addWeekly(section.weekday, section.startPeriod, section.periodCount, section.weeks)
-
-  // 2. Additional Schedules
-  if (Array.isArray(section.additionalSchedules)) {
-    for (const sch of section.additionalSchedules as any[]) {
-      if (typeof sch.weekday === 'number' && typeof sch.startPeriod === 'number' && typeof sch.periodCount === 'number') {
-        addWeekly(sch.weekday, sch.startPeriod, sch.periodCount, sch.weeks || '')
-      }
-    }
-  }
-
-  // 3. MakeUp Schedules (Fallback to mapping Date to Weekday if possible)
-  if (Array.isArray(section.makeUpSchedules)) {
-    for (const mk of section.makeUpSchedules as any[]) {
-      if (mk.date && typeof mk.startPeriod === 'number' && typeof mk.periodCount === 'number') {
-        const d = new Date(mk.date)
-        const jsDay = d.getDay()
-        const weekday = jsDay === 0 ? 8 : jsDay + 1 // Map JS Day (0-6) to VN Weekday (2-8)
-        result.push({
-          weekday,
-          startPeriod: mk.startPeriod,
-          periodCount: mk.periodCount,
-          dateStr: mk.date, // Store exact date to avoid false positive
-        })
-      }
-    }
-  }
-
-  // 4. Filter out cancelled dates
-  if (Array.isArray(section.cancelledDates)) {
-    const cancelledSet = new Set(section.cancelledDates as string[])
-    return result.filter(r => !r.dateStr || !cancelledSet.has(r.dateStr))
-  }
-
-  return result
-}
-
-function checkPeriodOverlap(start1: number, count1: number, start2: number, count2: number) {
-  return start1 < start2 + count2 && start2 < start1 + count1
-}
-
-export function checkScheduleConflict(
-  candidate: RuleSection,
-  comparedSections: RuleSection[],
-  semesterStartDate?: string,
-): ScheduleConflictDetail | null {
-  const candidateSchedules = expandSchedules(candidate, semesterStartDate)
-
-  for (const section of comparedSections) {
-    const sectionSchedules = expandSchedules(section, semesterStartDate)
-
-    const overlappingWeeks: number[] = []
-    let conflictWeekday = 0
-    let conflictCandidatePeriods = ''
-    let conflictPeriods = ''
-    let hasGenericOverlap = false
-
-    for (const cSch of candidateSchedules) {
-      for (const sSch of sectionSchedules) {
-        if (cSch.weekday !== sSch.weekday) continue
-        if (!checkPeriodOverlap(cSch.startPeriod, cSch.periodCount, sSch.startPeriod, sSch.periodCount)) continue
-
-        conflictWeekday = cSch.weekday
-        conflictCandidatePeriods = `${cSch.startPeriod}-${cSch.startPeriod + cSch.periodCount - 1}`
-        conflictPeriods = `${sSch.startPeriod}-${sSch.startPeriod + sSch.periodCount - 1}`
-
-        // If both have exact dates, they must match
-        if (cSch.dateStr && sSch.dateStr) {
-          if (cSch.dateStr === sSch.dateStr) {
-            if (cSch.weekIndex && !overlappingWeeks.includes(cSch.weekIndex)) {
-              overlappingWeeks.push(cSch.weekIndex)
-            }
-          }
-        }
-        // If both have weekIndex, they must match
-        else if (cSch.weekIndex !== undefined && sSch.weekIndex !== undefined) {
-          if (cSch.weekIndex === sSch.weekIndex) {
-            if (!overlappingWeeks.includes(cSch.weekIndex)) {
-              overlappingWeeks.push(cSch.weekIndex)
-            }
-          }
-        }
-        // If one is generic (no week/date), it overlaps everything on that weekday
-        else {
-          hasGenericOverlap = true
-        }
-      }
-    }
-
-    if (overlappingWeeks.length > 0 || hasGenericOverlap) {
-      overlappingWeeks.sort((a, b) => a - b)
-      return {
-        conflictSectionId: section.id,
-        weekday: conflictWeekday,
-        candidatePeriods: conflictCandidatePeriods,
-        conflictPeriods,
-        overlappingWeeks,
-      }
-    }
-  }
-
-  return null
-}
 
 export function evaluateEnrollmentEligibility(
   context: EligibilityContext,
@@ -590,6 +715,38 @@ export function evaluateEnrollmentEligibility(
     }
   }
 
+  // BUG-013 FIX: Danh sách trạng thái học vụ được phép đăng ký
+  const ALLOWED_STUDENT_STATUSES = new Set([
+    'Đang học',
+    'DANG_HOC',
+    'ACTIVE',
+    'STUDYING',
+    undefined, // cho phép nếu chưa có studentStatus (backward compat)
+    null,
+    '',
+  ])
+
+  // BUG-013 FIX: Trạng thái bị cấm và message tương ứng
+  const BLOCKED_STATUS_MESSAGES: Record<string, string> = {
+    'Bảo lưu': 'Sinh viên đang bảo lưu, không thể đăng ký.',
+    'BAO_LUU': 'Sinh viên đang bảo lưu, không thể đăng ký.',
+    'DEFERRED': 'Sinh viên đang bảo lưu, không thể đăng ký.',
+    'Đình chỉ': 'Sinh viên bị đình chỉ, không thể đăng ký.',
+    'DINH_CHI': 'Sinh viên bị đình chỉ, không thể đăng ký.',
+    'SUSPENDED': 'Sinh viên bị đình chỉ, không thể đăng ký.',
+    'Thôi học': 'Sinh viên đã thôi học, không thể đăng ký.',
+    'THOI_HOC': 'Sinh viên đã thôi học, không thể đăng ký.',
+    'WITHDRAWN': 'Sinh viên đã thôi học, không thể đăng ký.',
+    'Tốt nghiệp': 'Sinh viên đã tốt nghiệp, không thể đăng ký.',
+    'TOT_NGHIEP': 'Sinh viên đã tốt nghiệp, không thể đăng ký.',
+    'GRADUATED': 'Sinh viên đã tốt nghiệp, không thể đăng ký.',
+  }
+
+  const studentStatusAllowed = ALLOWED_STUDENT_STATUSES.has(student?.studentStatus as any)
+  const blockedMessage = student?.studentStatus
+    ? BLOCKED_STATUS_MESSAGES[student.studentStatus] ?? `Trạng thái học vụ "${student.studentStatus}" không được phép đăng ký.`
+    : 'Không xác định trạng thái học vụ.'
+
   const checks = [
     buildRuleResult(
       'account',
@@ -598,6 +755,24 @@ export function evaluateEnrollmentEligibility(
       'Tài khoản sinh viên đang hoạt động.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_ACCOUNT_INACTIVE,
       student ? 'REG_ERR_ACCOUNT_INACTIVE' : 'REG_ERR_STUDENT_NOT_FOUND',
+    ),
+    // BUG-013 FIX: Kiểm tra cờ khóa đăng ký (nợ học phí, vi phạm, etc.)
+    buildRuleResult(
+      'registration-lock',
+      'Không bị khóa đăng ký',
+      Boolean(student && !student.registrationLocked),
+      'Tài khoản chưa bị khóa đăng ký.',
+      'Tài khoản bị khóa đăng ký (có thể do nợ học phí hoặc vi phạm). Vui lòng liên hệ Phòng Đào tạo.',
+      'REG_ERR_REGISTRATION_LOCKED' as any,
+    ),
+    // BUG-013 FIX: Kiểm tra trạng thái học vụ (bảo lưu, đình chỉ, thôi học)
+    buildRuleResult(
+      'student-status',
+      'Trạng thái học vụ hợp lệ',
+      studentStatusAllowed,
+      'Trạng thái học vụ cho phép đăng ký.',
+      blockedMessage,
+      'REG_ERR_STUDENT_STATUS_BLOCKED' as any,
     ),
     buildRuleResult(
       'section-exists',
@@ -618,7 +793,9 @@ export function evaluateEnrollmentEligibility(
     buildRuleResult(
       'section-status',
       'Trạng thái lớp',
-      Boolean(section && (section.status === 'OPEN' || section.status === 'FULL' || options.ignoreCapacity)),
+      // BUG-008 FIX: ignoreCapacity chỉ bypass sĩ số, KHÔNG bypass trạng thái lớp.
+      // Lớp CANCELLED/COMPLETED/CLOSED/IN_PROGRESS không được phép đăng ký dù force=true.
+      Boolean(section && (section.status === 'OPEN' || section.status === 'FULL')),
       'Lớp học phần đang mở đăng ký.',
       section?.status === 'CANCELLED'
         ? REGISTRATION_ERROR_MESSAGES.REG_ERR_CLASS_CANCELLED

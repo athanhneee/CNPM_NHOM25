@@ -7,6 +7,7 @@ import { normalizeRoles, toPublicUser, toPublicUsers } from '../common/utils/pub
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateUserDto } from './dto/create-user.dto'
 import { ImportStudentCandidateDto } from './dto/import-students.dto'
+import { UpdateMyProfileDto } from './dto/update-my-profile.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { UserQueryDto } from './dto/user-query.dto'
 
@@ -259,6 +260,35 @@ export class UsersService {
     return toPublicUser(updatedUser)
   }
 
+  async updateMyProfile(id: string, dto: UpdateMyProfileDto, actor: AuditActor) {
+    const currentUser = await this.prisma.user.findUnique({ where: { id } })
+    if (!currentUser) {
+      throw new NotFoundException('Không tìm thấy tài khoản người dùng.')
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        phone: dto.phone,
+        secondaryEmail: dto.secondaryEmail,
+        address: dto.address,
+        bio: dto.bio,
+        avatarUrl: dto.avatarUrl,
+      },
+    })
+
+    await appendAuditLog(
+      this.prisma,
+      actor,
+      'UPDATE_PROFILE',
+      id,
+      'SUCCESS',
+      `Người dùng tự cập nhật hồ sơ cá nhân.`,
+    )
+
+    return toPublicUser(updatedUser)
+  }
+
   async setStatus(id: string, status: AccountStatus, actor: AuditActor) {
     const user = await this.prisma.user.update({
       where: { id },
@@ -284,19 +314,33 @@ export class UsersService {
   }
 
   async resetPassword(id: string, password: string, actor: AuditActor) {
+    const currentUser = await this.prisma.user.findUnique({ where: { id } })
+    if (!currentUser) {
+      throw new NotFoundException('Không tìm thấy tài khoản người dùng.')
+    }
+
     const passwordDigest = await bcrypt.hash(password, 10)
     const user = await this.prisma.user.update({
       where: { id },
       data: {
         passwordDigest,
         failedLoginAttempts: 0,
-        status: AccountStatus.ACTIVE,
+        // BUG-014 FIX: KHÔNG thay đổi status khi reset password.
+        // Tài khoản SUSPENDED/LOCKED vẫn giữ nguyên trạng thái.
+        // Admin phải dùng endpoint POST /:id/unlock riêng để mở khóa.
         refreshToken: null,
         refreshTokenExpiresAt: null,
       },
     })
 
-    await appendAuditLog(this.prisma, actor, 'RESET_PASSWORD', id, 'SUCCESS', 'Đặt lại mật khẩu tài khoản.')
+    await appendAuditLog(
+      this.prisma,
+      actor,
+      'RESET_PASSWORD',
+      id,
+      'SUCCESS',
+      `Đặt lại mật khẩu tài khoản. Trạng thái hiện tại: ${currentUser.status} (không thay đổi).`,
+    )
     return toPublicUser(user)
   }
 

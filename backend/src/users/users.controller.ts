@@ -10,6 +10,7 @@ import { buildActor } from '../common/utils/audit'
 import { CreateUserDto } from './dto/create-user.dto'
 import { ImportStudentCandidateDto, ImportStudentsDto } from './dto/import-students.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
+import { UpdateMyProfileDto } from './dto/update-my-profile.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { UserQueryDto } from './dto/user-query.dto'
 import { UsersService } from './users.service'
@@ -37,8 +38,8 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Cập nhật hồ sơ người dùng hiện tại' })
   @Patch('me')
-  async updateProfile(@CurrentUser() user: RequestUser, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(user.userId, updateUserDto, buildActor(user), false)
+  async updateProfile(@CurrentUser() user: RequestUser, @Body() dto: UpdateMyProfileDto) {
+    return this.usersService.updateMyProfile(user.userId, dto, buildActor(user))
   }
 
   @ApiOperation({ summary: 'Kết quả học tập của người dùng hiện tại' })
