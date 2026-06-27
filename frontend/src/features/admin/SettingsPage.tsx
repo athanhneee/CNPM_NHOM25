@@ -63,14 +63,26 @@ function toValidIsoDate(value: string) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString()
 }
 
+function toDatetimeLocalString(isoString: string) {
+  if (!isoString) return ''
+  const d = new Date(isoString)
+  if (Number.isNaN(d.getTime())) return isoString
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`
+}
+
 function settingsToForm(settings: SystemSettings) {
   return {
-    simulationNow: settings.simulationNow,
-    registrationStart: settings.registrationStart,
-    registrationEnd: settings.registrationEnd,
-    adjustmentStart: settings.adjustmentStart,
-    adjustmentEnd: settings.adjustmentEnd,
-    withdrawalDeadline: settings.withdrawalDeadline,
+    simulationNow: toDatetimeLocalString(settings.simulationNow),
+    registrationStart: toDatetimeLocalString(settings.registrationStart),
+    registrationEnd: toDatetimeLocalString(settings.registrationEnd),
+    adjustmentStart: toDatetimeLocalString(settings.adjustmentStart),
+    adjustmentEnd: toDatetimeLocalString(settings.adjustmentEnd),
+    withdrawalDeadline: toDatetimeLocalString(settings.withdrawalDeadline),
     maxCreditsMain: settings.maxCreditsMain ?? 24,
     maxCreditsSummer: settings.maxCreditsSummer ?? 12,
     minCredits: settings.minCredits ?? 12,
@@ -154,24 +166,32 @@ export function SettingsPage() {
             <p className="md:col-span-2 rounded-3xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900">
               Thời điểm mô phỏng hiện tại: {formatDateTime(snapshot.settings.simulationNow)}
             </p>
-            <Input label="Thời điểm mô phỏng" value={form.simulationNow} onChange={(event) => updateForm((value) => ({ ...value, simulationNow: event.target.value }))} />
-            <Input label="Thời gian mở đăng ký" value={form.registrationStart} onChange={(event) => updateForm((value) => ({ ...value, registrationStart: event.target.value }))} />
-            <Input label="Thời gian đóng đăng ký" value={form.registrationEnd} onChange={(event) => updateForm((value) => ({ ...value, registrationEnd: event.target.value }))} />
-            <Input label="Bắt đầu điều chỉnh" value={form.adjustmentStart} onChange={(event) => updateForm((value) => ({ ...value, adjustmentStart: event.target.value }))} />
-            <Input label="Kết thúc điều chỉnh" value={form.adjustmentEnd} onChange={(event) => updateForm((value) => ({ ...value, adjustmentEnd: event.target.value }))} />
-            <Input label="Hạn rút học phần" value={form.withdrawalDeadline} onChange={(event) => updateForm((value) => ({ ...value, withdrawalDeadline: event.target.value }))} />
+            <Input label="Thời điểm mô phỏng" type="datetime-local" value={form.simulationNow} onChange={(event) => updateForm((value) => ({ ...value, simulationNow: event.target.value }))} />
+            <Input label="Thời gian mở đăng ký" type="datetime-local" value={form.registrationStart} onChange={(event) => updateForm((value) => ({ ...value, registrationStart: event.target.value }))} />
+            <Input label="Thời gian đóng đăng ký" type="datetime-local" value={form.registrationEnd} onChange={(event) => updateForm((value) => ({ ...value, registrationEnd: event.target.value }))} />
+            <Input label="Bắt đầu điều chỉnh" type="datetime-local" value={form.adjustmentStart} onChange={(event) => updateForm((value) => ({ ...value, adjustmentStart: event.target.value }))} />
+            <Input label="Kết thúc điều chỉnh" type="datetime-local" value={form.adjustmentEnd} onChange={(event) => updateForm((value) => ({ ...value, adjustmentEnd: event.target.value }))} />
+            <Input label="Hạn rút học phần" type="datetime-local" value={form.withdrawalDeadline} onChange={(event) => updateForm((value) => ({ ...value, withdrawalDeadline: event.target.value }))} />
             <Input label="Tín chỉ tối đa học kỳ chính" type="number" min={0} value={String(form.maxCreditsMain)} onChange={(event) => updateForm((value) => ({ ...value, maxCreditsMain: Number(event.target.value) }))} />
             <Input label="Tín chỉ tối đa học kỳ hè" type="number" min={0} value={String(form.maxCreditsSummer)} onChange={(event) => updateForm((value) => ({ ...value, maxCreditsSummer: Number(event.target.value) }))} />
             <Input label="Tín chỉ tối thiểu" type="number" min={0} value={String(form.minCredits)} onChange={(event) => updateForm((value) => ({ ...value, minCredits: Number(event.target.value) }))} />
             <Input label="Timeout phiên (phút)" value={form.sessionTimeoutMinutes} onChange={(event) => updateForm((value) => ({ ...value, sessionTimeoutMinutes: event.target.value }))} />
             <Input label="Cảnh báo trước logout (giây)" value={form.warningBeforeLogoutSeconds} onChange={(event) => updateForm((value) => ({ ...value, warningBeforeLogoutSeconds: event.target.value }))} />
-            <Input label="Bật bảo trì" value={form.maintenanceMode} onChange={(event) => updateForm((value) => ({ ...value, maintenanceMode: event.target.value }))} list="boolean-options" />
-            <Input label="Cho phép danh sách chờ" value={form.allowWaitlist} onChange={(event) => updateForm((value) => ({ ...value, allowWaitlist: event.target.value }))} list="boolean-options" />
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-700">Bật bảo trì</label>
+              <select className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" value={form.maintenanceMode} onChange={(e) => updateForm((value) => ({ ...value, maintenanceMode: e.target.value }))}>
+                <option value="true">Bật (True)</option>
+                <option value="false">Tắt (False)</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-700">Cho phép danh sách chờ</label>
+              <select className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" value={form.allowWaitlist} onChange={(e) => updateForm((value) => ({ ...value, allowWaitlist: e.target.value }))}>
+                <option value="true">Cho phép (True)</option>
+                <option value="false">Không cho phép (False)</option>
+              </select>
+            </div>
             <Input label="Học kỳ hiện tại (ID)" value={form.currentSemesterId} onChange={(event) => updateForm((value) => ({ ...value, currentSemesterId: event.target.value }))} />
-            <datalist id="boolean-options">
-              <option value="true" />
-              <option value="false" />
-            </datalist>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button
