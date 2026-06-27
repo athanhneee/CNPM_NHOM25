@@ -18,7 +18,6 @@ import { adminService } from '@/services/admin.api'
 import { settingsService } from '@/services/settings.api'
 import { ExportButtons } from '@/components/shared/ExportButtons'
 import { SystemWindowCard } from '@/components/shared/SystemWindowCard'
-import { formatDateTime } from '@/lib/date'
 import { ApiError } from '@/lib/api-client'
 import type { SystemSettings } from '@/types/settings'
 import {
