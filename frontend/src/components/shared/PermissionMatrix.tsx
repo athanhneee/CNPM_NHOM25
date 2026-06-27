@@ -1,7 +1,15 @@
 import { ROLE_PERMISSIONS, type PermissionKey } from '@/app/config/permissions'
 import type { UserRole } from '@/types/auth'
+import { Table, type TableColumn } from '@/components/ui/Table'
 
 const roles = ['STUDENT', 'LECTURER', 'ACADEMIC_OFFICE', 'ADMIN'] as const satisfies readonly UserRole[]
+
+const roleLabels: Record<UserRole, string> = {
+  STUDENT: 'Sinh viên',
+  LECTURER: 'Giảng viên',
+  ACADEMIC_OFFICE: 'Giáo vụ',
+  ADMIN: 'Quản trị viên',
+}
 
 const permissionLabels: Record<PermissionKey, string> = {
   'profile.view': 'Xem hồ sơ',
@@ -29,40 +37,35 @@ const permissionLabels: Record<PermissionKey, string> = {
 export function PermissionMatrix() {
   const permissionKeys = Object.keys(permissionLabels) as PermissionKey[]
 
+  const columns: TableColumn<PermissionKey>[] = [
+    {
+      key: 'permission',
+      header: 'Quyền hạn',
+      render: (permission) => (
+        <div>
+          <p className="font-medium text-slate-900">{permissionLabels[permission]}</p>
+          <p className="text-sm text-slate-500">{permission}</p>
+        </div>
+      ),
+    },
+    ...roles.map((role) => ({
+      key: role,
+      header: roleLabels[role],
+      className: 'text-center',
+      render: (permission: PermissionKey) => (
+        <div className="flex justify-center">
+          <span
+            className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${ROLE_PERMISSIONS[role].includes(permission) ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'}`}
+          >
+            {ROLE_PERMISSIONS[role].includes(permission) ? 'Có' : 'Không'}
+          </span>
+        </div>
+      ),
+    })),
+  ]
+
   return (
-    <div className="overflow-x-auto rounded-3xl border border-slate-200">
-      <table className="min-w-full text-left text-sm">
-        <thead className="bg-slate-100 text-slate-600">
-          <tr>
-            <th className="px-4 py-3 font-semibold">Quyen</th>
-            {roles.map((role) => (
-              <th key={role} className="px-4 py-3 font-semibold">
-                {role}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
-          {permissionKeys.map((permission) => (
-            <tr key={permission}>
-              <td className="px-4 py-3">
-                <p className="font-medium text-slate-900">{permissionLabels[permission]}</p>
-                <p className="text-sm text-slate-500">{permission}</p>
-              </td>
-              {roles.map((role) => (
-                <td key={role} className="px-4 py-3">
-                  <span
-                    className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${ROLE_PERMISSIONS[role].includes(permission) ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'}`}
-                  >
-                    {ROLE_PERMISSIONS[role].includes(permission) ? 'Có' : 'Không'}
-                  </span>
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table columns={columns} rows={permissionKeys} rowKey={(key) => key} pageSize={5} />
   )
 }
 
