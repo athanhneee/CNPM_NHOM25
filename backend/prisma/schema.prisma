@@ -338,6 +338,7 @@ model RegistrationPhase {
   maxCredits     Int?
   allowRegister  Boolean        @default(true)
   allowCancel    Boolean        @default(false)
+  allowWithdraw  Boolean        @default(false)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime
   SemesterOption SemesterOption @relation(fields: [semesterId], references: [id], onDelete: Cascade)

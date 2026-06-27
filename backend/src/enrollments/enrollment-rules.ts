@@ -432,6 +432,7 @@ export interface RuleRegistrationPhase {
   maxCredits: number | null
   allowRegister: boolean
   allowCancel: boolean
+  allowWithdraw: boolean
 }
 
 export interface RuleSettings {
@@ -1050,9 +1051,8 @@ export function canWithdrawEnrollment(nowIso: string, settings: RuleSettings, ph
       }
       return true
     })
-    // For withdraw, we can assume allowCancel implies both cancel/withdraw, or fallback.
     // If phase system is fully in use, this controls it.
-    if (activePhase) return activePhase.allowCancel
+    if (activePhase) return activePhase.allowWithdraw
   }
   return (
     new Date(nowIso).getTime() > new Date(settings.adjustmentEnd).getTime() &&
