@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
+import { X } from 'lucide-react'
 
 interface DialogProps {
   open: boolean
@@ -39,8 +40,8 @@ export function Dialog({ open, title, description, children, onClose, footer }: 
               <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
               {description ? <p className="text-sm text-slate-500">{description}</p> : null}
             </div>
-            <Button variant="ghost" onClick={onClose} aria-label="Dong hoi thoai">
-              Dong
+            <Button variant="ghost" onClick={onClose} aria-label="Đóng hộp thoại" className="h-8 w-8 p-0">
+              <X className="h-5 w-5 text-slate-500" />
             </Button>
           </div>
         </div>

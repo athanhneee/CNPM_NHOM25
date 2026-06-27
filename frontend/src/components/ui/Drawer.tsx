@@ -38,7 +38,7 @@ export function Drawer({ open, title, description, onClose, children }: DrawerPr
         <div className="px-6 py-5">{children}</div>
       </aside>
       <button className="sr-only" onClick={onClose} type="button">
-        Dong drawer
+        Đóng menu
       </button>
     </div>
   )
