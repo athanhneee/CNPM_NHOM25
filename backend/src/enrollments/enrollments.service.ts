@@ -1,4 +1,5 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+// Prisma Client generated: 2026-06-27T04:14 – includes phases, registrationLocked, tuitionStatus, startDate, endDate, learningMode
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
 import { EnrollmentStatus, Prisma, Section, SectionStatus, UserRole } from '@prisma/client'
 import { AuditActor, appendAuditLog } from '../common/utils/audit'
 import { paginated, parsePagination } from '../common/utils/pagination'
@@ -6,7 +7,7 @@ import { normalizeRoles } from '../common/utils/public-user'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto'
 import { EnrollmentQueryDto } from './dto/enrollment-query.dto'
-import { OverrideEnrollmentDto, UpdateEnrollmentDto } from './dto/update-enrollment.dto'
+import { OverrideEnrollmentDto, TransferEnrollmentDto, UpdateEnrollmentDto } from './dto/update-enrollment.dto'
 import {
   canCancelEnrollment,
   canWithdrawEnrollment,
@@ -100,7 +101,11 @@ function asRuleSection(section: Section): RuleSection {
     startPeriod: section.startPeriod,
     periodCount: section.periodCount,
     weeks: section.weeks,
+    additionalSchedules: (section as any).additionalSchedules,
+    makeUpSchedules: (section as any).makeUpSchedules,
+    cancelledDates: (section as any).cancelledDates,
     capacity: section.capacity,
+    minCapacity: (section as any).minCapacity,
     registeredCount: section.registeredCount,
     allowWaitlist: section.allowWaitlist,
     status: section.status,
@@ -142,7 +147,7 @@ export class EnrollmentsService {
   ) {
     const settings = await this.getCurrentSettings(client)
     const [currentSemester, student, section, courses, sections, enrollments, courseConditions, studentResults] = await Promise.all([
-      client.semesterOption.findUnique({ where: { id: settings.currentSemesterId } }),
+      client.semesterOption.findUnique({ where: { id: settings.currentSemesterId }, include: { phases: true } }),
       client.user.findUnique({ where: { id: studentId } }),
       client.section.findUnique({ where: { id: sectionId } }),
       client.course.findMany(),
@@ -167,6 +172,8 @@ export class EnrollmentsService {
               id: student.id,
               roles: normalizeRoles(student.roles),
               status: student.status,
+              cohort: (student as any).cohort,
+              majorCode: (student as any).majorCode,
             } satisfies RuleUser)
           : undefined,
         section: section ? asRuleSection(section) : undefined,
@@ -174,6 +181,7 @@ export class EnrollmentsService {
           ? ({
               code: targetCourse.code,
               credits: targetCourse.credits,
+              requiredAccumulatedCredits: (targetCourse as any).requiredAccumulatedCredits,
               prerequisites: targetCourse.prerequisites,
               prestudy: targetCourse.prestudy,
               corequisites: targetCourse.corequisites,
@@ -184,6 +192,7 @@ export class EnrollmentsService {
             ({
               code: course.code,
               credits: course.credits,
+              requiredAccumulatedCredits: (course as any).requiredAccumulatedCredits,
               prerequisites: course.prerequisites,
               prestudy: course.prestudy,
               corequisites: course.corequisites,
@@ -217,6 +226,21 @@ export class EnrollmentsService {
               passed: result.passed,
             }) satisfies RuleStudentResult,
         ),
+        phases: (currentSemester as any)?.phases?.map(
+          (phase: any) =>
+            ({
+              id: phase.id,
+              name: phase.name,
+              startDate: phase.startDate.toISOString(),
+              endDate: phase.endDate.toISOString(),
+              allowedCohorts: phase.allowedCohorts,
+              allowedMajors: phase.allowedMajors,
+              maxCredits: phase.maxCredits,
+              allowRegister: phase.allowRegister,
+              allowCancel: phase.allowCancel,
+            })
+        ),
+        semesterStartDate: currentSemester?.startDate?.toISOString(),
       },
     }
   }
@@ -239,9 +263,22 @@ export class EnrollmentsService {
     }
 
     const student = await client.user.findUnique({ where: { id: studentId }, select: { status: true } })
-    if (!student || student.status !== 'ACTIVE') {
-      throw new ForbiddenException('Tài khoản hiện không thể thực hiện thao tác này.')
+    if (!student) {
+      throw new ForbiddenException('Không tìm thấy thông tin sinh viên.')
     }
+
+    if (student.status === 'ACTIVE') return
+
+    const statusMessages: Record<string, string> = {
+      LOCKED: 'Tài khoản đã bị khóa. Vui lòng liên hệ Phòng Đào tạo để được hỗ trợ.',
+      INACTIVE: 'Tài khoản không còn hoạt động.',
+      DEFERRED: 'Sinh viên đang trong trạng thái bảo lưu, không thể đăng ký học phần.',
+      SUSPENDED: 'Tài khoản đã bị đình chỉ, không thể thực hiện thao tác này.',
+    }
+
+    throw new ForbiddenException(
+      statusMessages[student.status] ?? 'Tài khoản hiện không thể thực hiện thao tác này.',
+    )
   }
 
   private async syncSectionCounters(client: Prisma.TransactionClient, sectionId: string) {
@@ -309,16 +346,25 @@ export class EnrollmentsService {
 
   async create(createEnrollmentDto: CreateEnrollmentDto, actor: AuditActor) {
     this.assertActorMayActForStudent(createEnrollmentDto.studentId, actor)
-    return this.registerSection(createEnrollmentDto.studentId, createEnrollmentDto.sectionId, actor)
+    return this.registerSection(createEnrollmentDto.studentId, createEnrollmentDto.sectionId, actor, createEnrollmentDto.force)
   }
 
-  async registerSection(studentId: string, sectionId: string, actor: AuditActor) {
+  async registerSection(studentId: string, sectionId: string, actor: AuditActor, force?: boolean) {
     this.assertActorMayActForStudent(studentId, actor)
     return this.prisma.$transaction(
       async (tx) => {
         await this.assertStudentActive(tx, studentId, actor)
+
+        // Check per-student registration lock
+        const studentRecord = await tx.user.findUnique({ where: { id: studentId } })
+        if (studentRecord?.registrationLocked && !(actor.actorRole === 'ADMIN' || actor.actorRole === 'ACADEMIC_OFFICE')) {
+          throw new ForbiddenException('Tài khoản đăng ký của sinh viên đã bị khóa. Vui lòng liên hệ Phòng Đào tạo.')
+        }
+
         const { context, settings, section } = await this.loadEligibilityContext(tx, studentId, sectionId)
-        const result = evaluateEnrollmentEligibility(context)
+        
+        const ignoreCapacity = force && (actor.actorRole === 'ADMIN' || actor.actorRole === 'ACADEMIC_OFFICE')
+        const result = evaluateEnrollmentEligibility(context, { ignoreCapacity })
 
         if (!result.canRegister || !result.finalStatus || !section) {
           await appendAuditLog(
@@ -480,11 +526,14 @@ export class EnrollmentsService {
     )
   }
 
-  async cancelEnrollment(id: string, actor: AuditActor, reason?: string) {
+  async cancelEnrollment(id: string, actor: AuditActor, reason?: string, force?: boolean) {
     return this.prisma.$transaction(
       async (tx) => {
         const settings = await this.getCurrentSettings(tx)
-        const enrollment = await tx.enrollment.findUnique({ where: { id } })
+        const enrollment = await tx.enrollment.findUnique({ 
+          where: { id },
+          include: { student: true, semester: { include: { phases: true } } }
+        })
         if (!enrollment) {
           throw new NotFoundException('Không tìm thấy thông tin đăng ký.')
         }
@@ -492,12 +541,56 @@ export class EnrollmentsService {
         this.assertActorMayActForStudent(enrollment.studentId, actor)
         await this.assertStudentActive(tx, enrollment.studentId, actor)
 
-        if (!canCancelEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings, 'MAIN'))) {
+        const studentRule: RuleUser = {
+          id: enrollment.student.id,
+          roles: normalizeRoles(enrollment.student.roles),
+          status: enrollment.student.status,
+          cohort: (enrollment.student as any).cohort ?? undefined,
+          majorCode: (enrollment.student as any).majorCode ?? undefined,
+        }
+        
+        const phasesRule = (enrollment.semester as any)?.phases?.map((p: any) => ({
+          id: p.id, name: p.name, startDate: p.startDate.toISOString(), endDate: p.endDate.toISOString(),
+          allowedCohorts: p.allowedCohorts, allowedMajors: p.allowedMajors,
+          maxCredits: p.maxCredits, allowRegister: p.allowRegister, allowCancel: p.allowCancel
+        }))
+
+        if (!canCancelEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings, 'MAIN'), phasesRule, studentRule)) {
           throw new BadRequestException('Ngoài thời gian điều chỉnh đăng ký.')
         }
 
         if (!CANCELLABLE_ENROLLMENT_STATUSES.includes(enrollment.status)) {
           throw new BadRequestException('Không thể hủy học phần ở trạng thái hiện tại.')
+        }
+
+        const isPrivileged = actor.actorRole === 'ADMIN' || actor.actorRole === 'ACADEMIC_OFFICE';
+        const isForced = force && isPrivileged;
+
+        if (!isForced) {
+          if ((enrollment as any).isMandatory) {
+            throw new BadRequestException('Lớp học phần này là bắt buộc, sinh viên không được phép tự hủy.');
+          }
+
+          if ((enrollment as any).hasPartialGrades) {
+            throw new BadRequestException('Lớp học phần đã có điểm thành phần, không được phép hủy.');
+          }
+
+          const sectionToCancel = await tx.section.findUnique({ where: { id: enrollment.sectionId }, include: { course: true } });
+          const semesterEnrollments = await tx.enrollment.findMany({
+            where: { studentId: enrollment.studentId, semesterId: enrollment.semesterId, status: 'REGISTERED' },
+            include: { section: { include: { course: true } } }
+          });
+          const totalCredits = semesterEnrollments.reduce((sum, e) => sum + e.section.course.credits, 0);
+          const canceledCredits = enrollment.status === 'REGISTERED' && sectionToCancel ? sectionToCancel.course.credits : 0;
+          
+          if (totalCredits - canceledCredits < settings.minCredits) {
+             throw new BadRequestException(`Không thể hủy học phần vì tổng tín chỉ sẽ thấp hơn mức tối thiểu (${settings.minCredits} tín chỉ).`);
+          }
+
+          const corequisiteWarnings = await this._checkCorequisiteCascade(tx, enrollment.studentId, enrollment.semesterId, sectionToCancel?.courseCode ?? '');
+          if (corequisiteWarnings.length > 0) {
+             throw new BadRequestException(`Không thể hủy môn học do ràng buộc môn song hành: ${corequisiteWarnings.join(', ')}`);
+          }
         }
 
         const now = settings.simulationNow
@@ -556,11 +649,14 @@ export class EnrollmentsService {
     )
   }
 
-  async withdrawEnrollment(id: string, actor: AuditActor, reason: string) {
+  async withdrawEnrollment(id: string, actor: AuditActor, reason: string, force?: boolean) {
     return this.prisma.$transaction(
       async (tx) => {
         const settings = await this.getCurrentSettings(tx)
-        const enrollment = await tx.enrollment.findUnique({ where: { id } })
+        const enrollment = await tx.enrollment.findUnique({ 
+          where: { id },
+          include: { student: true, semester: { include: { phases: true } } }
+        })
         if (!enrollment) {
           throw new NotFoundException('Không tìm thấy thông tin đăng ký.')
         }
@@ -568,12 +664,56 @@ export class EnrollmentsService {
         this.assertActorMayActForStudent(enrollment.studentId, actor)
         await this.assertStudentActive(tx, enrollment.studentId, actor)
 
-        if (!canWithdrawEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings, 'MAIN'))) {
+        const studentRule: RuleUser = {
+          id: enrollment.student.id,
+          roles: normalizeRoles(enrollment.student.roles),
+          status: enrollment.student.status,
+          cohort: (enrollment.student as any).cohort ?? undefined,
+          majorCode: (enrollment.student as any).majorCode ?? undefined,
+        }
+        
+        const phasesRule = (enrollment.semester as any)?.phases?.map((p: any) => ({
+          id: p.id, name: p.name, startDate: p.startDate.toISOString(), endDate: p.endDate.toISOString(),
+          allowedCohorts: p.allowedCohorts, allowedMajors: p.allowedMajors,
+          maxCredits: p.maxCredits, allowRegister: p.allowRegister, allowCancel: p.allowCancel
+        }))
+
+        if (!canWithdrawEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings, 'MAIN'), phasesRule, studentRule)) {
           throw new BadRequestException('Ngoài cửa sổ rút học phần.')
         }
 
         if (enrollment.status !== EnrollmentStatus.REGISTERED) {
           throw new BadRequestException('Chỉ có thể rút học phần đã đăng ký.')
+        }
+
+        const isPrivileged = actor.actorRole === 'ADMIN' || actor.actorRole === 'ACADEMIC_OFFICE';
+        const isForced = force && isPrivileged;
+
+        if (!isForced) {
+          if ((enrollment as any).isMandatory) {
+            throw new BadRequestException('Lớp học phần này là bắt buộc, sinh viên không được phép tự rút.');
+          }
+
+          if ((enrollment as any).hasPartialGrades) {
+            throw new BadRequestException('Lớp học phần đã có điểm thành phần, không được phép rút.');
+          }
+
+          const sectionToCancel = await tx.section.findUnique({ where: { id: enrollment.sectionId }, include: { course: true } });
+          const semesterEnrollments = await tx.enrollment.findMany({
+            where: { studentId: enrollment.studentId, semesterId: enrollment.semesterId, status: 'REGISTERED' },
+            include: { section: { include: { course: true } } }
+          });
+          const totalCredits = semesterEnrollments.reduce((sum, e) => sum + e.section.course.credits, 0);
+          const canceledCredits = sectionToCancel ? sectionToCancel.course.credits : 0;
+          
+          if (totalCredits - canceledCredits < settings.minCredits) {
+             throw new BadRequestException(`Không thể rút học phần vì tổng tín chỉ sẽ thấp hơn mức tối thiểu (${settings.minCredits} tín chỉ).`);
+          }
+
+          const corequisiteWarnings = await this._checkCorequisiteCascade(tx, enrollment.studentId, enrollment.semesterId, sectionToCancel?.courseCode ?? '');
+          if (corequisiteWarnings.length > 0) {
+             throw new BadRequestException(`Không thể rút môn học do ràng buộc môn song hành: ${corequisiteWarnings.join(', ')}`);
+          }
         }
 
         const now = settings.simulationNow
@@ -583,6 +723,7 @@ export class EnrollmentsService {
             status: EnrollmentStatus.DROPPED,
             droppedAt: now,
             reasonCode: reason,
+            tuitionStatus: 'PENALTY',
             timeline: [
               ...timelineArray(enrollment.timeline),
               buildTimelineItem(actor, EnrollmentStatus.DROPPED, reason, now),
@@ -898,6 +1039,219 @@ export class EnrollmentsService {
     }
 
     return promoted;
+  }
+
+  async transferEnrollment(body: TransferEnrollmentDto, actor: AuditActor) {
+    if (!body.reason.trim()) {
+      throw new BadRequestException('Lý do chuyển lớp là bắt buộc.')
+    }
+
+    return this.prisma.$transaction(
+      async (tx) => {
+        const settings = await this.getCurrentSettings(tx)
+        const now = settings.simulationNow
+
+        // 1. Find existing enrollment
+        const existingEnrollment = await tx.enrollment.findFirst({
+          where: {
+            studentId: body.studentId,
+            sectionId: body.fromSectionId,
+            status: { in: ACTIVE_ENROLLMENT_STATUSES },
+          },
+        })
+
+        if (!existingEnrollment) {
+          throw new BadRequestException('Sinh viên không có bản ghi đăng ký hoạt động tại lớp nguồn.')
+        }
+
+        // 2. Check student is active
+        await this.assertStudentActive(tx, body.studentId, actor)
+
+        // 3. Load both sections
+        const [fromSection, toSection] = await Promise.all([
+          tx.section.findUnique({ where: { id: body.fromSectionId } }),
+          tx.section.findUnique({ where: { id: body.toSectionId } }),
+        ])
+
+        if (!fromSection) throw new BadRequestException('Lớp nguồn không tồn tại.')
+        if (!toSection) throw new BadRequestException('Lớp đích không tồn tại.')
+
+        if (fromSection.courseCode !== toSection.courseCode) {
+          throw new BadRequestException('Lớp nguồn và lớp đích phải cùng một học phần.')
+        }
+
+        if (fromSection.semesterId !== toSection.semesterId) {
+          throw new BadRequestException('Lớp nguồn và lớp đích phải cùng một học kỳ.')
+        }
+
+        if (toSection.status === SectionStatus.CANCELLED) {
+          throw new BadRequestException('Lớp đích đã bị hủy.')
+        }
+
+        // 4. Check target capacity
+        if (toSection.registeredCount >= toSection.capacity) {
+          throw new BadRequestException(`Lớp đích ${toSection.sectionCode} đã đủ sĩ số (${toSection.registeredCount}/${toSection.capacity}).`)
+        }
+
+        // 5. Check duplicate at target
+        const duplicateAtTarget = await tx.enrollment.findFirst({
+          where: {
+            studentId: body.studentId,
+            sectionId: body.toSectionId,
+            status: { in: ACTIVE_ENROLLMENT_STATUSES },
+          },
+        })
+
+        if (duplicateAtTarget) {
+          throw new BadRequestException('Sinh viên đã có đăng ký tại lớp đích.')
+        }
+
+        // 6. Check schedule conflict with other classes (excluding fromSection)
+        const otherEnrollments = await tx.enrollment.findMany({
+          where: {
+            studentId: body.studentId,
+            semesterId: fromSection.semesterId,
+            status: { in: ACTIVE_ENROLLMENT_STATUSES },
+            sectionId: { not: body.fromSectionId },
+          },
+          include: { section: true },
+        })
+
+        for (const other of otherEnrollments) {
+          if (
+            other.section.weekday === toSection.weekday &&
+            other.section.startPeriod < toSection.startPeriod + toSection.periodCount &&
+            toSection.startPeriod < other.section.startPeriod + other.section.periodCount
+          ) {
+            throw new BadRequestException(
+              `Lớp đích ${toSection.sectionCode} bị trùng lịch với lớp ${other.section.sectionCode} (Thứ ${toSection.weekday}, tiết ${toSection.startPeriod}-${toSection.startPeriod + toSection.periodCount - 1}).`
+            )
+          }
+        }
+
+        // 7. Cancel old enrollment
+        await tx.enrollment.update({
+          where: { id: existingEnrollment.id },
+          data: {
+            status: EnrollmentStatus.CANCELLED,
+            cancelledAt: now,
+            reasonCode: `Chuyển lớp: ${body.reason}`,
+            timeline: [
+              ...timelineArray(existingEnrollment.timeline),
+              buildTimelineItem(actor, EnrollmentStatus.CANCELLED, `Chuyển sang lớp ${toSection.sectionCode}: ${body.reason}`, now),
+            ],
+          },
+        })
+
+        // 8. Decrease from section count
+        const fromRegisteredCount = existingEnrollment.status === EnrollmentStatus.REGISTERED
+          ? Math.max(fromSection.registeredCount - 1, 0)
+          : fromSection.registeredCount
+        const fromWaitlistCount = existingEnrollment.status === EnrollmentStatus.WAITLISTED
+          ? Math.max(fromSection.waitlistCount - 1, 0)
+          : fromSection.waitlistCount
+
+        await tx.section.update({
+          where: { id: body.fromSectionId },
+          data: {
+            registeredCount: fromRegisteredCount,
+            waitlistCount: fromWaitlistCount,
+            status: nextSectionStatus({ ...fromSection, registeredCount: fromRegisteredCount }),
+          },
+        })
+
+        // 9. Create new enrollment
+        const newEnrollment = await tx.enrollment.create({
+          data: {
+            studentId: body.studentId,
+            sectionId: body.toSectionId,
+            semesterId: toSection.semesterId,
+            status: EnrollmentStatus.REGISTERED,
+            isRetake: existingEnrollment.isRetake,
+            isImprovement: existingEnrollment.isImprovement,
+            timeline: [
+              buildTimelineItem(actor, EnrollmentStatus.REGISTERED, `Chuyển từ lớp ${fromSection.sectionCode}: ${body.reason}`, now),
+            ],
+          },
+        })
+
+        // 10. Increase to section count
+        const toRegisteredCount = toSection.registeredCount + 1
+        await tx.section.update({
+          where: { id: body.toSectionId },
+          data: {
+            registeredCount: toRegisteredCount,
+            status: nextSectionStatus({ ...toSection, registeredCount: toRegisteredCount }),
+          },
+        })
+
+        // 11. Process waitlist on old section
+        let promoted: any[] = []
+        if (existingEnrollment.status === EnrollmentStatus.REGISTERED && fromSection.allowWaitlist) {
+          promoted = await this._processWaitlist(tx, body.fromSectionId, actor, now)
+        }
+
+        // 12. Audit
+        await appendAuditLog(
+          tx,
+          actor,
+          'TRANSFER_ENROLLMENT',
+          newEnrollment.id,
+          'SUCCESS',
+          `Chuyển sinh viên ${body.studentId} từ lớp ${fromSection.sectionCode} sang ${toSection.sectionCode}.`,
+          { fromSectionId: body.fromSectionId, toSectionId: body.toSectionId, reason: body.reason },
+        )
+
+        return {
+          cancelledEnrollment: existingEnrollment.id,
+          newEnrollment,
+          promoted,
+        }
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    )
+  }
+
+  async bulkRegister(
+    rows: Array<{ studentId: string; sectionId: string }>,
+    actor: AuditActor,
+  ) {
+    const results: {
+      success: Array<{ studentId: string; sectionId: string; enrollmentId: string }>
+      failed: Array<{ studentId: string; sectionId: string; error: string }>
+    } = { success: [], failed: [] }
+
+    for (const row of rows) {
+      try {
+        const result = await this.overrideEnrollment(
+          { studentId: row.studentId, sectionId: row.sectionId, reason: 'Nhập đăng ký hàng loạt' },
+          actor,
+        )
+        results.success.push({
+          studentId: row.studentId,
+          sectionId: row.sectionId,
+          enrollmentId: result.id,
+        })
+      } catch (err: any) {
+        results.failed.push({
+          studentId: row.studentId,
+          sectionId: row.sectionId,
+          error: err.message ?? 'Lỗi không xác định',
+        })
+      }
+    }
+
+    await appendAuditLog(
+      this.prisma,
+      actor,
+      'BULK_REGISTER',
+      'BATCH',
+      results.failed.length === 0 ? 'SUCCESS' : 'WARNING',
+      `Nhập hàng loạt: ${results.success.length} thành công, ${results.failed.length} thất bại.`,
+      { totalRows: rows.length, successCount: results.success.length, failedCount: results.failed.length },
+    )
+
+    return results
   }
 
 }
