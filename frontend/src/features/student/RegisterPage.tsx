@@ -10,7 +10,6 @@ import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { CreditMeter } from '@/components/shared/CreditMeter'
 import { RuleCheckPanel } from '@/components/shared/RuleCheckPanel'
@@ -242,12 +241,14 @@ export function RegisterPage() {
         <Card title="Bảng chọn lớp học phần" description="Sử dụng tìm kiếm, lọc theo lớp sinh viên, khoa quản lý, kiểm tra điều kiện và đăng ký trực tiếp">
           <div className="mb-5 grid gap-3 xl:grid-cols-3">
             <SearchInput label="Tìm theo mã / tên môn học" placeholder="Nhập từ khóa..." value={query} onChange={(event) => { setQuery(event.target.value); setCurrentPage(1); }} />
-            <Input
+            <Select
               label="Lớp sinh viên"
               value={classFilter}
               onChange={(event) => { setClassFilter(event.target.value); setCurrentPage(1); }}
-              list="student-class-filter-list"
-              placeholder={student.studentClass ?? 'D23CQCN01-N'}
+              options={[
+                { label: 'Tất cả lớp', value: '' },
+                ...classOptions.map((c) => ({ label: c, value: c }))
+              ]}
             />
             <Select
               label="Khoa quản lý"
@@ -256,11 +257,6 @@ export function RegisterPage() {
               options={[{ label: 'Tất cả khoa', value: '' }, ...facultyOptions.map(f => ({ label: f, value: f }))]}
             />
           </div>
-          <datalist id="student-class-filter-list">
-            {classOptions.map((classCode) => (
-              <option key={classCode} value={classCode} />
-            ))}
-          </datalist>
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
               Lớp áp dụng: {classFilter.trim() ? classFilter : 'Tất cả lớp'}
@@ -277,7 +273,7 @@ export function RegisterPage() {
               {paginatedRows.map((row) => (
                 <div
                   key={row.section.id}
-                  className="rounded-2xl border border-[var(--color-hairline)] bg-white p-5 transition-shadow duration-200 hover:shadow-[var(--shadow-airbnb)]"
+                  className="rounded-3xl border border-[var(--color-hairline)] bg-white p-5 transition-shadow duration-200 hover:shadow-[var(--shadow-airbnb)]"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
