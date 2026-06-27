@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   ArrowRight,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -60,6 +60,21 @@ function formatLongDate(value: string) {
     month: 'long',
     year: 'numeric',
   }).format(new Date(value))
+}
+
+function LiveTimeMarker() {
+  const [time, setTime] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <>
+      {formatLongDate(time.toISOString())} {time.toLocaleTimeString('vi-VN')}
+    </>
+  )
 }
 
 function getInitials(fullName: string) {
@@ -818,38 +833,38 @@ export function DashboardPage() {
 
       {primaryRole === 'ADMIN' ? (
         <>
-          <section className="surface-panel overflow-hidden border border-indigo-200 bg-gradient-to-br from-indigo-600 to-blue-700 px-6 py-5 text-white shadow-[0_28px_70px_rgba(15,23,42,0.15)]">
+          <section className="surface-panel overflow-hidden border border-indigo-100 bg-gradient-to-br from-indigo-50 to-sky-50 px-6 py-5 text-slate-900 shadow-[0_28px_70px_rgba(15,23,42,0.05)]">
             <div className="grid gap-6 lg:grid-cols-[0.6fr_0.4fr]">
               <div className="space-y-3">
-                <p className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-medium text-white/90">
+                <p className="inline-flex items-center gap-2 rounded-full bg-indigo-100/50 px-4 py-2 text-sm font-medium text-indigo-900">
                   <ShieldAlert className="h-4 w-4" />
                   Trung tâm điều phối hệ thống
                 </p>
                 <h2 className="text-2xl font-semibold tracking-[-0.05em] lg:text-3xl">
                   Quản trị toàn bộ nền tảng học vụ PTIT HCM từ một bảng điều khiển tập trung.
                 </h2>
-                <p className="max-w-3xl text-base leading-8 text-white/78">
+                <p className="max-w-3xl text-base leading-8 text-slate-600">
                   Theo dõi người dùng, phân quyền, cửa sổ đăng ký, trạng thái bảo trì và các bản ghi audit quan trọng để hệ thống luôn ổn định trong mùa đăng ký cao điểm.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-3xl bg-white/12 px-4 py-3">
-                  <p className="text-sm text-white/70">Quản trị viên hiện tại</p>
+                <div className="rounded-3xl bg-white/60 px-4 py-3">
+                  <p className="text-sm text-slate-500">Quản trị viên hiện tại</p>
                   <p className="mt-1 font-semibold">{currentUser.fullName}</p>
                 </div>
-                <div className="rounded-3xl bg-white/12 px-4 py-3">
-                  <p className="text-sm text-white/70">Email quản trị</p>
+                <div className="rounded-3xl bg-white/60 px-4 py-3">
+                  <p className="text-sm text-slate-500">Email quản trị</p>
                   <p className="mt-1 break-all text-sm font-semibold">{currentUser.email}</p>
                 </div>
-                <div className="rounded-3xl bg-white/12 px-4 py-3">
-                  <p className="text-sm text-white/70">Trạng thái hệ thống</p>
+                <div className="rounded-3xl bg-white/60 px-4 py-3">
+                  <p className="text-sm text-slate-500">Trạng thái hệ thống</p>
                   <p className="mt-1 font-semibold">
                     {snapshot.settings.maintenanceMode ? 'Đang bảo trì' : 'Đang hoạt động'}
                   </p>
                 </div>
-                <div className="rounded-3xl bg-white/12 px-4 py-3">
-                  <p className="text-sm text-white/70">Mốc thời gian</p>
-                  <p className="mt-1 font-semibold">{formatLongDate(snapshot.settings.simulationNow)}</p>
+                <div className="rounded-3xl bg-white/60 px-4 py-3">
+                  <p className="text-sm text-slate-500">Mốc thời gian</p>
+                  <p className="mt-1 font-semibold"><LiveTimeMarker /></p>
                 </div>
               </div>
             </div>
