@@ -1,4 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UseGuards } from '@nestjs/common'
+import { Response } from 'express'
+import * as ExcelJS from 'exceljs'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../common/decorators/user.decorator'
 import { Roles } from '../common/decorators/roles.decorator'
@@ -41,6 +43,55 @@ export class SectionsController {
   @Get(':id/students')
   async findSectionStudents(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.sectionsService.findSectionStudents(id, user)
+  }
+
+  @ApiOperation({ summary: 'Xuất danh sách sinh viên của lớp ra file Excel' })
+  @UseGuards(RolesGuard)
+  @Roles('LECTURER', 'ADMIN', 'ACADEMIC_OFFICE')
+  @Get(':id/students/export')
+  async exportStudents(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const enrollments = await this.sectionsService.findSectionStudents(id, user)
+    const section = await this.sectionsService.findOne(id)
+
+    const workbook = new ExcelJS.Workbook()
+    const sheet = workbook.addWorksheet(`Lớp ${section.sectionCode}`)
+
+    sheet.columns = [
+      { header: 'STT', key: 'stt', width: 6 },
+      { header: 'MSSV', key: 'code', width: 15 },
+      { header: 'Họ và tên', key: 'fullName', width: 30 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'Trạng thái ĐK', key: 'status', width: 18 },
+      { header: 'Ngày đăng ký', key: 'createdAt', width: 20 },
+    ]
+
+    // Style header row
+    sheet.getRow(1).font = { bold: true }
+    sheet.getRow(1).alignment = { horizontal: 'center' }
+
+    enrollments.forEach((enrollment: any, index: number) => {
+      sheet.addRow({
+        stt: index + 1,
+        code: enrollment.student?.code ?? enrollment.studentId,
+        fullName: enrollment.student?.fullName ?? '',
+        email: enrollment.student?.email ?? '',
+        status: enrollment.status,
+        createdAt: enrollment.createdAt
+          ? new Date(enrollment.createdAt).toLocaleDateString('vi-VN')
+          : '',
+      })
+    })
+
+    const filename = `danh-sach-lop-${section.sectionCode}.xlsx`
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+
+    await workbook.xlsx.write(res)
+    res.end()
   }
 
   @ApiOperation({ summary: 'Chi tiết lớp học phần' })
