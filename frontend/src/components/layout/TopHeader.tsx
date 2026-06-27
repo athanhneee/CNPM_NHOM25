@@ -1,4 +1,4 @@
-import { Bell, Menu } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
 import { getCurrentSemesterLabel } from '@/lib/selectors'
@@ -27,10 +27,6 @@ export function TopHeader() {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <div className="hidden items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-4 py-2 text-sm text-cyan-700 md:flex">
-          <Bell className="h-4 w-4" />
-          Thời gian mô phỏng: {settings.simulationNow.slice(0, 16).replace('T', ' ')}
-        </div>
         <UserMenu />
       </div>
     </header>
