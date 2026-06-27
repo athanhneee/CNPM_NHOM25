@@ -162,7 +162,7 @@ function DashboardQuickLinks({ links }: { links: QuickLink[] }) {
       {links.map((link) => (
         <Link
           key={`${link.to}-${link.label}`}
-          className="interactive-press rounded-2xl border border-[var(--color-hairline)] bg-white/90 px-4 py-3.5 shadow-[0_14px_32px_rgba(15,23,42,0.05)] transition hover:border-cyan-200 hover:bg-cyan-50/80"
+          className="interactive-press rounded-3xl border border-[var(--color-hairline)] bg-white/90 px-4 py-3.5 shadow-[0_14px_32px_rgba(15,23,42,0.05)] transition hover:border-cyan-200 hover:bg-cyan-50/80"
           to={link.to}
         >
           <div className="flex items-center justify-between gap-3">
@@ -262,8 +262,8 @@ function StudentPerformanceCard({ user }: { user: User }) {
               <div className="relative flex w-12 flex-1 flex-col justify-end rounded-full bg-slate-100 p-1">
                 <div
                   className={`w-full rounded-full ${index % 2 === 0
-                      ? 'bg-gradient-to-t from-teal-600 to-cyan-400'
-                      : 'bg-gradient-to-t from-cyan-500 to-sky-400'
+                    ? 'bg-gradient-to-t from-teal-600 to-cyan-400'
+                    : 'bg-gradient-to-t from-cyan-500 to-sky-400'
                     } shadow-sm transition-all duration-500`}
                   style={{ height: `${point.value}%` }}
                 />
@@ -306,7 +306,7 @@ function StudentInstructorCard({ instructors }: { instructors: User[] }) {
         <div className="grid gap-3">
           {instructors.map((lecturer) => (
             <div
-              className="flex items-start gap-4 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
+              className="flex items-start gap-4 rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
               key={lecturer.id}
             >
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500 to-teal-500 text-sm font-semibold text-white">
@@ -337,7 +337,7 @@ function StudentInstructorCard({ instructors }: { instructors: User[] }) {
 function RecentLogsCard({
   logs,
   title = 'Nhật ký gần đây',
-  description = 'Các bản ghi hoạt động mới nhất liên quan đến vai trò hiện tại.',
+  description = 'Các hoạt động mới nhất liên quan đến vai trò hiện tại.',
 }: {
   logs: ReturnType<typeof getRelevantLogs>
   title?: string
@@ -349,7 +349,7 @@ function RecentLogsCard({
         <div className="grid gap-3">
           {logs.map((log) => (
             <div
-              className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
+              className="rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
               key={log.id}
             >
               <div className="flex items-center justify-between gap-3">
@@ -362,7 +362,7 @@ function RecentLogsCard({
         </div>
       ) : (
         <EmptyState
-          title="Chưa có bản ghi nổi bật"
+          title="Chưa có thông tin nổi bật"
           description="Nhật ký liên quan sẽ xuất hiện tại đây sau khi có thao tác mới."
         />
       )}
@@ -423,7 +423,7 @@ function AdminTeamCard({ team }: { team: User[] }) {
       <div className="grid gap-3">
         {team.map((member) => (
           <div
-            className="flex items-start gap-4 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
+            className="flex items-start gap-4 rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
             key={member.id}
           >
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-teal-600 to-cyan-500 text-sm font-semibold text-white">
@@ -451,7 +451,7 @@ function AcademicLeadershipCard({ leaders }: { leaders: User[] }) {
       <div className="grid gap-3">
         {leaders.map((leader) => (
           <div
-            className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
+            className="rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-3.5"
             key={leader.id}
           >
             <p className="font-semibold text-slate-900">{leader.fullName}</p>

@@ -69,7 +69,7 @@ export function Table<T>({ columns, rows, rowKey, onRowClick, pageSize }: TableP
       {pageSize && totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-4 px-2 py-1">
           <span className="text-sm text-slate-500">
-            Hiển thị từ {(currentPage - 1) * pageSize + 1} đến {Math.min(currentPage * pageSize, rows.length)} trên tổng số {rows.length} bản ghi
+            Hiển thị từ {(currentPage - 1) * pageSize + 1} đến {Math.min(currentPage * pageSize, rows.length)} trên tổng số {rows.length}
           </span>
           <div className="flex items-center gap-4">
             <button

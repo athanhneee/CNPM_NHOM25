@@ -161,16 +161,16 @@ export function WithdrawPage() {
       <PageTitleBlock title="Sinh viên - Rút học phần" subtitle="Rút học phần sau giai đoạn điều chỉnh và trước hạn rút học phần; khi hiển thị theo PDF sẽ quy về HUY_DK." />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-3">
-        <StatCard label="Có thể rút" value={String(rows.length)} hint="Chỉ áp dụng cho bản ghi Đăng ký thành công" />
+        <StatCard label="Có thể rút" value={String(rows.length)} hint="Chỉ áp dụng cho Đăng ký thành công" />
         <StatCard label="Hạn rút học phần" value={snapshot.settings.withdrawalDeadline.slice(0, 10)} hint="Hạn cuối hệ thống" />
         <StatCard label="Tín chỉ ảnh hưởng" value={String(rows.reduce((sum, item) => sum + (item.course?.credits ?? 0), 0))} hint="Tổng tín chỉ có thể bị giảm" />
       </div>
 
       {rows.length ? (
-        <Card title="Danh sách học phần đang học" description="Rút học phần sẽ giữ lịch sử và tạo nhật ký hệ thống">
+        <Card title="Danh sách học phần đang học" description="">
           <div className="grid gap-3">
             {rows.map((row) => (
-              <div key={row.enrollment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
+              <div key={row.enrollment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                 <div>
                   <p className="font-semibold text-slate-900">{row.course?.name ?? row.section?.sectionCode}</p>
                   <p className="text-sm text-slate-500">{row.section?.sectionCode} • Rút trước {snapshot.settings.withdrawalDeadline.slice(0, 10)}</p>
@@ -188,7 +188,7 @@ export function WithdrawPage() {
           </div>
         </Card>
       ) : (
-        <EmptyState title="Không có học phần để rút" description="Chỉ những bản ghi Đăng ký thành công mới có thể rút." />
+        <EmptyState title="Không có học phần để rút" description="Đăng ký thành công mới có thể rút." />
       )}
 
       <ConfirmDialog
@@ -210,7 +210,7 @@ export function WithdrawPage() {
           setLoading(true)
           try {
             await enrollmentService.withdrawEnrollment(selected.enrollment.id, reason, auditActor)
-            pushToast({ tone: 'success', title: 'Rút học phần thành công', description: 'Bản ghi đã được hiển thị theo quy ước HUY_DK.' })
+            pushToast({ tone: 'success', title: 'Rút học phần thành công', description: '' })
             setSelectedEnrollmentId('')
             setReason('')
           } catch (error) {

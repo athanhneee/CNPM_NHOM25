@@ -203,7 +203,7 @@ export function WishPage() {
           {wishes.length ? (
             <div className="grid gap-3">
               {wishes.map((wish) => (
-                <div key={wish.id} className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
+                <div key={wish.id} className="rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-semibold text-slate-900">

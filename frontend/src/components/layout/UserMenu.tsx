@@ -45,7 +45,7 @@ export function UserMenu() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 grid min-w-64 gap-2 rounded-2xl border border-[var(--color-hairline)] bg-white p-3 shadow-2xl">
+        <div className="absolute right-0 top-[calc(100%+0.75rem)] z-30 grid min-w-64 gap-2 rounded-3xl border border-[var(--color-hairline)] bg-white p-3 shadow-2xl">
           <div className="rounded-full bg-slate-50 px-3 py-3">
             <p className="text-sm font-semibold text-slate-900">{user.code}</p>
             <p className="text-sm text-slate-500">{user.email}</p>

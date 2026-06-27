@@ -15,7 +15,7 @@ export const REGISTRATION_ERROR_MESSAGES = {
   REG_ERR_SCHEDULE_CONFLICT: 'Thời khóa biểu bị trùng với học phần đã đăng ký.',
   REG_ERR_CREDIT_LIMIT_EXCEEDED: 'Vượt quá giới hạn số tín chỉ tối đa.',
   REG_ERR_CREDIT_LIMIT_NOT_ENOUGH: 'Chưa đạt ngưỡng tín chỉ tối thiểu của học kỳ.',
-  REG_ERR_ALREADY_REGISTERED: 'Sinh viên đã có bản ghi đăng ký cho lớp này.',
+  REG_ERR_ALREADY_REGISTERED: 'Sinh viên đã đăng ký cho lớp này.',
   REG_ERR_ALREADY_REGISTERED_COURSE: 'Sinh viên đã đăng ký hoặc vào danh sách chờ một lớp khác của cùng học phần trong học kỳ này.',
   REG_ERR_ALREADY_PASSED: 'Sinh viên đã hoàn thành học phần này.',
   REG_ERR_MAX_RETAKE_EXCEEDED: 'Đã vượt quá số lần học lại cho phép.',

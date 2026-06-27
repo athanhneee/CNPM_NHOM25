@@ -573,7 +573,7 @@ export function UserAccountsPage() {
       ) : null}
 
       {lastImportSummary ? (
-        <Card title="Kết quả lần nhập gần nhất" description="Tóm tắt các bản ghi vừa được thêm hoặc bị bỏ qua.">
+        <Card title="Kết quả lần nhập gần nhất" description="Tóm tắt các thông tin vừa được thêm hoặc bị bỏ qua.">
           <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-3">
             <StatCard label="Đã thêm mới" value={String(lastImportSummary.created.length)} hint="Sinh viên đã ghi vào hệ thống" />
             <StatCard label="Bị bỏ qua" value={String(lastImportSummary.skipped.length)} hint="Thường do trùng MSSV" />

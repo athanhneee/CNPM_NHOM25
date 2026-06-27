@@ -283,7 +283,7 @@ export function getRoleDashboardMetrics(snapshot: SnapshotLike, user: User) {
         hint: 'Theo dõi để chuyển sang đăng ký chính thức',
       },
       {
-        label: 'Bản ghi học kỳ',
+        label: 'Học kỳ',
         value: String(current.length),
         hint: 'Tổng số trạng thái đã phát sinh',
       },
@@ -345,7 +345,7 @@ export function getRoleDashboardMetrics(snapshot: SnapshotLike, user: User) {
       {
         label: 'Sinh viên chờ',
         value: String(waitlisted),
-        hint: 'Tổng số bản ghi WAITLISTED',
+        hint: 'Tổng số WAITLISTED',
       },
     ]
   }

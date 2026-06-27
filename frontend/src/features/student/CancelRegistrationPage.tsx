@@ -173,7 +173,7 @@ export function CancelRegistrationPage() {
         <Card title="Danh sách đăng ký hiện tại" description="Chọn học phần để hủy và ghi lại lý do nếu cần">
           <div className="grid gap-3">
             {rows.map((row) => (
-              <div key={row.enrollment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
+              <div key={row.enrollment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                 <div>
                   <p className="font-semibold text-slate-900">{row.course?.name ?? row.section?.sectionCode}</p>
                   <p className="text-sm text-slate-500">
@@ -193,7 +193,7 @@ export function CancelRegistrationPage() {
           </div>
         </Card>
       ) : (
-        <EmptyState title="Không có học phần để hủy" description="Danh sách hiện tại không có bản ghi đăng ký hợp lệ hoặc đang chờ xử lý để hủy." />
+        <EmptyState title="Không có học phần để hủy" description="Danh sách hiện tại không có đăng ký hợp lệ hoặc đang chờ xử lý để hủy." />
       )}
 
       <ConfirmDialog
@@ -214,7 +214,7 @@ export function CancelRegistrationPage() {
           setLoading(true)
           try {
             await enrollmentService.cancelEnrollment(selected.enrollment.id, auditActor, reason || undefined)
-            pushToast({ tone: 'success', title: 'Đã hủy đăng ký', description: 'Bản ghi đăng ký đã chuyển sang HUY_DK.' })
+            pushToast({ tone: 'success', title: 'Đã hủy đăng ký', description: '' })
             setSelectedEnrollmentId('')
             setReason('')
           } catch (error) {

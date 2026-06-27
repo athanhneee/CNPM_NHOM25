@@ -25,7 +25,7 @@ export function RuleCheckPanel({
         {checks.map((check) => (
           <div
             key={check.key}
-            className={`flex items-center gap-3 rounded-2xl bg-[var(--color-surface-soft)] px-5 py-3.5 ${check.passed ? 'ring-1 ring-emerald-200' : 'ring-1 ring-amber-200'}`}
+            className={`flex items-center gap-3 rounded-3xl bg-[var(--color-surface-soft)] px-5 py-3.5 ${check.passed ? 'ring-1 ring-emerald-200' : 'ring-1 ring-amber-200'}`}
           >
             <div className={check.passed ? 'text-[var(--color-ink)]' : 'text-[var(--color-accent)]'}>
               {check.passed ? <CircleCheck className="h-5 w-5" /> : <CircleAlert className="h-5 w-5" />}

@@ -35,7 +35,7 @@ export function AppShell() {
 
             {apiStatus === 'error' && !isDemoMode && (
               <div className="rounded-3xl border border-amber-300 bg-amber-50 px-5 py-4 text-amber-800">
-                <p className="font-semibold">Mất kết nối backend hoặc phiên đăng nhập đã hết hạn</p>
+                <p className="font-semibold">Mất kết nối</p>
                 {apiError && <p className="text-sm mt-1">{apiError}</p>}
               </div>
             )}

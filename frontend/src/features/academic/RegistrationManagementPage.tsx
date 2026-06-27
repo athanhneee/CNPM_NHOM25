@@ -168,7 +168,7 @@ export function RegistrationManagementPage() {
   const itemsPerPage = 5
   const totalPages = Math.max(1, Math.ceil(sections.length / itemsPerPage))
   const paginatedSections = sections.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-  
+
   const selected = sections.find((item) => item.section.id === selectedSectionId) ?? sections[0]
   const students = selected ? getSectionStudents(snapshot, selected.section.id) : []
 
@@ -261,7 +261,7 @@ export function RegistrationManagementPage() {
                       variant="secondary"
                       onClick={async () => {
                         const promoted = await enrollmentService.processWaitlist(selected.section.id, actor)
-                        pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang Đăng ký thành công.` : 'Chưa có bản ghi nào đủ điều kiện.' })
+                        pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang Đăng ký thành công.` : 'Chưa có sinh viên nào đủ điều kiện.' })
                       }}
                       type="button"
                     >

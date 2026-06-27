@@ -250,7 +250,7 @@ export function CreateSectionPage() {
         <Card title="Lớp học phần tạo gần đây" description="Danh sách nhanh để đối chiếu xung đột và tình trạng mở lớp">
           <div className="grid gap-3">
             {paginatedRows.map((row) => (
-              <div key={row.section.id} className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
+              <div key={row.section.id} className="rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="font-semibold text-slate-900">{row.section.sectionCode}</p>

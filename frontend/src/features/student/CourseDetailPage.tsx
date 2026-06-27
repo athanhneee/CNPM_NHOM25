@@ -156,7 +156,7 @@ export function CourseDetailPage() {
   const lecturer = snapshot.users.find((item) => item.id === section?.lecturerId)
 
   if (!section || !course) {
-    return <ErrorState title="Không tìm thấy học phần" description="Bản ghi lớp học phần không tồn tại hoặc đã bị xóa khỏi dữ liệu mô phỏng." />
+    return <ErrorState title="Không tìm thấy học phần" description="Lớp học phần không tồn tại hoặc đã bị xóa." />
   }
 
   const eligibility = evaluateEnrollmentEligibility({

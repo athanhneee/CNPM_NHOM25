@@ -155,7 +155,7 @@ export function WaitlistOverridePage() {
   const { currentUser, snapshot, pushToast, actor } = useAcademicContext()
   const [selectedSectionId, setSelectedSectionId] = useState('')
   const [studentId, setStudentId] = useState(snapshot.users.find((user) => user.roles.includes('STUDENT'))?.id ?? '')
-  const [reason, setReason] = useState('Cần can thiệp theo đề xuất nghiệp vụ.')
+  const [reason, setReason] = useState('Cần can thiệp.')
   const [currentPage, setCurrentPage] = useState(1)
 
   if (!currentUser || !actor) {
@@ -228,7 +228,7 @@ export function WaitlistOverridePage() {
             {waitlistRows.length ? (
               <div className="grid gap-3">
                 {waitlistRows.map((row) => (
-                  <div key={row.enrollment.id} className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
+                  <div key={row.enrollment.id} className="rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-4">
                     <p className="font-semibold text-slate-900">{row.student?.fullName ?? row.student?.code}</p>
                     <p className="text-sm text-slate-500">Thứ tự chờ: {row.enrollment.waitlistOrder ?? '--'}</p>
                   </div>
@@ -239,7 +239,7 @@ export function WaitlistOverridePage() {
                       return
                     }
                     const promoted = await enrollmentService.processWaitlist(selected.section.id, actor)
-                    pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang Đăng ký thành công.` : 'Không có bản ghi nào đủ điều kiện.' })
+                    pushToast({ tone: promoted.length ? 'success' : 'info', title: 'Xử lý danh sách chờ hoàn tất', description: promoted.length ? `Đã chuyển ${promoted.length} sinh viên sang Đăng ký thành công.` : 'Không có sinh viên nào đủ điều kiện.' })
                   }}
                   type="button"
                 >
@@ -262,7 +262,7 @@ export function WaitlistOverridePage() {
                   }
                   try {
                     await enrollmentService.overrideEnrollment(studentId, selected.section.id, reason, actor)
-                    pushToast({ tone: 'success', title: 'Can thiệp thành công', description: 'Bản ghi đăng ký đã được cập nhật và ghi log.' })
+                    pushToast({ tone: 'success', title: 'Can thiệp thành công', description: '' })
                   } catch (error) {
                     pushToast({ tone: 'error', title: 'Không thể can thiệp', description: error instanceof Error ? error.message : 'Hệ thống không thể xử lý.' })
                   }

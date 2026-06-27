@@ -164,9 +164,9 @@ export function SettingsPage() {
         <Card title="Tham số hệ thống" description="Thay đổi các tham số tác động trực tiếp lên logic đăng ký">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2 space-y-3">
-              <p className="rounded-3xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900">
+              {/* <p className="rounded-3xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-900">
                 Thời điểm mô phỏng hiện tại: {formatDateTime(snapshot.settings.simulationNow)}
-              </p>
+              </p> */}
               <div className="flex items-end gap-3">
                 <div className="flex-1">
                   <Input label="Thời điểm mô phỏng" type="datetime-local" step="1" value={form.simulationNow} onChange={(event) => updateForm((value) => ({ ...value, simulationNow: event.target.value }))} />
@@ -188,14 +188,14 @@ export function SettingsPage() {
             <Input label="Cảnh báo trước logout (giây)" value={form.warningBeforeLogoutSeconds} onChange={(event) => updateForm((value) => ({ ...value, warningBeforeLogoutSeconds: event.target.value }))} />
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-700">Bật bảo trì</label>
-              <select className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" value={form.maintenanceMode} onChange={(e) => updateForm((value) => ({ ...value, maintenanceMode: e.target.value }))}>
+              <select className="block w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" value={form.maintenanceMode} onChange={(e) => updateForm((value) => ({ ...value, maintenanceMode: e.target.value }))}>
                 <option value="true">Bật (True)</option>
                 <option value="false">Tắt (False)</option>
               </select>
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-700">Cho phép danh sách chờ</label>
-              <select className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" value={form.allowWaitlist} onChange={(e) => updateForm((value) => ({ ...value, allowWaitlist: e.target.value }))}>
+              <select className="block w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" value={form.allowWaitlist} onChange={(e) => updateForm((value) => ({ ...value, allowWaitlist: e.target.value }))}>
                 <option value="true">Cho phép (True)</option>
                 <option value="false">Không cho phép (False)</option>
               </select>

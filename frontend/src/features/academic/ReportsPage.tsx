@@ -252,7 +252,7 @@ export function ReportsPage() {
       <Card title="Bảng báo cáo" description="Tổng hợp theo lớp học phần, giảng viên và sĩ số">
         <div className="grid gap-3">
           {paginatedRows.map((row) => (
-            <div key={row.id} className="rounded-2xl border border-[var(--color-hairline)] bg-white px-5 py-4">
+            <div key={row.id} className="rounded-3xl border border-[var(--color-hairline)] bg-white px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold text-slate-900">{row.sectionCode} - {row.courseName}</p>

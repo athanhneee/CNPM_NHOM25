@@ -20,7 +20,7 @@ export function TimelineList({ items }: TimelineListProps) {
               {!isLast && <div className="w-0.5 flex-1 bg-slate-200" />}
             </div>
             <div className="min-w-0 flex-1 pb-8">
-              <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:border-teal-200 hover:shadow-md">
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:border-teal-200 hover:shadow-md">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
                   <StatusBadge kind="enrollment" status={item.status} />
                   <span className="text-[13px] font-medium text-slate-500">{formatDateTime(item.timestamp)}</span>

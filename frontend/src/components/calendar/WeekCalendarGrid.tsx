@@ -72,7 +72,7 @@ export function WeekCalendarGrid({
       {entries.length ? (
         <div className="space-y-5">
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-teal-300 hover:shadow-md gap-1 sm:gap-0">
+            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-3xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-teal-300 hover:shadow-md gap-1 sm:gap-0">
               <div className="flex sm:hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600 mb-1">
                 <BookOpenText className="h-4 w-4" />
               </div>
@@ -85,7 +85,7 @@ export function WeekCalendarGrid({
               </div>
             </div>
 
-            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-cyan-300 hover:shadow-md gap-1 sm:gap-0">
+            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-3xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-cyan-300 hover:shadow-md gap-1 sm:gap-0">
               <div className="flex sm:hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-600 mb-1">
                 <CalendarDays className="h-4 w-4" />
               </div>
@@ -98,7 +98,7 @@ export function WeekCalendarGrid({
               </div>
             </div>
 
-            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md gap-1 sm:gap-0">
+            <div className="group flex flex-col sm:flex-row items-center sm:justify-between rounded-3xl sm:rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md gap-1 sm:gap-0">
               <div className="flex sm:hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 mb-1">
                 <MapPin className="h-4 w-4" />
               </div>
@@ -164,7 +164,7 @@ export function WeekCalendarGrid({
                         <article
                           key={entry.id}
                           className={cn(
-                            'relative z-10 m-1 overflow-hidden rounded-2xl border p-3 shadow-sm transition hover:shadow-md',
+                            'relative z-10 m-1 overflow-hidden rounded-3xl border p-3 shadow-sm transition hover:shadow-md',
                             getScheduleTone(entry.sectionStatus),
                           )}
                           style={{

@@ -170,7 +170,7 @@ export const navigationGroups: NavigationGroup[] = [
         to: '/academic/registrations',
         icon: 'file-clock',
         roles: ['ACADEMIC_OFFICE'],
-        description: 'Theo dõi sĩ số, đăng ký và điều chỉnh nghiệp vụ.',
+        description: 'Theo dõi sĩ số, đăng ký và điều chỉnh thông tin',
       },
       {
         label: 'Lịch học và phòng',

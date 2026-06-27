@@ -71,7 +71,7 @@ export function LoginPage() {
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-100/50 via-slate-100 to-slate-100"></div>
 
       <div className="relative z-10 w-full max-w-[1200px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[760px] border border-slate-200/60">
-        
+
         {/* LEFT PANEL - Light Vibrant UI */}
         <WeatherProvider>
           <section className="relative hidden lg:flex lg:w-5/12 bg-teal-50/50 flex-col justify-between p-12 overflow-hidden border-r border-teal-100/50">
@@ -84,9 +84,9 @@ export function LoginPage() {
               <div className="absolute bottom-[0%] -right-[20%] w-[70%] h-[70%] bg-cyan-300/30 blur-[90px] rounded-full mix-blend-multiply" />
               <div className="absolute top-[40%] left-[20%] w-[50%] h-[50%] bg-sky-200/40 blur-[100px] rounded-full mix-blend-multiply" />
             </div>
-            
+
             <div className="relative z-10 flex items-center gap-3">
-              <div className="bg-white p-2.5 rounded-2xl border border-teal-100 shadow-sm shrink-0">
+              <div className="bg-white p-2.5 rounded-3xl border border-teal-100 shadow-sm shrink-0">
                 <img
                   alt="Logo PTIT"
                   src="/Logo-Hoc-Vien-Cong-Nghe-Buu-Chinh-Vien-Thong-PTIT.webp"
@@ -104,7 +104,7 @@ export function LoginPage() {
                 <span>Hệ thống mới 2026</span>
               </div>
               <h1 className="text-4xl xl:text-5xl font-extrabold leading-[1.15] tracking-tight text-slate-900">
-                Nền tảng học vụ <br/>
+                Nền tảng học vụ <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-500">
                   thông minh hơn.
                 </span>
@@ -137,7 +137,7 @@ export function LoginPage() {
 
         {/* RIGHT PANEL - Clean Login Form */}
         <section className="flex-1 flex flex-col justify-center p-8 sm:p-14 lg:p-16 relative bg-white overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
-          
+
           {/* Mobile Logo Header */}
           <div className="lg:hidden mb-10 flex flex-col items-center gap-4 text-center">
             <div className="bg-white p-3 rounded-3xl shadow-xl shadow-teal-500/10 border border-slate-100">
@@ -177,7 +177,7 @@ export function LoginPage() {
                   rightAdornment={
                     <button
                       type="button"
-                      className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-full transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -227,33 +227,33 @@ export function LoginPage() {
               </div>
 
               <div className="bg-slate-50 border border-slate-100 p-2 rounded-full mb-4 flex gap-1">
-                <button 
-                  onClick={() => setActiveTab('SV')} 
+                <button
+                  onClick={() => setActiveTab('SV')}
                   className={`flex-1 py-2 px-1 sm:px-2 text-xs font-bold rounded-full transition-all ${activeTab === 'SV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                 >
                   Sinh viên
                 </button>
-                <button 
-                  onClick={() => setActiveTab('GV')} 
+                <button
+                  onClick={() => setActiveTab('GV')}
                   className={`flex-1 py-2 px-1 sm:px-2 text-xs font-bold rounded-full transition-all ${activeTab === 'GV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                 >
                   Giảng viên
                 </button>
-                <button 
-                  onClick={() => setActiveTab('GVU')} 
+                <button
+                  onClick={() => setActiveTab('GVU')}
                   className={`flex-1 py-2 px-1 sm:px-2 text-xs font-bold rounded-full transition-all ${activeTab === 'GVU' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                 >
                   Giáo vụ
                 </button>
-                <button 
-                  onClick={() => setActiveTab('QTV')} 
+                <button
+                  onClick={() => setActiveTab('QTV')}
                   className={`flex-1 py-2 px-1 sm:px-2 text-xs font-bold rounded-full transition-all ${activeTab === 'QTV' ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                 >
                   Quản trị
                 </button>
               </div>
 
-              <div 
+              <div
                 key={activeTab}
                 className="grid gap-3 h-[180px] content-start overflow-y-auto pr-2 pb-2 scrollbar-thin scrollbar-thumb-slate-200 animate-in fade-in zoom-in-[0.98] duration-300"
               >

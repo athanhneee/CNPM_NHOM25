@@ -322,7 +322,7 @@ export function WishReviewPage() {
     <div className="grid gap-6">
       <PageTitleBlock
         title="Phòng đào tạo - Duyệt nguyện vọng"
-        subtitle="Theo dõi nhu cầu mở lớp, đổi nhóm và cập nhật trạng thái xử lý trực tiếp từ backend."
+        subtitle="Theo dõi nhu cầu mở lớp, đổi nhóm và cập nhật trạng thái xử lý."
       />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Tổng nguyện vọng" value={String(snapshot.wishes.filter((wish) => wish.semesterId === currentSemesterId).length)} hint="Học kỳ hiện tại" />
@@ -334,7 +334,7 @@ export function WishReviewPage() {
         <label className="grid gap-2">
           <span className="text-sm font-medium text-slate-700">Lọc trạng thái</span>
           <select
-            className="brand-ring rounded-2xl border border-[var(--color-hairline)] bg-white/96 px-5 py-4 text-sm text-slate-900"
+            className="brand-ring rounded-3xl border border-[var(--color-hairline)] bg-white/96 px-5 py-4 text-sm text-slate-900"
             onChange={(event) => setStatusFilter(event.target.value as WishRequest['status'] | 'ALL')}
             value={statusFilter}
           >
