@@ -280,8 +280,9 @@ function syncImportedSnapshot(payload: SnapshotPayload) {
 }
 
 export const adminService = {
-  async listUsers() {
-    const users = normalizeUsers(await apiRequest<BackendUser[] | PaginatedResponse<BackendUser>>('/users'))
+  async listUsers(query?: Record<string, string | number>) {
+    const qs = query ? '?' + new URLSearchParams(query as Record<string, string>).toString() : ''
+    const users = normalizeUsers(await apiRequest<BackendUser[] | PaginatedResponse<BackendUser>>(`/users${qs}`))
     syncUsers(users)
     return users
   },

@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
 import { InfoList } from '@/components/shared/InfoList'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { adminService } from '@/services/admin.api'
 import { courseService } from '@/services/course.api'
 import { enrollmentService } from '@/services/enrollment.api'
 import { sectionService } from '@/services/section.api'
@@ -79,6 +80,7 @@ function useAcademicContext() {
     useDataStore.getState().setApiStatus('loading')
 
     Promise.all([
+      adminService.listUsers({ role: 'LECTURER', limit: 1000 }),
       courseService.listCourses(),
       sectionService.listSections(),
       enrollmentService.listEnrollments(),
@@ -247,11 +249,11 @@ export function AssignLecturerPage() {
           {selectedSection ? (
             <div className="grid gap-4">
               <InfoList items={[{ label: 'Lớp học phần', value: selectedSection.section.sectionCode }, { label: 'Môn học', value: selectedSection.course?.name ?? selectedSection.section.courseCode }, { label: 'Lịch', value: `Thứ ${selectedSection.section.weekday} - Tiết ${selectedSection.section.startPeriod}` }, { label: 'Giảng viên hiện tại', value: selectedSection.lecturer?.fullName ?? selectedSection.section.guestLecturer ?? '--' }]} />
-              
+
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Giảng viên mới</label>
                 <select
-                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="flex h-10 w-full rounded-3xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   value={nextLecturerId}
                   onChange={(e) => setNextLecturerId(e.target.value)}
                 >
@@ -264,10 +266,10 @@ export function AssignLecturerPage() {
               </div>
 
               {isGuestLecturer && (
-                <Input 
-                  label="Tên giảng viên khác" 
-                  value={nextGuestLecturer} 
-                  onChange={(event) => setNextGuestLecturer(event.target.value)} 
+                <Input
+                  label="Tên giảng viên khác"
+                  value={nextGuestLecturer}
+                  onChange={(event) => setNextGuestLecturer(event.target.value)}
                   placeholder="Nhập tên giảng viên"
                 />
               )}
@@ -282,7 +284,7 @@ export function AssignLecturerPage() {
                     pushToast({ tone: 'error', title: 'Lỗi', description: 'Vui lòng nhập tên giảng viên khác.' })
                     return;
                   }
-                  
+
                   try {
                     const payload: { lecturerId?: string; guestLecturer?: string } = {}
                     if (isGuestLecturer) {

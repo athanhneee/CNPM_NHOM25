@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
 import { InfoList } from '@/components/shared/InfoList'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { adminService } from '@/services/admin.api'
 import { courseService } from '@/services/course.api'
 import { enrollmentService } from '@/services/enrollment.api'
 import { sectionService } from '@/services/section.api'
@@ -79,6 +80,7 @@ function useAcademicContext() {
     useDataStore.getState().setApiStatus('loading')
 
     Promise.all([
+      adminService.listUsers({ role: 'LECTURER', limit: 1000 }),
       courseService.listCourses(),
       sectionService.listSections(),
       enrollmentService.listEnrollments(),
@@ -194,12 +196,12 @@ export function CreateSectionPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium">Mã môn học</label>
               <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-3xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 value={form.courseCode}
                 onChange={(e) => {
                   const courseCode = e.target.value;
-                  setForm((value) => ({ 
-                    ...value, 
+                  setForm((value) => ({
+                    ...value,
                     courseCode,
                     sectionCode: `${courseCode}-${value.group.padStart(2, '0')}`
                   }))
@@ -210,27 +212,27 @@ export function CreateSectionPage() {
                 ))}
               </select>
             </div>
-            
-            <Input 
-              label="Nhóm" 
-              value={form.group} 
+
+            <Input
+              label="Nhóm"
+              value={form.group}
               onChange={(event) => {
                 const group = event.target.value;
-                setForm((value) => ({ 
-                  ...value, 
+                setForm((value) => ({
+                  ...value,
                   group,
                   sectionCode: `${value.courseCode}-${group.padStart(2, '0')}`
                 }))
-              }} 
+              }}
             />
-            
-            <Input label="Mã lớp học phần (Tự động)" value={form.sectionCode} readOnly disabled />
+
+            <Input label="Mã lớp học phần" value={form.sectionCode} readOnly disabled />
             <Input label="Tổ" value={form.subGroup} onChange={(event) => setForm((value) => ({ ...value, subGroup: event.target.value }))} />
-            
+
             <div className="space-y-1">
               <label className="text-sm font-medium">Giảng viên</label>
               <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-3xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 value={form.lecturerId}
                 onChange={(e) => setForm((value) => ({ ...value, lecturerId: e.target.value }))}
               >
@@ -240,12 +242,12 @@ export function CreateSectionPage() {
                 <option value="OTHER">Khác (Giảng viên ngoài)</option>
               </select>
             </div>
-            
+
             {isGuestLecturer && (
-              <Input 
-                label="Tên giảng viên khác" 
-                value={form.guestLecturer || ''} 
-                onChange={(event) => setForm((value) => ({ ...value, guestLecturer: event.target.value }))} 
+              <Input
+                label="Tên giảng viên khác"
+                value={form.guestLecturer || ''}
+                onChange={(event) => setForm((value) => ({ ...value, guestLecturer: event.target.value }))}
                 placeholder="Nhập tên giảng viên"
               />
             )}
@@ -253,7 +255,7 @@ export function CreateSectionPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium">Phòng học</label>
               <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-3xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 value={form.room}
                 onChange={(e) => setForm((value) => ({ ...value, room: e.target.value }))}
               >
@@ -266,7 +268,7 @@ export function CreateSectionPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium">Thứ</label>
               <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-3xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 value={form.weekday}
                 onChange={(e) => setForm((value) => ({ ...value, weekday: e.target.value }))}
               >
@@ -292,7 +294,7 @@ export function CreateSectionPage() {
                     group: form.group,
                     subGroup: form.subGroup,
                     room: form.room,
-                    weekday: Number(form.weekday) as 2|3|4|5|6|7|8,
+                    weekday: Number(form.weekday) as 2 | 3 | 4 | 5 | 6 | 7 | 8,
                     startPeriod: Number(form.startPeriod),
                     periodCount: Number(form.periodCount),
                     weeks: form.weeks,
@@ -301,7 +303,7 @@ export function CreateSectionPage() {
                     campus: 'HCM',
                     status: 'OPEN',
                   }
-                  
+
                   if (isGuestLecturer) {
                     payload.guestLecturer = form.guestLecturer
                   } else {

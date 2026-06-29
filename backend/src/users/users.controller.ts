@@ -30,7 +30,7 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Danh sách tài khoản người dùng' })
   @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'ACADEMIC_OFFICE')
   @Get()
   async findAll(@Query() query: UserQueryDto) {
     return this.usersService.findAll(query)
