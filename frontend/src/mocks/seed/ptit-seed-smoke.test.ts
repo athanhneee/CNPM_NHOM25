@@ -23,6 +23,6 @@ test('seed sources keep prerequisite rejection and capstone metadata cases', () 
   )
   assert.match(
     coursesSource,
-    /code:\s*'INT2301'[\s\S]*courseType:\s*'Đồ án'/,
+    /code:\s*['"]INT2301['"][\s\S]*courseType:\s*['"]Đồ án['"]/,
   )
 })

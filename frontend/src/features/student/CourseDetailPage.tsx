@@ -18,6 +18,14 @@ import { wishService } from '@/services/wish.api'
 import type { Course } from '@/types/course'
 import type { User } from '@/types/user'
 
+const ACADEMIC_BLOCK_LABELS: Record<string, string> = {
+  generalEducationCourses: 'Khối kiến thức chung',
+  foundationCourses: 'Cơ sở ngành',
+  majorCoreCourses: 'Chuyên ngành',
+  specializationCourses: 'Chuyên sâu',
+  electiveCourses: 'Tự chọn',
+}
+
 function useStudentContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
@@ -202,7 +210,7 @@ export function CourseDetailPage() {
               { label: 'Mã môn học', value: course.code },
               { label: 'Tín chỉ', value: String(course.credits) },
               { label: 'Loại môn', value: course.courseType ?? 'Chưa phân loại' },
-              { label: 'Khối kiến thức', value: course.academicBlock ?? 'Danh mục chung' },
+              { label: 'Khối kiến thức', value: course.academicBlock ? (ACADEMIC_BLOCK_LABELS[course.academicBlock] || course.academicBlock) : 'Danh mục chung' },
               { label: 'Học kỳ gợi ý', value: course.suggestedSemester ? `Học kỳ ${course.suggestedSemester}` : 'Đang cập nhật' },
               { label: 'Ngành áp dụng', value: course.majorsSupported?.join(', ') || 'Danh mục chung' },
               { label: 'Giảng viên', value: lecturer?.fullName ?? '--' },
