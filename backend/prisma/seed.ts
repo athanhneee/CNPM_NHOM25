@@ -2576,14 +2576,26 @@ export async function seedDemoData(
 
   /* ── Sections (1 per course for current semester) ── */
   const lecturerByDept: Record<string, string[]> = {
+    // New department codes used in ALL_COURSES
+    INT: ["LEC001", "LEC002", "LEC017", "LEC018"],
+    SEC: ["LEC003", "LEC004"],
+    TEL: ["LEC005", "LEC006"],
+    ELE: ["LEC007", "LEC008"],
+    MUL: ["LEC009", "LEC010"],
+    BUS: ["LEC011", "LEC012"],
+    MKT: ["LEC013", "LEC014"],
+    ACC: ["LEC015", "LEC016"],
+    // Legacy department codes (keep for backward compat)
     CNTT: ["LEC001", "LEC002", "LEC017", "LEC018"],
     ATTT: ["LEC003", "LEC004"],
     VT: ["LEC005", "LEC006"],
     DT: ["LEC007", "LEC008"],
     DPT: ["LEC009", "LEC010"],
     QTKD: ["LEC011", "LEC012"],
-    MKT: ["LEC013", "LEC014"],
     KT: ["LEC015", "LEC016"],
+    // Catch-all for shared/misc departments
+    IT: ["LEC001", "LEC002", "LEC017", "LEC018"],
+    "Academic Office": ["LEC001", "LEC002"],
   };
 
   // --- Conflict-free schedule generation ---
