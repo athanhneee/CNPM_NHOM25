@@ -2576,21 +2576,26 @@ export async function seedDemoData(
 
   /* ── Sections (1 per course for current semester) ── */
   const lecturerByDept: Record<string, string[]> = {
+    // New department codes used in ALL_COURSES
     INT: ["LEC001", "LEC002", "LEC017", "LEC018"],
-    CNTT: ["LEC001", "LEC002", "LEC017", "LEC018"],
     SEC: ["LEC003", "LEC004"],
-    ATTT: ["LEC003", "LEC004"],
     TEL: ["LEC005", "LEC006"],
-    VT: ["LEC005", "LEC006"],
     ELE: ["LEC007", "LEC008"],
-    DT: ["LEC007", "LEC008"],
     MUL: ["LEC009", "LEC010"],
-    DPT: ["LEC009", "LEC010"],
     BUS: ["LEC011", "LEC012"],
-    QTKD: ["LEC011", "LEC012"],
     MKT: ["LEC013", "LEC014"],
     ACC: ["LEC015", "LEC016"],
+    // Legacy department codes (keep for backward compat)
+    CNTT: ["LEC001", "LEC002", "LEC017", "LEC018"],
+    ATTT: ["LEC003", "LEC004"],
+    VT: ["LEC005", "LEC006"],
+    DT: ["LEC007", "LEC008"],
+    DPT: ["LEC009", "LEC010"],
+    QTKD: ["LEC011", "LEC012"],
     KT: ["LEC015", "LEC016"],
+    // Catch-all for shared/misc departments
+    IT: ["LEC001", "LEC002", "LEC017", "LEC018"],
+    "Academic Office": ["LEC001", "LEC002"],
   };
 
   // --- Conflict-free schedule generation ---
@@ -2599,10 +2604,6 @@ export async function seedDemoData(
   // 14 rooms × 18 slots = 252 total capacity (>160 courses)
   const WEEKDAYS = [2, 3, 4, 5, 6, 7];
   const PERIOD_SLOTS = [1, 5, 9];
-  const SLOT_GRID = WEEKDAYS.flatMap((weekday) =>
-    PERIOD_SLOTS.map((startPeriod) => ({ weekday, startPeriod })),
-  );
-  const SLOT_STRIDE = 5;
 
   type SlotEntry = {
     weekday: number;
@@ -2628,12 +2629,7 @@ export async function seedDemoData(
   const roomSchedule = new Map<string, SlotEntry[]>();
 
   const sectionData = ALL_COURSES.map((course, index) => {
-    const lecturers = lecturerByDept[course.department];
-    if (!lecturers) {
-      throw new Error(
-        `Missing lecturer mapping for department ${course.department} (${course.code}).`,
-      );
-    }
+    const lecturers = lecturerByDept[course.department] ?? ["LEC001"];
     const lecturerId = lecturers[index % lecturers.length];
     const periodCount = course.credits >= 4 ? 4 : 3;
 
@@ -2644,28 +2640,25 @@ export async function seedDemoData(
     let startPeriod = PERIOD_SLOTS[0];
     let roomObj = ROOMS[0];
 
-    // Rotate the preferred day/time per course so the catalog does not cluster
-    // around Monday morning while still preserving conflict checks.
-    const slotOffset = (index * SLOT_STRIDE) % SLOT_GRID.length;
-
     // Find first (weekday, timeSlot, room) with no lecturer or room conflict
     // Rotate room start position per course to distribute rooms evenly
     const roomOffset = index % ROOMS.length;
     let found = false;
-    for (let slotIndex = 0; slotIndex < SLOT_GRID.length; slotIndex++) {
-      const { weekday: w, startPeriod: sp } =
-        SLOT_GRID[(slotIndex + slotOffset) % SLOT_GRID.length];
-      if (scheduleConflicts(lecSched, w, sp, periodCount)) continue;
-      for (let ri = 0; ri < ROOMS.length; ri++) {
-        const r = ROOMS[(ri + roomOffset) % ROOMS.length];
-        if (!roomSchedule.has(r.code)) roomSchedule.set(r.code, []);
-        if (scheduleConflicts(roomSchedule.get(r.code)!, w, sp, periodCount))
-          continue;
-        weekday = w;
-        startPeriod = sp;
-        roomObj = r;
-        found = true;
-        break;
+    for (const w of WEEKDAYS) {
+      for (const sp of PERIOD_SLOTS) {
+        if (scheduleConflicts(lecSched, w, sp, periodCount)) continue;
+        for (let ri = 0; ri < ROOMS.length; ri++) {
+          const r = ROOMS[(ri + roomOffset) % ROOMS.length];
+          if (!roomSchedule.has(r.code)) roomSchedule.set(r.code, []);
+          if (scheduleConflicts(roomSchedule.get(r.code)!, w, sp, periodCount))
+            continue;
+          weekday = w;
+          startPeriod = sp;
+          roomObj = r;
+          found = true;
+          break;
+        }
+        if (found) break;
       }
       if (found) break;
     }
