@@ -626,7 +626,7 @@ export class EnrollmentsService {
         }))
 
         if (!canCancelEnrollment(settings.simulationNow.toISOString(), asRuleSettings(settings, 'MAIN'), phasesRule, studentRule)) {
-          throw new BadRequestException('Ngoài thời gian điều chỉnh đăng ký.')
+          throw new BadRequestException('Ngoài thời gian đăng ký hoặc điều chỉnh đăng ký.')
         }
 
         if (!CANCELLABLE_ENROLLMENT_STATUSES.includes(enrollment.status)) {
@@ -672,7 +672,7 @@ export class EnrollmentsService {
             reasonCode: reason,
             timeline: [
               ...timelineArray(enrollment.timeline),
-              buildTimelineItem(actor, EnrollmentStatus.CANCELLED, reason ?? 'Hủy học phần trong cửa sổ điều chỉnh.', now),
+              buildTimelineItem(actor, EnrollmentStatus.CANCELLED, reason ?? 'Hủy học phần trong thời gian đăng ký/điều chỉnh.', now),
             ],
           },
         })

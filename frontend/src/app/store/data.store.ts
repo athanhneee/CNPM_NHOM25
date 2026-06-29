@@ -821,7 +821,7 @@ export const useDataStore = create<DataStoreState>((set, get) => ({
     }
 
     if (!canCancelEnrollment(snapshot.settings.simulationNow, snapshot.settings)) {
-      throw new Error('Ngoài thời gian điều chỉnh đăng ký.')
+      throw new Error('Ngoài thời gian đăng ký hoặc điều chỉnh đăng ký.')
     }
 
     if (!['REGISTERED', 'WAITLISTED'].includes(currentEnrollment.status)) {

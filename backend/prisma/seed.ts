@@ -30,6 +30,26 @@ interface CourseInput {
   prerequisites?: string[];
 }
 
+const COURSE_TYPE_TO_BLOCK: Record<string, string> = {
+  "Đại cương": "generalEducationCourses",
+  "Cơ sở ngành": "foundationCourses",
+  "Chuyên ngành": "majorCoreCourses",
+  "Tự chọn": "electiveCourses",
+  "Đồ án": "specializationCourses",
+};
+
+const FACULTY_TO_MAJOR: Record<string, string[]> = {
+  "Công nghệ Thông tin": ["Công nghệ thông tin"],
+  "An toàn Thông tin": ["An toàn thông tin"],
+  "Viễn thông": ["Viễn thông"],
+};
+
+const FACULTY_TO_MAJOR_CODE: Record<string, string[]> = {
+  "Công nghệ Thông tin": ["7480201"],
+  "An toàn Thông tin": ["7480202"],
+  "Viễn thông": ["7480106"],
+};
+
 function buildCourse(c: CourseInput) {
   return {
     id: `course-${c.code.toLowerCase()}`,
@@ -46,7 +66,10 @@ function buildCourse(c: CourseInput) {
     category: c.category,
     faculty: c.faculty,
     courseType: c.courseType,
+    academicBlock: COURSE_TYPE_TO_BLOCK[c.courseType] ?? "electiveCourses",
     suggestedSemester: c.suggestedSemester,
+    majorsSupported: FACULTY_TO_MAJOR[c.faculty] ?? [c.faculty],
+    majorCodesSupported: FACULTY_TO_MAJOR_CODE[c.faculty] ?? [],
   };
 }
 

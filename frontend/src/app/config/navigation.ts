@@ -62,7 +62,7 @@ export const navigationGroups: NavigationGroup[] = [
         to: '/student/cancel',
         icon: 'badge-minus',
         roles: ['STUDENT'],
-        description: 'Hủy học phần trong cửa sổ điều chỉnh.',
+        description: 'Hủy học phần trong thời gian đăng ký hoặc điều chỉnh.',
       },
 
       {

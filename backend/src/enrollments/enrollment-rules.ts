@@ -1028,7 +1028,8 @@ export function canCancelEnrollment(nowIso: string, settings: RuleSettings, phas
     })
     if (activePhase) return activePhase.allowCancel
   }
-  return isWithinRange(nowIso, settings.adjustmentStart, settings.adjustmentEnd)
+  return isWithinRange(nowIso, settings.registrationStart, settings.registrationEnd)
+    || isWithinRange(nowIso, settings.adjustmentStart, settings.adjustmentEnd)
 }
 
 

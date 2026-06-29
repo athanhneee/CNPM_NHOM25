@@ -161,11 +161,11 @@ export function CancelRegistrationPage() {
 
   return (
     <div className="grid gap-6">
-      <PageTitleBlock title="Sinh viên - Hủy đăng ký học phần" subtitle="Chỉ cho phép thao tác trong cửa sổ điều chỉnh và cập nhật lại sĩ số lớp học phần." />
+      <PageTitleBlock title="Sinh viên - Hủy đăng ký học phần" subtitle="Cho phép thao tác trong thời gian đăng ký hoặc điều chỉnh và cập nhật lại sĩ số lớp học phần." />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-3">
         <StatCard label="Có thể hủy" value={String(rows.length)} hint="Đăng ký thành công hoặc chờ xử lý" />
-        <StatCard label="Hạn điều chỉnh" value={snapshot.settings.adjustmentEnd.slice(0, 10)} hint="Hạn cuối hiện tại" />
+        <StatCard label="Hạn đóng đăng ký" value={snapshot.settings.registrationEnd.slice(0, 10)} hint="Hạn cuối đăng ký" />
         <StatCard label="Tín chỉ đang ảnh hưởng" value={String(rows.reduce((sum, item) => sum + (item.course?.credits ?? 0), 0))} hint="Tổng tín chỉ của danh sách hủy" />
       </div>
 
@@ -199,7 +199,7 @@ export function CancelRegistrationPage() {
       <ConfirmDialog
         open={Boolean(selected)}
         title="Xác nhận hủy đăng ký"
-        description="Thao tác này chỉ hợp lệ trong cửa sổ điều chỉnh và sẽ cập nhật lại sĩ số lớp học phần."
+        description="Thao tác này hợp lệ trong thời gian đăng ký hoặc điều chỉnh và sẽ cập nhật lại sĩ số lớp học phần."
         confirmLabel="Hủy học phần"
         danger
         loading={loading}

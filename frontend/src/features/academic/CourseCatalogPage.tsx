@@ -43,6 +43,14 @@ const ACADEMIC_BLOCK_LABELS: Record<string, string> = {
   electiveCourses: "Tự chọn",
 };
 
+const COURSE_TYPE_TO_BLOCK: Record<string, NonNullable<Course["academicBlock"]>> = {
+  "Đại cương": "generalEducationCourses",
+  "Cơ sở ngành": "foundationCourses",
+  "Chuyên ngành": "majorCoreCourses",
+  "Tự chọn": "electiveCourses",
+  "Đồ án": "specializationCourses",
+};
+
 function normalizeMajors(rawValue: string) {
   return rawValue
     .split(",")
@@ -200,18 +208,29 @@ export function CourseCatalogPage() {
     () =>
       Array.from(
         new Set(
-          snapshot.courses.flatMap((course) => course.majorsSupported ?? []),
+          snapshot.courses.flatMap((course) => {
+            const majors = course.majorsSupported ?? [];
+            if (majors.length > 0) return majors;
+            // fallback: use faculty as major name if majorsSupported is empty
+            return course.faculty ? [course.faculty] : [];
+          }),
         ),
       ).sort((left, right) => left.localeCompare(right, "vi")),
     [snapshot.courses],
   );
+
 
   const blockOptions = useMemo(
     () =>
       Array.from(
         new Set(
           snapshot.courses
-            .map((course) => course.academicBlock)
+            .map((course) => {
+              if (course.academicBlock) return course.academicBlock;
+              // fallback: derive from courseType
+              if (course.courseType) return COURSE_TYPE_TO_BLOCK[course.courseType];
+              return undefined;
+            })
             .filter((value): value is AcademicBlockValue => Boolean(value)),
         ),
       ).sort((left, right) => left.localeCompare(right, "vi")),
@@ -237,11 +256,16 @@ export function CourseCatalogPage() {
       course.code.toLowerCase().includes(keyword) ||
       course.name.toLowerCase().includes(keyword) ||
       course.description.toLowerCase().includes(keyword);
+    const courseMajors = (course.majorsSupported && course.majorsSupported.length > 0)
+      ? course.majorsSupported
+      : (course.faculty ? [course.faculty] : []);
     const matchesMajor =
       majorFilter === "ALL" ||
-      Boolean(course.majorsSupported?.includes(majorFilter));
+      courseMajors.includes(majorFilter);
+    const courseBlock = course.academicBlock
+      || (course.courseType ? COURSE_TYPE_TO_BLOCK[course.courseType] : undefined);
     const matchesBlock =
-      blockFilter === "ALL" || course.academicBlock === blockFilter;
+      blockFilter === "ALL" || courseBlock === blockFilter;
     const matchesType =
       typeFilter === "ALL" || course.courseType === typeFilter;
     const matchesSemester =

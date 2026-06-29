@@ -354,5 +354,6 @@ export function evaluateEnrollmentEligibility(
 }
 
 export function canCancelEnrollment(nowIso: string, settings: SystemSettings) {
-  return isWithinRange(nowIso, settings.adjustmentStart, settings.adjustmentEnd)
+  return isWithinRange(nowIso, settings.registrationStart, settings.registrationEnd)
+    || isWithinRange(nowIso, settings.adjustmentStart, settings.adjustmentEnd)
 }
