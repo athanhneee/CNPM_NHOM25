@@ -437,7 +437,6 @@ export interface RuleSettings {
   registrationEnd: string
   adjustmentStart: string
   adjustmentEnd: string
-  withdrawalDeadline: string
   maxCreditsMain: number
   maxCreditsSummer: number
   maxClassesPerDay: number

@@ -27,11 +27,6 @@ export class UpdateSystemSettingsDto {
   @IsOptional()
   adjustmentEnd?: string
 
-  @ApiProperty({ required: false })
-  @IsDateString()
-  @IsOptional()
-  withdrawalDeadline?: string
-
   @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()

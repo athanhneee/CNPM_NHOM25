@@ -478,7 +478,6 @@ export async function seedDemoData(client: PrismaClient, options: { reset?: bool
       registrationEnd: new Date('2026-04-30T23:59:59.999Z'),
       adjustmentStart: new Date('2026-05-01T00:00:00.000Z'),
       adjustmentEnd: new Date('2026-05-10T23:59:59.999Z'),
-      withdrawalDeadline: new Date('2026-05-20T23:59:59.999Z'),
       maxCreditsMain: 24,
       maxCreditsSummer: 12,
       minCredits: 12,

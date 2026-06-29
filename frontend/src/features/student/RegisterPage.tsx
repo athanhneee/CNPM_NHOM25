@@ -592,7 +592,11 @@ export function RegisterPage() {
                       <p className="text-base font-semibold text-[var(--color-ink)]">{row.course?.name ?? row.section.sectionCode}</p>
                       <p className="mt-0.5 text-sm text-[var(--color-muted)]">{row.section.sectionCode} • {row.section.courseCode} • {row.course?.credits ?? '--'} tín chỉ</p>
                       <p className="text-sm text-[var(--color-muted)]">
-                        {row.course?.courseType ?? 'Danh mục chung'} • {row.course?.majorsSupported?.join(', ') ?? 'Áp dụng chung'} • {row.course?.faculty ?? row.course?.department ?? 'Đang cập nhật khoa'}
+                        <span className="font-medium text-[var(--color-ink)]">{row.course?.courseType ?? 'Danh mục chung'}</span>
+                        <span className="mx-2 text-[var(--color-hairline)]">|</span>
+                        Ngành áp dụng: {row.course?.majorsSupported?.length ? row.course.majorsSupported.join(', ') : 'Áp dụng chung'}
+                        <span className="mx-2 text-[var(--color-hairline)]">|</span>
+                        Khoa: {row.course?.faculty ?? row.course?.department ?? 'Đang cập nhật khoa'}
                       </p>
                       {row.course?.suggestedSemester && (
                         <p className="text-xs text-[var(--color-muted)]">

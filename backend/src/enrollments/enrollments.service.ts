@@ -92,7 +92,6 @@ function asRuleSettings(settings: {
   registrationEnd: Date
   adjustmentStart: Date
   adjustmentEnd: Date
-  withdrawalDeadline: Date
   maxCreditsMain: number
   maxCreditsSummer: number
   maxClassesPerDay: number
@@ -109,7 +108,6 @@ function asRuleSettings(settings: {
     registrationEnd: settings.registrationEnd.toISOString(),
     adjustmentStart: settings.adjustmentStart.toISOString(),
     adjustmentEnd: settings.adjustmentEnd.toISOString(),
-    withdrawalDeadline: settings.withdrawalDeadline.toISOString(),
     maxCreditsMain: settings.maxCreditsMain,
     maxCreditsSummer: settings.maxCreditsSummer,
     maxClassesPerDay: settings.maxClassesPerDay,

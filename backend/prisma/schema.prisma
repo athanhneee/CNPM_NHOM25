@@ -303,7 +303,6 @@ model SystemSetting {
   registrationEnd            DateTime
   adjustmentStart            DateTime
   adjustmentEnd              DateTime
-  withdrawalDeadline         DateTime
   minCredits                 Int
   maintenanceMode            Boolean
   allowWaitlist              Boolean

@@ -26,8 +26,6 @@ export class SettingsService {
     const registrationEnd = updateDto.registrationEnd ? new Date(updateDto.registrationEnd) : currentSettings.registrationEnd
     const adjustmentStart = updateDto.adjustmentStart ? new Date(updateDto.adjustmentStart) : currentSettings.adjustmentStart
     const adjustmentEnd = updateDto.adjustmentEnd ? new Date(updateDto.adjustmentEnd) : currentSettings.adjustmentEnd
-    const withdrawalDeadline = updateDto.withdrawalDeadline ? new Date(updateDto.withdrawalDeadline) : currentSettings.withdrawalDeadline
-    
     if (registrationStart && registrationEnd && registrationStart >= registrationEnd) {
       throw new BadRequestException('Thời gian bắt đầu đăng ký phải trước thời gian kết thúc.')
     }
@@ -37,10 +35,6 @@ export class SettingsService {
     if (registrationEnd && adjustmentStart && registrationEnd > adjustmentStart) {
       throw new BadRequestException('Thời gian kết thúc đăng ký phải trước hoặc bằng thời gian bắt đầu điều chỉnh.')
     }
-    if (withdrawalDeadline && adjustmentStart && withdrawalDeadline < adjustmentStart) {
-      throw new BadRequestException('Hạn rút học phần không được trước thời gian bắt đầu điều chỉnh.')
-    }
-
     const minCredits = updateDto.minCredits ?? currentSettings.minCredits
     const maxCreditsMain = updateDto.maxCreditsMain ?? currentSettings.maxCreditsMain
     const maxCreditsSummer = updateDto.maxCreditsSummer ?? currentSettings.maxCreditsSummer
@@ -89,7 +83,6 @@ export class SettingsService {
           registrationEnd: updateDto.registrationEnd ? new Date(updateDto.registrationEnd) : undefined,
           adjustmentStart: updateDto.adjustmentStart ? new Date(updateDto.adjustmentStart) : undefined,
           adjustmentEnd: updateDto.adjustmentEnd ? new Date(updateDto.adjustmentEnd) : undefined,
-          withdrawalDeadline: updateDto.withdrawalDeadline ? new Date(updateDto.withdrawalDeadline) : undefined,
           maxCreditsMain: updateDto.maxCreditsMain,
           maxCreditsSummer: updateDto.maxCreditsSummer,
           minCredits: updateDto.minCredits,
