@@ -317,6 +317,9 @@ export function RegisterPage() {
   const sectionRows = allSections.filter((item) => {
     const course = item.course
 
+    // Ẩn section của course đã bị xóa mềm (INACTIVE)
+    if (course && course.status === 'INACTIVE') return false
+
     switch (filterMode) {
       case 'all': {
         // Nếu không có tìm kiếm: hiện các môn gợi ý (CTĐT kỳ hiện tại, cần học lại, hoặc có thể học trước)

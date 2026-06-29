@@ -729,6 +729,14 @@ export const useDataStore = create<DataStoreState>((set, get) => ({
     const section = snapshot.sections.find((item) => item.id === sectionId)
     const targetCourse = snapshot.courses.find((course) => course.code === section?.courseCode)
 
+    // Chặn đăng ký nếu course đã bị xóa mềm (INACTIVE)
+    if (targetCourse?.status === 'INACTIVE') {
+      return {
+        success: false,
+        message: 'Môn học đã ngưng hoạt động, không thể đăng ký.',
+      }
+    }
+
     const result = evaluateEnrollmentEligibility({
       nowIso: snapshot.settings.simulationNow,
       student,

@@ -397,6 +397,14 @@ export class EnrollmentsService {
         }
 
         const { context, settings, section } = await this.loadEligibilityContext(tx, studentId, sectionId)
+
+        // Chặn đăng ký nếu course đã bị xóa mềm (INACTIVE)
+        const targetCourseRecord = section
+          ? (await tx.course.findFirst({ where: { code: section.courseCode } }))
+          : null
+        if (targetCourseRecord?.status === 'INACTIVE') {
+          throw new BadRequestException('Môn học đã ngưng hoạt động, không thể đăng ký.')
+        }
         
         const ignoreCapacity = force && (actor.actorRole === 'ADMIN' || actor.actorRole === 'ACADEMIC_OFFICE')
         const result = evaluateEnrollmentEligibility(context, { ignoreCapacity })
@@ -513,19 +521,8 @@ export class EnrollmentsService {
           })
         }
 
-        const registeredCount =
-          finalStatus === EnrollmentStatus.REGISTERED ? section.registeredCount + 1 : section.registeredCount
-        const waitlistCount =
-          finalStatus === EnrollmentStatus.WAITLISTED ? section.waitlistCount + 1 : section.waitlistCount
-
-        await tx.section.update({
-          where: { id: sectionId },
-          data: {
-            registeredCount,
-            waitlistCount,
-            status: nextSectionStatus({ ...section, registeredCount }),
-          },
-        })
+        // Sync counters from actual enrollment data to prevent drift
+        await this.syncSectionCounters(tx, sectionId)
 
         await appendAuditLog(
           tx,
@@ -679,23 +676,8 @@ export class EnrollmentsService {
 
         const section = await tx.section.findUnique({ where: { id: enrollment.sectionId } })
         if (section) {
-          const registeredCount =
-            enrollment.status === EnrollmentStatus.REGISTERED
-              ? Math.max(section.registeredCount - 1, 0)
-              : section.registeredCount
-          const waitlistCount =
-            enrollment.status === EnrollmentStatus.WAITLISTED
-              ? Math.max(section.waitlistCount - 1, 0)
-              : section.waitlistCount
-
-          await tx.section.update({
-            where: { id: section.id },
-            data: {
-              registeredCount,
-              waitlistCount,
-              status: nextSectionStatus({ ...section, registeredCount }),
-            },
-          })
+          // Sync counters from actual enrollment data to prevent drift
+          await this.syncSectionCounters(tx, section.id)
         }
 
         await appendAuditLog(tx, actor, 'CANCEL_ENROLLMENT', id, 'SUCCESS', 'Hủy đăng ký học phần thành công.', {

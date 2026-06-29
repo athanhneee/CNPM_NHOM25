@@ -160,6 +160,9 @@ export function OpenSectionsPage() {
   const auditActor = actor
 
   const rows = getCurrentSemesterSections(snapshot).filter((item) => {
+    // Ẩn section của course đã bị xóa mềm (INACTIVE)
+    if (item.course && item.course.status === 'INACTIVE') return false
+
     // 1. Strict validation: Must belong to student's major and class
     const scope = inferRegistrationClassScope(student.studentClass || '', snapshot.users)
     if (!courseMatchesRegistrationClass(item.course, scope)) {

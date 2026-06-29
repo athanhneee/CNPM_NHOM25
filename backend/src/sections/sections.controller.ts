@@ -163,4 +163,11 @@ export class SectionsController {
   async remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.sectionsService.remove(id, buildActor(user))
   }
+  @ApiOperation({ summary: 'Đồng bộ sĩ số tất cả lớp học phần từ dữ liệu enrollment thực tế' })
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'ACADEMIC_OFFICE')
+  @Post('sync-counters')
+  async syncCounters() {
+    return this.sectionsService.syncAllCounters()
+  }
 }

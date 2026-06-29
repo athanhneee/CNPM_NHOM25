@@ -488,4 +488,30 @@ export class SectionsService {
       }
     })
   }
+
+  async syncAllCounters() {
+    const sections = await this.prisma.section.findMany({ select: { id: true, status: true, capacity: true } })
+    let updatedCount = 0
+
+    for (const section of sections) {
+      if (PRESERVED_SECTION_STATUSES.includes(section.status)) continue
+
+      const enrollments = await this.prisma.enrollment.findMany({
+        where: { sectionId: section.id },
+        select: { status: true },
+      })
+
+      const registeredCount = enrollments.filter((e) => e.status === EnrollmentStatus.REGISTERED).length
+      const waitlistCount = enrollments.filter((e) => e.status === EnrollmentStatus.WAITLISTED).length
+      const newStatus = registeredCount >= section.capacity ? SectionStatus.FULL : SectionStatus.OPEN
+
+      await this.prisma.section.update({
+        where: { id: section.id },
+        data: { registeredCount, waitlistCount, status: newStatus },
+      })
+      updatedCount++
+    }
+
+    return { updatedCount, message: `Đã đồng bộ sĩ số cho ${updatedCount} lớp học phần.` }
+  }
 }
