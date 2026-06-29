@@ -410,13 +410,13 @@ console.log('✓ weeksOverlap tests passed.')
   const courseA = { code: 'CSE301', credits: 3, prerequisites: [], prestudy: [], corequisites: [] }
   const courseB = { code: 'CSE302', credits: 3, prerequisites: [], prestudy: [], corequisites: [] }
   const sectionA: RuleSection = {
-    id: 'sec-conflict-A', courseCode: 'CSE301', semesterId: 'semester-1',
+    id: 'sec-conflict-A', sectionCode: 'CSE301-1', courseCode: 'CSE301', semesterId: 'semester-1',
     weekday: 4, startPeriod: 1, periodCount: 3, weeks: '1-10',
     capacity: 1,
   minCapacity: 0, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
   }
   const sectionB: RuleSection = {
-    id: 'sec-conflict-B', courseCode: 'CSE302', semesterId: 'semester-1',
+    id: 'sec-conflict-B', sectionCode: 'CSE302-1', courseCode: 'CSE302', semesterId: 'semester-1',
     weekday: 4, startPeriod: 2, periodCount: 3, weeks: '5-15',
     capacity: 1,
   minCapacity: 0, registeredCount: 5, allowWaitlist: true, status: 'OPEN',
@@ -442,7 +442,7 @@ console.log('✓ weeksOverlap tests passed.')
 
   assert.equal(result.canRegister, false)
   assert.equal(result.errorCode, 'REG_ERR_SCHEDULE_CONFLICT')
-  assert.ok(result.message.includes('sec-conflict-A'), `Error message should include conflicting section ID, got: ${result.message}`)
+  assert.ok(result.message.includes('CSE301-1'), `Error message should include conflicting section code, got: ${result.message}`)
   assert.ok(result.message.includes('Thứ 4'), `Error message should include weekday name, got: ${result.message}`)
   assert.ok(result.message.includes('tuần'), `Error message should include weeks info, got: ${result.message}`)
   console.log('✓ Test: conflict error message includes section, weekday, and weeks details')

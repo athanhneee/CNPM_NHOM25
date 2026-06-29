@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/com
 import { UserRole } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { normalizeRoles } from '../common/utils/public-user'
+import { parsePagination } from '../common/utils/pagination'
 import { CourseOptionsMode, CourseOptionsQueryDto } from './dto/course-options.dto'
 import { isCourseAllowedForClass, getDepartmentFromClass, getAdmissionYearFromClass } from './class-course-mapping.util'
 import {
