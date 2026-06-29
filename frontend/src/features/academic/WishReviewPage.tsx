@@ -167,6 +167,14 @@ export function WishReviewPage() {
     void wishService
       .listWishes({ semesterId: currentSemesterId })
       .catch(() => undefined)
+
+    const intervalId = window.setInterval(() => {
+      wishService.listWishes({ semesterId: currentSemesterId }).catch(console.error)
+    }, 5000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
   }, [currentSemesterId, currentUser])
 
   const rows = useMemo(
@@ -282,7 +290,7 @@ export function WishReviewPage() {
               Đã xem
             </Button>
           ) : null}
-          {row.wish.status !== 'APPROVED' && row.wish.status !== 'CANCELLED' ? (
+          {row.wish.status === 'PENDING' || row.wish.status === 'REVIEWED' ? (
             <Button
               className="px-3 py-2"
               loading={updatingWishId === row.wish.id}
@@ -295,7 +303,7 @@ export function WishReviewPage() {
               Duyệt
             </Button>
           ) : null}
-          {row.wish.status !== 'REJECTED' && row.wish.status !== 'CANCELLED' ? (
+          {row.wish.status === 'PENDING' || row.wish.status === 'REVIEWED' ? (
             <Button
               className="px-3 py-2"
               loading={updatingWishId === row.wish.id}

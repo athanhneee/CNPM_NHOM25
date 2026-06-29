@@ -49,6 +49,20 @@ function useStudentContext() {
     }
   }, [currentUser?.id, currentUser?.roles])
 
+  useEffect(() => {
+    if (!currentUser?.roles.includes('STUDENT')) {
+      return
+    }
+
+    const intervalId = window.setInterval(() => {
+      wishService.listWishes({ studentId: currentUser.id }).catch(console.error)
+    }, 5000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [currentUser?.id, currentUser?.roles])
+
   return {
     currentUser,
     snapshot,

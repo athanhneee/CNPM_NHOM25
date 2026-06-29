@@ -781,8 +781,8 @@ export class EnrollmentsService {
           },
         })
 
-        if (duplicateSection) {
-          throw new BadRequestException('Sinh viên đã có bản ghi đăng ký cho lớp này.')
+        if (duplicateSection && duplicateSection.status === EnrollmentStatus.REGISTERED) {
+          throw new BadRequestException('Sinh viên đã có bản ghi đăng ký (REGISTERED) cho lớp này.')
         }
 
         const duplicateCourse = await tx.enrollment.findFirst({
@@ -801,19 +801,39 @@ export class EnrollmentsService {
 
         const capacityOverride = section.registeredCount >= section.capacity
         const now = settings.simulationNow
-        const enrollment = await tx.enrollment.create({
-          data: {
-            studentId: body.studentId,
-            sectionId: body.sectionId,
-            semesterId: section.semesterId,
-            status: EnrollmentStatus.REGISTERED,
-            reasonCode: body.reason,
-            timeline: [buildTimelineItem(actor, EnrollmentStatus.REGISTERED, `Override: ${body.reason}`, now)],
-          },
-        })
+        
+        let enrollment;
+        let waitlistCount = section.waitlistCount;
+        const registeredCount = section.registeredCount + 1;
 
-        const registeredCount = section.registeredCount + 1
-        const waitlistCount = section.waitlistCount
+        if (duplicateSection) {
+          enrollment = await tx.enrollment.update({
+            where: { id: duplicateSection.id },
+            data: {
+              status: EnrollmentStatus.REGISTERED,
+              reasonCode: body.reason,
+              waitlistOrder: null,
+              timeline: [
+                ...timelineArray(duplicateSection.timeline),
+                buildTimelineItem(actor, EnrollmentStatus.REGISTERED, `Override: ${body.reason}`, now),
+              ],
+            },
+          })
+          if (duplicateSection.status === EnrollmentStatus.WAITLISTED) {
+            waitlistCount = Math.max(0, waitlistCount - 1)
+          }
+        } else {
+          enrollment = await tx.enrollment.create({
+            data: {
+              studentId: body.studentId,
+              sectionId: body.sectionId,
+              semesterId: section.semesterId,
+              status: EnrollmentStatus.REGISTERED,
+              reasonCode: body.reason,
+              timeline: [buildTimelineItem(actor, EnrollmentStatus.REGISTERED, `Override: ${body.reason}`, now)],
+            },
+          })
+        }
 
         await tx.section.update({
           where: { id: section.id },
@@ -823,6 +843,22 @@ export class EnrollmentsService {
             status: nextSectionStatus({ ...section, registeredCount }),
           },
         })
+
+        // Reorder waitlist if we removed someone from it
+        if (duplicateSection?.status === EnrollmentStatus.WAITLISTED) {
+          const remainingWaitlisted = await tx.enrollment.findMany({
+            where: { sectionId: body.sectionId, status: EnrollmentStatus.WAITLISTED },
+            orderBy: [{ waitlistOrder: 'asc' }, { createdAt: 'asc' }],
+          })
+          for (let i = 0; i < remainingWaitlisted.length; i++) {
+            if (remainingWaitlisted[i].waitlistOrder !== i + 1) {
+              await tx.enrollment.update({
+                where: { id: remainingWaitlisted[i].id },
+                data: { waitlistOrder: i + 1 },
+              })
+            }
+          }
+        }
 
         await appendAuditLog(tx, actor, 'OVERRIDE_ENROLLMENT', enrollment.id, 'SUCCESS', 'Override đăng ký học phần.', {
           reason: body.reason,
