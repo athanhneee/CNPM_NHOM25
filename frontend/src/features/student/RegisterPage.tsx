@@ -190,7 +190,7 @@ function SectionCard({
             loading={loadingRegister}
             onClick={handleCancel}
             type="button"
-            variant="outline"
+            variant="secondary"
             className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
           >
             Hủy đăng ký
@@ -363,7 +363,7 @@ export function RegisterPage() {
         setData(result)
       } catch (err: unknown) {
         // Ignore aborted requests
-        if (err?.name === 'AbortError') return
+        if (err instanceof Error && err.name === 'AbortError') return
         const message =
           err instanceof Error ? err.message : 'Không thể tải dữ liệu. Vui lòng thử lại.'
         setError(message)
