@@ -64,7 +64,6 @@ function settingsToForm(settings: SystemSettings) {
     registrationEnd: settings.registrationEnd,
     adjustmentStart: settings.adjustmentStart,
     adjustmentEnd: settings.adjustmentEnd,
-    withdrawalDeadline: settings.withdrawalDeadline,
     maxCreditsMain: settings.maxCreditsMain ?? 24,
     maxCreditsSummer: settings.maxCreditsSummer ?? 12,
     minCredits: settings.minCredits ?? 12,

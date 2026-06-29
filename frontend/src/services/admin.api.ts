@@ -227,7 +227,6 @@ function normalizeSettings(settings: BackendSettings): SystemSettings {
     registrationEnd: settings.registrationEnd ?? current.registrationEnd,
     adjustmentStart: settings.adjustmentStart ?? current.adjustmentStart,
     adjustmentEnd: settings.adjustmentEnd ?? current.adjustmentEnd,
-    withdrawalDeadline: settings.withdrawalDeadline ?? current.withdrawalDeadline,
     maxCreditsMain: settings.maxCreditsMain ?? current.maxCreditsMain ?? 24,
     maxCreditsSummer: settings.maxCreditsSummer ?? current.maxCreditsSummer ?? 12,
     minCredits: settings.minCredits ?? current.minCredits,

@@ -58,7 +58,6 @@ export const seedSettings: SystemSettings = {
   registrationEnd: new Date('2026-06-15T23:59:59Z').toISOString(),
   adjustmentStart: new Date('2026-06-16T00:00:00Z').toISOString(),
   adjustmentEnd: new Date('2026-06-20T23:59:59Z').toISOString(),
-  withdrawalDeadline: new Date('2026-06-25T23:59:59Z').toISOString(),
   maxCreditsMain: 24,
   maxCreditsSummer: 12,
   minCredits: 12,

@@ -81,7 +81,6 @@ function settingsToForm(settings: SystemSettings) {
     registrationEnd: toDatetimeLocalString(settings.registrationEnd),
     adjustmentStart: toDatetimeLocalString(settings.adjustmentStart),
     adjustmentEnd: toDatetimeLocalString(settings.adjustmentEnd),
-    withdrawalDeadline: toDatetimeLocalString(settings.withdrawalDeadline),
     maxCreditsMain: settings.maxCreditsMain ?? 24,
     maxCreditsSummer: settings.maxCreditsSummer ?? 12,
     minCredits: settings.minCredits ?? 12,
@@ -209,15 +208,13 @@ export function SettingsPage() {
                 const registrationEnd = toValidIsoDate(form.registrationEnd)
                 const adjustmentStart = toValidIsoDate(form.adjustmentStart)
                 const adjustmentEnd = toValidIsoDate(form.adjustmentEnd)
-                const withdrawalDeadline = toValidIsoDate(form.withdrawalDeadline)
 
                 if (
                   !simulationNow ||
                   !registrationStart ||
                   !registrationEnd ||
                   !adjustmentStart ||
-                  !adjustmentEnd ||
-                  !withdrawalDeadline
+                  !adjustmentEnd
                 ) {
                   pushToast({
                     tone: 'error',
@@ -250,7 +247,6 @@ export function SettingsPage() {
                     registrationEnd,
                     adjustmentStart,
                     adjustmentEnd,
-                    withdrawalDeadline,
                     maxCreditsMain: form.maxCreditsMain,
                     maxCreditsSummer: form.maxCreditsSummer,
                     minCredits: form.minCredits,
