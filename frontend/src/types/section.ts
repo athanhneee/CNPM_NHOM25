@@ -13,7 +13,8 @@ export interface Section {
   semesterId: string
   group: string
   subGroup: string
-  lecturerId: string
+  lecturerId?: string
+  guestLecturer?: string
   room: string
   weekday: 2 | 3 | 4 | 5 | 6 | 7 | 8
   startPeriod: number

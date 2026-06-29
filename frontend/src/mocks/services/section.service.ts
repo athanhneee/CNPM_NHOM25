@@ -32,9 +32,9 @@ export const sectionService = {
     await sleep(getRandomDelay())
     return useDataStore.getState().updateSection(sectionId, payload, actor)
   },
-  async assignLecturer(sectionId: string, lecturerId: string, actor = defaultActor) {
-    await sleep(getRandomDelay())
-    return useDataStore.getState().assignLecturer(sectionId, lecturerId, actor)
+  async assignLecturer(sectionId: string, payload: { lecturerId?: string, guestLecturer?: string }, actor = defaultActor) {
+    await sleep(200)
+    return useDataStore.getState().assignLecturer(sectionId, payload, actor)
   },
   async updateRoomSchedule(
     sectionId: string,

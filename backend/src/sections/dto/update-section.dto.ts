@@ -30,6 +30,11 @@ export class UpdateSectionDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  guestLecturer?: string
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
   room?: string
 
   @ApiPropertyOptional()
@@ -104,10 +109,15 @@ export class UpdateSectionDto {
 }
 
 export class AssignLecturerDto {
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
-  @IsNotEmpty()
-  lecturerId: string
+  @IsOptional()
+  lecturerId?: string
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  guestLecturer?: string
 }
 
 export class UpdateRoomScheduleDto {

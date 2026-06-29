@@ -252,7 +252,7 @@ export interface DataStoreState {
     },
     actor: AuditActor,
   ) => Section
-  assignLecturer: (sectionId: string, lecturerId: string, actor: AuditActor) => Section
+  assignLecturer: (sectionId: string, payload: { lecturerId?: string, guestLecturer?: string }, actor: AuditActor) => Section
   updateRoomSchedule: (
     sectionId: string,
     payload: Pick<Section, 'room' | 'weekday' | 'startPeriod' | 'periodCount'>,
@@ -643,31 +643,33 @@ export const useDataStore = create<DataStoreState>((set, get) => ({
     get().appendAuditLog('CREATE_SECTION', nextSection.id, 'SUCCESS', `Tạo mới lớp ${nextSection.sectionCode}.`, actor)
     return nextSection
   },
-  assignLecturer: (sectionId, lecturerId, actor) => {
+  assignLecturer: (sectionId, payload, actor) => {
     const currentSection = get().sections.find((section) => section.id === sectionId)
     if (!currentSection) {
       throw new Error('Không tìm thấy lớp học phần.')
     }
 
-    const conflict = get().sections.some(
-      (section) =>
-        section.id !== sectionId &&
-        section.semesterId === currentSection.semesterId &&
-        section.lecturerId === lecturerId &&
-        section.weekday === currentSection.weekday &&
-        overlaps(
-          section.startPeriod,
-          section.periodCount,
-          currentSection.startPeriod,
-          currentSection.periodCount,
-        ),
-    )
+    if (payload.lecturerId) {
+      const conflict = get().sections.some(
+        (section) =>
+          section.id !== sectionId &&
+          section.semesterId === currentSection.semesterId &&
+          section.lecturerId === payload.lecturerId &&
+          section.weekday === currentSection.weekday &&
+          overlaps(
+            section.startPeriod,
+            section.periodCount,
+            currentSection.startPeriod,
+            currentSection.periodCount,
+          ),
+      )
 
-    if (conflict) {
-      throw new Error('Giảng viên bị trùng lịch giảng dạy.')
+      if (conflict) {
+        throw new Error('Giảng viên bị trùng lịch giảng dạy.')
+      }
     }
 
-    return get().updateSection(sectionId, { lecturerId }, actor)
+    return get().updateSection(sectionId, payload, actor)
   },
   updateRoomSchedule: (sectionId, payload, actor) => {
     const currentSection = get().sections.find((section) => section.id === sectionId)

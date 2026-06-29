@@ -38,10 +38,15 @@ export class CreateSectionDto {
   @IsOptional()
   subGroup?: string
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
-  @IsNotEmpty()
-  lecturerId: string
+  @IsOptional()
+  lecturerId?: string
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  guestLecturer?: string
 
   @ApiProperty()
   @IsString()

@@ -165,6 +165,7 @@ export function CreateSectionPage() {
     capacity: '40',
     weeks: '1-15',
     allowWaitlist: true,
+    guestLecturer: '',
   })
   const [currentPage, setCurrentPage] = useState(1)
   const roomOptions = useMemo(
@@ -181,6 +182,8 @@ export function CreateSectionPage() {
   const totalPages = Math.max(1, Math.ceil(allSections.length / itemsPerPage))
   const paginatedRows = allSections.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
+  const isGuestLecturer = form.lecturerId === 'OTHER'
+
   return (
     <div className="grid gap-6">
       <PageTitleBlock title="Phòng đào tạo - Tạo lớp học phần" subtitle="Khởi tạo lớp học phần mới trong học kỳ, đồng thời kiểm tra xung đột phòng và giảng viên." />
@@ -188,16 +191,95 @@ export function CreateSectionPage() {
       <div className="grid gap-6 lg:grid-cols-[0.42fr_0.58fr]">
         <Card title="Biểu mẫu tạo lớp học phần" description="Nhập thông tin cơ bản để tạo section mới">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Mã lớp học phần" value={form.sectionCode} onChange={(event) => setForm((value) => ({ ...value, sectionCode: event.target.value }))} />
-            <Input label="Mã môn học" value={form.courseCode} onChange={(event) => setForm((value) => ({ ...value, courseCode: event.target.value }))} list="course-options" />
-            <Input label="Nhóm" value={form.group} onChange={(event) => setForm((value) => ({ ...value, group: event.target.value }))} />
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Mã môn học</label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                value={form.courseCode}
+                onChange={(e) => {
+                  const courseCode = e.target.value;
+                  setForm((value) => ({ 
+                    ...value, 
+                    courseCode,
+                    sectionCode: `${courseCode}-${value.group.padStart(2, '0')}`
+                  }))
+                }}
+              >
+                {snapshot.courses.map((course) => (
+                  <option key={course.id} value={course.code}>{course.code} - {course.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <Input 
+              label="Nhóm" 
+              value={form.group} 
+              onChange={(event) => {
+                const group = event.target.value;
+                setForm((value) => ({ 
+                  ...value, 
+                  group,
+                  sectionCode: `${value.courseCode}-${group.padStart(2, '0')}`
+                }))
+              }} 
+            />
+            
+            <Input label="Mã lớp học phần (Tự động)" value={form.sectionCode} readOnly disabled />
             <Input label="Tổ" value={form.subGroup} onChange={(event) => setForm((value) => ({ ...value, subGroup: event.target.value }))} />
-            <Input label="Giảng viên" value={form.lecturerId} onChange={(event) => setForm((value) => ({ ...value, lecturerId: event.target.value }))} list="lecturer-options" />
-            <Input label="Phòng học" value={form.room} onChange={(event) => setForm((value) => ({ ...value, room: event.target.value }))} list="create-room-options" />
-            <Input label="Thu" value={form.weekday} onChange={(event) => setForm((value) => ({ ...value, weekday: event.target.value }))} />
-            <Input label="Tiết bắt đầu" value={form.startPeriod} onChange={(event) => setForm((value) => ({ ...value, startPeriod: event.target.value }))} />
-            <Input label="Số tiết" value={form.periodCount} onChange={(event) => setForm((value) => ({ ...value, periodCount: event.target.value }))} />
-            <Input label="Sức chứa" value={form.capacity} onChange={(event) => setForm((value) => ({ ...value, capacity: event.target.value }))} />
+            
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Giảng viên</label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                value={form.lecturerId}
+                onChange={(e) => setForm((value) => ({ ...value, lecturerId: e.target.value }))}
+              >
+                {snapshot.users.filter((user) => user.roles.includes('LECTURER')).map((lecturer) => (
+                  <option key={lecturer.id} value={lecturer.id}>{lecturer.fullName} ({lecturer.code})</option>
+                ))}
+                <option value="OTHER">Khác (Giảng viên ngoài)</option>
+              </select>
+            </div>
+            
+            {isGuestLecturer && (
+              <Input 
+                label="Tên giảng viên khác" 
+                value={form.guestLecturer || ''} 
+                onChange={(event) => setForm((value) => ({ ...value, guestLecturer: event.target.value }))} 
+                placeholder="Nhập tên giảng viên"
+              />
+            )}
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Phòng học</label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                value={form.room}
+                onChange={(e) => setForm((value) => ({ ...value, room: e.target.value }))}
+              >
+                {roomOptions.map((roomOption) => (
+                  <option key={roomOption} value={roomOption}>{roomOption}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Thứ</label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                value={form.weekday}
+                onChange={(e) => setForm((value) => ({ ...value, weekday: e.target.value }))}
+              >
+                {[2, 3, 4, 5, 6, 7].map(day => (
+                  <option key={day} value={day}>Thứ {day}</option>
+                ))}
+                <option value={8}>Chủ Nhật</option>
+              </select>
+            </div>
+
+            <Input type="number" min="1" max="15" label="Tiết bắt đầu" value={form.startPeriod} onChange={(event) => setForm((value) => ({ ...value, startPeriod: event.target.value }))} />
+            <Input type="number" min="1" max="10" label="Số tiết" value={form.periodCount} onChange={(event) => setForm((value) => ({ ...value, periodCount: event.target.value }))} />
+            <Input type="number" min="1" label="Sức chứa" value={form.capacity} onChange={(event) => setForm((value) => ({ ...value, capacity: event.target.value }))} />
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button
@@ -209,7 +291,8 @@ export function CreateSectionPage() {
                     semesterId: snapshot.settings.currentSemesterId,
                     group: form.group,
                     subGroup: form.subGroup,
-                    lecturerId: form.lecturerId,
+                    lecturerId: isGuestLecturer ? undefined : form.lecturerId,
+                    guestLecturer: isGuestLecturer ? form.guestLecturer : undefined,
                     room: form.room,
                     weekday: Number(form.weekday) as 2 | 3 | 4 | 5 | 6 | 7 | 8,
                     startPeriod: Number(form.startPeriod),
@@ -218,7 +301,7 @@ export function CreateSectionPage() {
                     capacity: Number(form.capacity),
                     allowWaitlist: form.allowWaitlist,
                     status: 'OPEN',
-                    campus: 'HCM',
+                    campus: 'PTIT HCM',
                   }, actor)
                   pushToast({ tone: 'success', title: 'Đã tạo lớp học phần', description: 'Section mới đã được thêm vào học kỳ hiện tại.' })
                 } catch (error) {
@@ -230,21 +313,6 @@ export function CreateSectionPage() {
               Lưu section
             </Button>
           </div>
-          <datalist id="course-options">
-            {snapshot.courses.map((course) => (
-              <option key={course.id} value={course.code} />
-            ))}
-          </datalist>
-          <datalist id="lecturer-options">
-            {snapshot.users.filter((user) => user.roles.includes('LECTURER')).map((lecturer) => (
-              <option key={lecturer.id} value={lecturer.id} />
-            ))}
-          </datalist>
-          <datalist id="create-room-options">
-            {roomOptions.map((roomOption) => (
-              <option key={roomOption} value={roomOption} />
-            ))}
-          </datalist>
         </Card>
 
         <Card title="Lớp học phần tạo gần đây" description="Danh sách nhanh để đối chiếu xung đột và tình trạng mở lớp">

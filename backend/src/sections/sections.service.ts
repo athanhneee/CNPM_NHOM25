@@ -92,11 +92,14 @@ export class SectionsService {
     return room
   }
 
-  private async assertCourseSemesterLecturer(courseCode: string, semesterId: string, lecturerId: string) {
-    const [course, semester, lecturer] = await Promise.all([
+  private async assertCourseSemesterLecturer(courseCode: string, semesterId: string, lecturerId?: string, guestLecturer?: string) {
+    if (!lecturerId && !guestLecturer) {
+      throw new BadRequestException('Phải chọn giảng viên hoặc nhập tên giảng viên khác.')
+    }
+
+    const [course, semester] = await Promise.all([
       this.prisma.course.findUnique({ where: { code: courseCode } }),
       this.prisma.semesterOption.findUnique({ where: { id: semesterId } }),
-      this.prisma.user.findUnique({ where: { id: lecturerId } }),
     ])
 
     if (!course || course.status !== CourseStatus.ACTIVE) {
@@ -107,8 +110,11 @@ export class SectionsService {
       throw new BadRequestException('Học kỳ không tồn tại.')
     }
 
-    if (!lecturer || !normalizeRoles(lecturer.roles).includes(UserRole.LECTURER)) {
-      throw new BadRequestException('Người được phân công phải có vai trò giảng viên.')
+    if (lecturerId) {
+      const lecturer = await this.prisma.user.findUnique({ where: { id: lecturerId } })
+      if (!lecturer || !normalizeRoles(lecturer.roles).includes(UserRole.LECTURER)) {
+        throw new BadRequestException('Người được phân công phải có vai trò giảng viên.')
+      }
     }
   }
 
@@ -235,17 +241,20 @@ export class SectionsService {
       createSectionDto.courseCode,
       createSectionDto.semesterId,
       createSectionDto.lecturerId,
+      createSectionDto.guestLecturer,
     )
-    await this.assertScheduleAvailable({
-      id: '',
-      semesterId: createSectionDto.semesterId,
-      lecturerId: createSectionDto.lecturerId,
-      room: createSectionDto.room,
-      weekday: createSectionDto.weekday,
-      startPeriod: createSectionDto.startPeriod,
-      periodCount: createSectionDto.periodCount,
-      weeks: createSectionDto.weeks,
-    })
+    if (createSectionDto.lecturerId) {
+      await this.assertScheduleAvailable({
+        id: '',
+        semesterId: createSectionDto.semesterId,
+        lecturerId: createSectionDto.lecturerId,
+        room: createSectionDto.room,
+        weekday: createSectionDto.weekday,
+        startPeriod: createSectionDto.startPeriod,
+        periodCount: createSectionDto.periodCount,
+        weeks: createSectionDto.weeks,
+      })
+    }
 
     const room = await this.resolveRoom(createSectionDto.room)
     if (createSectionDto.capacity > room.capacity) {
@@ -260,6 +269,7 @@ export class SectionsService {
         group: createSectionDto.group,
         subGroup: createSectionDto.subGroup ?? '',
         lecturerId: createSectionDto.lecturerId,
+        guestLecturer: createSectionDto.guestLecturer,
         roomId: room.id,
         room: createSectionDto.room,
         weekday: createSectionDto.weekday,
@@ -311,17 +321,20 @@ export class SectionsService {
       await this.assertUniqueSectionCode(nextSection.sectionCode, currentSection.semesterId, id)
     }
 
-    await this.assertCourseSemesterLecturer(currentSection.courseCode, currentSection.semesterId, nextSection.lecturerId)
-    await this.assertScheduleAvailable({
-      id,
-      semesterId: currentSection.semesterId,
-      lecturerId: nextSection.lecturerId,
-      room: nextSection.room,
-      weekday: nextSection.weekday,
-      startPeriod: nextSection.startPeriod,
-      periodCount: nextSection.periodCount,
-      weeks: nextSection.weeks,
-    })
+    await this.assertCourseSemesterLecturer(currentSection.courseCode, currentSection.semesterId, nextSection.lecturerId ?? undefined, nextSection.guestLecturer ?? undefined)
+    
+    if (nextSection.lecturerId) {
+      await this.assertScheduleAvailable({
+        id,
+        semesterId: currentSection.semesterId,
+        lecturerId: nextSection.lecturerId,
+        room: nextSection.room,
+        weekday: nextSection.weekday,
+        startPeriod: nextSection.startPeriod,
+        periodCount: nextSection.periodCount,
+        weeks: nextSection.weeks,
+      })
+    }
 
     let roomId: string | undefined
     if (updateSectionDto.room || updateSectionDto.capacity !== undefined) {
@@ -367,7 +380,7 @@ export class SectionsService {
   }
 
   async assignLecturer(id: string, body: AssignLecturerDto, actor: AuditActor) {
-    return this.update(id, { lecturerId: body.lecturerId }, actor)
+    return this.update(id, { lecturerId: body.lecturerId, guestLecturer: body.guestLecturer }, actor)
   }
 
   async updateRoomSchedule(id: string, body: UpdateRoomScheduleDto, actor: AuditActor) {

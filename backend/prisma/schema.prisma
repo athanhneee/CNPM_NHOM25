@@ -137,7 +137,7 @@ model Section {
   semesterId          String
   group               String
   subGroup            String
-  lecturerId          String
+  lecturerId          String?
   room                String
   weekday             Int
   startPeriod         Int
@@ -160,8 +160,9 @@ model Section {
   endDate             DateTime?
   learningMode        LearningMode   @default(OFFLINE)
   enrollments         Enrollment[]
+  guestLecturer       String?
   course              Course         @relation(fields: [courseCode], references: [code])
-  lecturer            User           @relation("LecturerSections", fields: [lecturerId], references: [id])
+  lecturer            User?          @relation("LecturerSections", fields: [lecturerId], references: [id])
   roomRef             Room?          @relation(fields: [roomId], references: [id])
   semester            SemesterOption @relation(fields: [semesterId], references: [id])
 

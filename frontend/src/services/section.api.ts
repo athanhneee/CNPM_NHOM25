@@ -306,11 +306,11 @@ export const sectionService = {
     return section
   },
 
-  async assignLecturer(sectionId: string, lecturerId: string, _actor?: SectionActor) {
+  async assignLecturer(sectionId: string, payload: { lecturerId?: string, guestLecturer?: string }, _actor?: SectionActor) {
     const section = normalizeSection(
       await apiRequest<BackendSection>(`/sections/${sectionId}/assign-lecturer`, {
         method: 'PATCH',
-        body: { lecturerId },
+        body: payload,
       }),
     )
     upsertSection(section)
