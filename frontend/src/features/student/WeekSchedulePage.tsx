@@ -207,10 +207,10 @@ export function WeekSchedulePage() {
         />
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => setSelectedWeek(w => clamp(w - 1, 1, maxWeek))}
             disabled={selectedWeek <= 1}
-            className="!flex h-10 w-16 items-center justify-center rounded-full"
+            className="!flex h-10 w-16 items-center justify-center rounded-full bg-white border border-slate-300 shadow-sm"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -218,10 +218,10 @@ export function WeekSchedulePage() {
             Tuần {selectedWeek}
           </span>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => setSelectedWeek(w => clamp(w + 1, 1, maxWeek))}
             disabled={selectedWeek >= maxWeek}
-            className="!flex h-10 w-16 items-center justify-center rounded-full"
+            className="!flex h-10 w-16 items-center justify-center rounded-full bg-white border border-slate-300 shadow-sm"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

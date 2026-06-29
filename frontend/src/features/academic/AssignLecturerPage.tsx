@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
+import { ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -211,7 +211,7 @@ export function AssignLecturerPage() {
                           </span>
                         </div>
                       </div>
-                      <SectionStatusBadge kind="section" status={row.derivedStatus} />
+                      <StatusBadge kind="section" status={row.derivedStatus} />
                     </div>
                   </div>
                 )
@@ -288,10 +288,14 @@ export function AssignLecturerPage() {
                   }
                   
                   try {
-                    await sectionService.assignLecturer(selectedSection.section.id, {
-                      lecturerId: isGuestLecturer ? undefined : nextLecturerId,
-                      guestLecturer: isGuestLecturer ? nextGuestLecturer : undefined,
-                    }, actor)
+                    const payload: any = {}
+                    if (isGuestLecturer) {
+                      payload.guestLecturer = nextGuestLecturer
+                    } else {
+                      payload.lecturerId = nextLecturerId
+                    }
+
+                    await sectionService.assignLecturer(selectedSection.section.id, payload, actor)
                     pushToast({ tone: 'success', title: 'Đã cập nhật giảng viên', description: 'Lớp học phần đã được cập nhật người phụ trách.' })
                   } catch (error) {
                     pushToast({ tone: 'error', title: 'Không thể phân công giảng viên', description: error instanceof Error ? error.message : 'Hệ thống không thể xử lý.' })

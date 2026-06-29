@@ -285,24 +285,29 @@ export function CreateSectionPage() {
             <Button
               onClick={async () => {
                 try {
-                  await sectionService.createSection({
+                  const payload: any = {
                     sectionCode: form.sectionCode,
                     courseCode: form.courseCode,
                     semesterId: snapshot.settings.currentSemesterId,
                     group: form.group,
                     subGroup: form.subGroup,
-                    lecturerId: isGuestLecturer ? undefined : form.lecturerId,
-                    guestLecturer: isGuestLecturer ? form.guestLecturer : undefined,
                     room: form.room,
-                    weekday: Number(form.weekday) as 2 | 3 | 4 | 5 | 6 | 7 | 8,
+                    weekday: Number(form.weekday),
                     startPeriod: Number(form.startPeriod),
                     periodCount: Number(form.periodCount),
                     weeks: form.weeks,
                     capacity: Number(form.capacity),
-                    allowWaitlist: form.allowWaitlist,
-                    status: 'OPEN',
-                    campus: 'PTIT HCM',
-                  }, actor)
+                    allowWaitlist: false,
+                    campus: 'HCM',
+                  }
+                  
+                  if (isGuestLecturer) {
+                    payload.guestLecturer = form.guestLecturer
+                  } else {
+                    payload.lecturerId = form.lecturerId
+                  }
+
+                  await sectionService.createSection(payload, actor)
                   pushToast({ tone: 'success', title: 'Đã tạo lớp học phần', description: 'Section mới đã được thêm vào học kỳ hiện tại.' })
                 } catch (error) {
                   pushToast({ tone: 'error', title: 'Không thể tạo section', description: error instanceof Error ? error.message : 'Hệ thống không thể xử lý.' })

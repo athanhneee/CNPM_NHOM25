@@ -34,7 +34,7 @@ export class ReportsService {
       sectionCode: section.sectionCode,
       courseCode: section.courseCode,
       courseName: section.course.name,
-      lecturerName: section.lecturer.fullName,
+      lecturerName: section.lecturer?.fullName ?? section.guestLecturer ?? 'Chưa phân công',
       capacity: section.capacity,
       registeredCount: section.registeredCount,
       waitlistCount: section.waitlistCount,

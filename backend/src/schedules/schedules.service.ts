@@ -25,7 +25,7 @@ export class SchedulesService {
       startPeriod: section.startPeriod,
       periodCount: section.periodCount,
       room: section.room,
-      lecturerName: section.lecturer.fullName,
+      lecturerName: section.lecturer?.fullName ?? section.guestLecturer ?? 'Chưa phân công',
       weeks: section.weeks,
       enrollmentStatus: enrollmentStatusBySection.get(section.id),
       sectionStatus: section.status,
