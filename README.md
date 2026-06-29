@@ -2,40 +2,40 @@
   <img src="frontend/public/Logo-Hoc-Vien-Cong-Nghe-Buu-Chinh-Vien-Thong-PTIT.webp" alt="PTIT Logo" width="120" />
 </p>
 
-<h1 align="center">📚 Tín Chỉ Campus — Course Registration System</h1>
+<h1 align="center">📚 Tín Chỉ Campus — Hệ thống đăng ký học phần</h1>
 
 <p align="center">
-  A full-stack academic course registration platform for <strong>PTIT Ho Chi Minh City</strong>, built as a final project for the Software Engineering course.
+  Nền tảng đăng ký học phần full-stack dành cho sinh viên <strong>Học viện Công nghệ Bưu chính Viễn thông cơ sở TP.HCM (PTIT HCM)</strong>, được xây dựng làm đồ án môn học Công nghệ phần mềm.
 </p>
 
 <p align="center">
-  <a href="https://github.com/athanhneee/CNPM_NHOM25/actions/workflows/ci.yml"><img src="https://github.com/athanhneee/CNPM_NHOM25/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status" /></a>
-  <a href="https://github.com/athanhneee/CNPM_NHOM25/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+  <a href="https://github.com/athanhneee/CNPM_NHOM25/actions/workflows/ci.yml"><img src="https://github.com/athanhneee/CNPM_NHOM25/actions/workflows/ci.yml/badge.svg?branch=main" alt="Trạng thái CI" /></a>
+  <a href="https://github.com/athanhneee/CNPM_NHOM25/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Giấy phép" /></a>
   <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js" />
-  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="Chào đón PR" />
 </p>
 
 <p align="center">
-  <a href="https://ptitdangkyhocphan.vercel.app/"><strong>🌐 Live Demo</strong></a> ·
-  <a href="#-getting-started"><strong>Getting Started</strong></a> ·
-  <a href="#-api-documentation"><strong>API Docs</strong></a> ·
-  <a href="#-documentation"><strong>Docs</strong></a>
+  <a href="https://ptitdangkyhocphan.vercel.app/"><strong>🌐 Demo Trực Tuyến</strong></a> ·
+  <a href="#-hướng-dẫn-bắt-đầu"><strong>Bắt Đầu</strong></a> ·
+  <a href="#-tài-liệu-api"><strong>Tài Liệu API</strong></a> ·
+  <a href="#-tài-liệu-bổ-sung"><strong>Tài Liệu</strong></a>
 </p>
 
 ---
 
-## ✨ Features
+## ✨ Tính Năng Nổi Bật
 
-| Role | Capabilities |
+| Vai trò | Chức năng |
 |------|-------------|
-| **🎓 Student** | Browse course catalog · Register / drop / swap sections · Waitlist management · View weekly & semester schedules · Submit course wishes · View transcript & GPA |
-| **👨‍🏫 Lecturer** | View assigned sections · Student roster per section · Weekly & semester teaching schedule |
-| **🏫 Academic Office** | Manage course catalog & sections · Assign lecturers & rooms · Process waitlist & overrides · Enrollment reports · Review / approve course wishes |
-| **🔧 Admin** | User management (CRUD, lock/unlock) · Bulk student import (Excel) · System settings & session timeout · Audit logs · Data export / import snapshots |
+| **🎓 Sinh viên** | Xem danh sách môn học · Đăng ký / Hủy / Đổi lớp học phần · Quản lý danh sách chờ (Waitlist) · Xem thời khóa biểu tuần & học kỳ · Gửi nguyện vọng mở lớp · Xem bảng điểm & GPA |
+| **👨‍🏫 Giảng viên** | Xem các lớp học phần được phân công · Xem danh sách sinh viên từng lớp · Xem lịch giảng dạy theo tuần & học kỳ |
+| **🏫 Giáo vụ** | Quản lý danh mục môn học & lớp học phần · Phân công giảng viên & phòng học · Xử lý danh sách chờ & ghi đè đăng ký · Xem báo cáo sĩ số · Duyệt / từ chối nguyện vọng mở lớp |
+| **🔧 Quản trị viên (Admin)** | Quản lý người dùng (Thêm/Sửa/Xóa, khóa/mở khóa) · Import danh sách sinh viên hàng loạt (Excel) · Thiết lập hệ thống & thời gian hết hạn phiên (session) · Xem nhật ký hoạt động (Audit logs) · Xuất / nhập dữ liệu dự phòng |
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Kiến Trúc Hệ Thống
 
 ```mermaid
 graph LR
@@ -57,78 +57,78 @@ graph LR
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Công Nghệ Sử Dụng
 
-| Layer | Technologies |
+| Lớp | Công nghệ |
 |-------|-------------|
 | **Frontend** | React 19, Vite 8, TypeScript 5.9, Tailwind CSS 4, Zustand, React Router 7, React Hook Form + Zod, Lucide Icons |
 | **Backend** | NestJS 10, TypeScript, Prisma ORM 5, Swagger/OpenAPI, JWT + RBAC, bcrypt |
-| **Database** | PostgreSQL (Supabase hosted), Prisma Migrations |
-| **CI/CD** | GitHub Actions, Vercel (frontend deployment) |
-| **Tooling** | Docker Compose, ESLint, Playwright (E2E), Node.js 24 |
+| **Cơ sở dữ liệu** | PostgreSQL (Host trên Supabase), Prisma Migrations |
+| **CI/CD** | GitHub Actions, Vercel (deploy frontend) |
+| **Công cụ khác** | Docker Compose, ESLint, Playwright (Test E2E), Node.js 24 |
 
 ---
 
-## 📁 Project Structure
+## 📁 Cấu Trúc Dự Án
 
 ```text
 CNPM_NHOM25/
-├── backend/              # NestJS API server
-│   ├── prisma/           # Schema, migrations & seed data
-│   └── src/              # Modules: auth, users, courses, enrollments, etc.
-├── frontend/             # React SPA
+├── backend/              # API server (NestJS)
+│   ├── prisma/           # Schema, migrations & dữ liệu mẫu (seed)
+│   └── src/              # Các module: auth, users, courses, enrollments, v.v.
+├── frontend/             # Ứng dụng SPA (React)
 │   ├── src/
-│   │   ├── features/     # Role-based pages (student, lecturer, academic, admin)
-│   │   ├── components/   # Shared UI components
-│   │   ├── lib/          # Utilities & helpers
-│   │   ├── mocks/        # Mock data & seed fallback
-│   │   └── types/        # TypeScript type definitions
-│   └── public/           # Static assets
-├── docs/                 # Analysis, design, test plan & demo scripts
-├── database/             # Database setup documentation
-├── docker-compose.yml    # Container orchestration
-└── .github/workflows/    # CI pipeline
+│   │   ├── features/     # Các trang theo vai trò (sinh viên, giảng viên, giáo vụ, admin)
+│   │   ├── components/   # Các component dùng chung (UI)
+│   │   ├── lib/          # Tiện ích & cấu hình
+│   │   ├── mocks/        # Dữ liệu giả lập & seed dự phòng
+│   │   └── types/        # Định nghĩa kiểu dữ liệu (TypeScript)
+│   └── public/           # Tài nguyên tĩnh (Static assets)
+├── docs/                 # Phân tích, thiết kế, kế hoạch kiểm thử & kịch bản demo
+├── database/             # Tài liệu thiết lập cơ sở dữ liệu
+├── docker-compose.yml    # Quản lý container (Docker)
+└── .github/workflows/    # Pipeline CI/CD
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Hướng Dẫn Bắt Đầu
 
-### Prerequisites
+### Yêu cầu hệ thống
 
-- **Node.js** ≥ 20 (recommended: 24)
+- **Node.js** ≥ 20 (khuyên dùng: 24)
 - **npm** ≥ 9
-- **PostgreSQL** database (or [Supabase](https://supabase.com) free tier)
+- **Cơ sở dữ liệu PostgreSQL** (hoặc dùng gói miễn phí của [Supabase](https://supabase.com))
 
-### 1. Clone the repository
+### 1. Clone repository
 
 ```bash
 git clone https://github.com/athanhneee/CNPM_NHOM25.git
 cd CNPM_NHOM25
 ```
 
-### 2. Backend setup
+### 2. Thiết lập Backend
 
 ```bash
 cd backend
 npm install
-cp .env.example .env          # Then edit .env with your database credentials
+cp .env.example .env          # Sau đó chỉnh sửa .env với thông tin database của bạn
 npx prisma generate
 npx prisma migrate dev
-npm run prisma:seed            # Populate demo data (160 courses, 18 lecturers, 9 students)
-npm run start:dev              # Starts at http://localhost:3000
+npm run prisma:seed           # Tạo dữ liệu mẫu (160 môn học, 18 giảng viên, 9 sinh viên)
+npm run start:dev             # Khởi chạy tại http://localhost:3000
 ```
 
-### 3. Frontend setup
+### 3. Thiết lập Frontend
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env           # Default API URL: http://localhost:3000/api
-npm run dev                    # Starts at http://127.0.0.1:5173
+cp .env.example .env          # API URL mặc định: http://localhost:3000/api
+npm run dev                   # Khởi chạy tại http://127.0.0.1:5173
 ```
 
-### 4. Docker (alternative)
+### 4. Dùng Docker (Tùy chọn)
 
 ```bash
 docker-compose up --build
@@ -136,126 +136,126 @@ docker-compose up --build
 
 ---
 
-## 📖 API Documentation
+## 📖 Tài Liệu API
 
-Once the backend is running, Swagger UI is available at:
+Khi backend đang chạy, bạn có thể truy cập giao diện Swagger UI tại:
 
 ```
 http://localhost:3000/api
 ```
 
-Full API contract: [`backend/API_CONTRACT.md`](backend/API_CONTRACT.md)
+Chi tiết các API có tại: [`backend/API_CONTRACT.md`](backend/API_CONTRACT.md)
 
 ---
 
-## 🔐 Demo Accounts
+## 🔐 Tài Khoản Demo
 
-All demo accounts use the same default password: **`ptithcm2026`**
+Tất cả các tài khoản demo đều dùng chung mật khẩu mặc định: **`ptithcm2026`**
 
-| Role | Username | Email |
+| Vai trò | Tên đăng nhập (Username) | Email |
 |------|----------|-------|
 | 🔧 Admin | `admin` | `admin@ptithcm.edu.vn` |
-| 🏫 Academic Office | `academic.office` | `academic.office@ptithcm.edu.vn` |
-| 👨‍🏫 Lecturer | `minh.tuan` | `minh.tuan@ptithcm.edu.vn` |
-| 🎓 Student | `N23DCCN001` | `n23dccn001@student.ptithcm.edu.vn` |
-| 🎓 Student | `N23DCCN002` | `n23dccn002@student.ptithcm.edu.vn` |
-| 🎓 Student | `N23DCAT001` | `n23dcat001@student.ptithcm.edu.vn` |
-| 🎓 Student | `N23DCVT001` | `n23dcvt001@student.ptithcm.edu.vn` |
-| 🎓 Student | `N23DCDT001` | `n23dcdt001@student.ptithcm.edu.vn` |
+| 🏫 Giáo vụ | `academic.office` | `academic.office@ptithcm.edu.vn` |
+| 👨‍🏫 Giảng viên | `minh.tuan` | `minh.tuan@ptithcm.edu.vn` |
+| 🎓 Sinh viên | `N23DCCN001` | `n23dccn001@student.ptithcm.edu.vn` |
+| 🎓 Sinh viên | `N23DCCN002` | `n23dccn002@student.ptithcm.edu.vn` |
+| 🎓 Sinh viên | `N23DCAT001` | `n23dcat001@student.ptithcm.edu.vn` |
+| 🎓 Sinh viên | `N23DCVT001` | `n23dcvt001@student.ptithcm.edu.vn` |
+| 🎓 Sinh viên | `N23DCDT001` | `n23dcdt001@student.ptithcm.edu.vn` |
 
-> **Tip:** The Admin Settings page has a `simulationNow` field to change the demo timestamp — useful for demonstrating registration windows, adjustment periods, and deadlines without modifying seed data.
+> **Mẹo nhỏ:** Trang Cài đặt của Admin có trường `simulationNow` để thay đổi thời gian giả lập của hệ thống — rất hữu ích để thử nghiệm các tính năng liên quan đến thời hạn đăng ký, đợt điều chỉnh mà không cần sửa đổi dữ liệu gốc.
 
 ---
 
-## ✅ Testing
+## ✅ Kiểm Thử (Testing)
 
 ### Backend
 
 ```bash
 cd backend
-npm run lint                    # ESLint
-npm run test:rules              # Business rule smoke tests
-npm run test:integration        # Integration tests (requires TEST_DATABASE_URL)
-npm run build                   # TypeScript compilation check
+npm run lint                    # Kiểm tra lỗi cú pháp (ESLint)
+npm run test:rules              # Kiểm thử nhanh các quy tắc nghiệp vụ
+npm run test:integration        # Kiểm thử tích hợp (yêu cầu TEST_DATABASE_URL)
+npm run build                   # Kiểm tra biên dịch TypeScript
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
-npm run lint                    # ESLint
+npm run lint                    # Kiểm tra lỗi cú pháp (ESLint)
 npm run test                    # Unit / seed smoke tests
-npm run test:e2e                # Playwright end-to-end tests
-npm run build                   # Production build
+npm run test:e2e                # Kiểm thử End-to-end với Playwright
+npm run build                   # Build production
 ```
 
-> ⚠️ Only run `test:integration` when `TEST_DATABASE_URL` points to a **separate** test database. The script resets and re-seeds the database.
+> ⚠️ Chỉ chạy `test:integration` khi `TEST_DATABASE_URL` trỏ tới một database **kiểm thử riêng biệt**. Script này sẽ xóa và reset lại toàn bộ dữ liệu mẫu trong database đó.
 
 ---
 
-## 📊 Demo Checklist
+## 📊 Kịch Bản Demo
 
 <details>
-<summary><strong>🎓 Student Flow</strong></summary>
+<summary><strong>🎓 Luồng của Sinh viên</strong></summary>
 
-- Login with `N23DCCN001` or `N23DCCN002`
-- Browse available courses and section details
-- Register for an open section
-- Attempt to register for a full section → waitlist
-- View registration history and weekly schedule
-- Submit and cancel course wishes
+- Đăng nhập với `N23DCCN001` hoặc `N23DCCN002`
+- Xem danh sách môn học và chi tiết các lớp học phần
+- Đăng ký vào lớp học phần còn trống
+- Thử đăng ký vào lớp đã đầy → chuyển vào danh sách chờ (waitlist)
+- Xem lịch sử đăng ký và thời khóa biểu tuần
+- Gửi và hủy nguyện vọng mở lớp
 
 </details>
 
 <details>
-<summary><strong>👨‍🏫 Lecturer Flow</strong></summary>
+<summary><strong>👨‍🏫 Luồng của Giảng viên</strong></summary>
 
-- Login with `minh.tuan`
-- View assigned sections and student rosters
-- Check weekly and semester teaching schedules
-
-</details>
-
-<details>
-<summary><strong>🏫 Academic Office Flow</strong></summary>
-
-- Login with `academic.office`
-- Manage course catalog and sections
-- Create sections, assign lecturers, update rooms/schedules
-- Monitor enrollment, process waitlist, override registrations
-- View enrollment fill-rate reports
-- Review and approve/reject course wishes with feedback
+- Đăng nhập với `minh.tuan`
+- Xem danh sách lớp được phân công và danh sách sinh viên
+- Xem lịch giảng dạy tuần và học kỳ
 
 </details>
 
 <details>
-<summary><strong>🔧 Admin Flow</strong></summary>
+<summary><strong>🏫 Luồng của Giáo vụ</strong></summary>
 
-- Login with `admin`
-- Manage user accounts (create, lock/unlock, bulk import)
-- Update system parameters and session timeout
-- Export/import data snapshots
-- View audit logs
+- Đăng nhập với `academic.office`
+- Quản lý danh mục môn học và lớp học phần
+- Tạo lớp, phân công giảng viên, cập nhật phòng học/lịch học
+- Theo dõi số lượng đăng ký, xử lý danh sách chờ, ghi đè đăng ký (override)
+- Xem báo cáo tỷ lệ lấp đầy lớp học
+- Xem xét và phê duyệt/từ chối nguyện vọng mở lớp (kèm phản hồi)
+
+</details>
+
+<details>
+<summary><strong>🔧 Luồng của Admin</strong></summary>
+
+- Đăng nhập với `admin`
+- Quản lý tài khoản người dùng (tạo mới, khóa/mở khóa, import hàng loạt)
+- Cập nhật tham số hệ thống và thời gian hết hạn phiên
+- Xuất/nhập file dữ liệu dự phòng
+- Xem nhật ký hệ thống (audit logs)
 
 </details>
 
 ---
 
-## 📚 Documentation
+## 📚 Tài Liệu Bổ Sung
 
-| Document | Description |
+| Tài liệu | Mô tả |
 |----------|-------------|
-| [Analysis & Design](docs/analysis-design.md) | System analysis, use cases & architecture design |
-| [Demo Script](docs/demo-script.md) | Step-by-step demo walkthrough |
-| [Test Plan](docs/test-plan.md) | Testing strategy & test cases |
-| [Manual Test Evidence](docs/manual-test-evidence.md) | Screenshots & evidence from manual testing |
-| [API Contract](backend/API_CONTRACT.md) | Complete REST API specification |
-| [Frontend README](frontend/README.md) | Frontend-specific documentation |
-| [Database Setup](database/README.md) | Database configuration guide |
+| [Phân tích & Thiết kế](docs/analysis-design.md) | Phân tích hệ thống, Use Cases & thiết kế kiến trúc |
+| [Kịch bản Demo](docs/demo-script.md) | Hướng dẫn chi tiết từng bước để demo |
+| [Kế hoạch Test](docs/test-plan.md) | Chiến lược kiểm thử & các test cases |
+| [Minh chứng Test thủ công](docs/manual-test-evidence.md) | Ảnh chụp màn hình & minh chứng test thủ công |
+| [Hợp đồng API](backend/API_CONTRACT.md) | Đặc tả chi tiết REST API |
+| [Tài liệu Frontend](frontend/README.md) | Hướng dẫn dành riêng cho Frontend |
+| [Thiết lập Database](database/README.md) | Hướng dẫn cấu hình cơ sở dữ liệu |
 
 ---
 
-## 👥 Team — CNPM Nhóm 25 - Nửa Vũng Tàu
+## 👥 Nhóm Thực Hiện — CNPM Nhóm 25 - Nửa Vũng Tàu
 
 **Giảng viên hướng dẫn:** Nguyễn Thị Bích Nguyên
 
@@ -267,12 +267,12 @@ npm run build                   # Production build
 
 ---
 
-## 📝 License
+## 📝 Giấy Phép
 
-This project is for educational purposes as part of the Software Engineering course at [PTIT Ho Chi Minh City](https://ptithcm.edu.vn).
+Dự án này phục vụ mục đích giáo dục cho môn học Công nghệ phần mềm tại [Học viện Công nghệ Bưu chính Viễn thông cơ sở TP.HCM (PTIT HCM)](https://ptithcm.edu.vn).
 
 ---
 
 <p align="center">
-  Made with ❤️ by <strong>Nhóm 25 — PTIT HCM</strong>
+  Làm với ❤️ bởi <strong>Nhóm 25 — PTIT HCM</strong>
 </p>
