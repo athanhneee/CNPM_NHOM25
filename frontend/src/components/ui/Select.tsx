@@ -22,8 +22,8 @@ export function Select({ label, hint, error, options, className, id, ...props }:
       <select
         id={resolvedId}
         className={cn(
-          'brand-ring rounded-full border border-[var(--color-hairline)] bg-white px-5 py-3.5 text-sm leading-normal text-[var(--color-ink)]',
-          error ? 'border-amber-300 focus-visible:ring-amber-400' : 'focus-visible:ring-teal-500',
+          'brand-ring rounded-full border border-transparent bg-slate-50 hover:bg-slate-100 px-5 py-3.5 text-sm leading-normal text-[var(--color-ink)] transition focus:bg-white focus:outline-none',
+          error ? 'border-amber-300 focus-visible:ring-amber-400 bg-amber-50' : 'focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:border-teal-500',
           className,
         )}
         {...props}

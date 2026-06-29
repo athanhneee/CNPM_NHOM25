@@ -72,7 +72,7 @@ export const SPECIFIC_CLASS_COURSES: Record<string, Record<string, string[]>> = 
 export function getMajorCodeFromClass(studentClass: string): string | null {
   const upper = studentClass.toUpperCase()
   const match = upper.match(/(?:CQ|DC)([A-Z]{2})/)
-  return match ? match[1] : null
+  return match ? match[1] ?? null : null
 }
 
 /**

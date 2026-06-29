@@ -1,523 +1,460 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
-import { getCurrentSemesterSections, getStudentCurrentCredits, getStudentSemesterEnrollments } from '@/lib/selectors'
+import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
+import { getStudentCurrentCredits, getStudentSemesterEnrollments } from '@/lib/selectors'
 import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Select } from '@/components/ui/Select'
 import { CreditMeter } from '@/components/shared/CreditMeter'
-import { RuleCheckPanel } from '@/components/shared/RuleCheckPanel'
 import { SearchInput } from '@/components/shared/SearchInput'
 import { SectionCapacityBar } from '@/components/shared/SectionCapacityBar'
 import { StatCard } from '@/components/shared/StatCard'
-import { StatusBadge } from '@/components/shared/StatusBadge'
 import { enrollmentService } from '@/services/enrollment.api'
-import { courseService } from '@/services/course.api'
-import { sectionService } from '@/services/section.api'
-import { wishService } from '@/services/wish.api'
-import { isCourseAllowedForClass, getDepartmentFromClass, getAdmissionYearFromClass } from '@/lib/classCourseMapping'
-import { authApiService } from '@/services/auth.api'
-import type { Course } from '@/types/course'
-import type { User, AcademicRecords } from '@/types/user'
+import { registrationService, fetchDepartments, fetchCourseList } from '@/services/registration.api'
+import type {
+  FilterMode,
+  CourseOptionsResponse,
+  CourseOption,
+  SectionOption,
+  RegistrationStatus,
+  AcademicStatus,
+} from '@/types/registration'
+import {
+  FILTER_MODE_OPTIONS,
+  REGISTRATION_STATUS_LABELS,
+  REGISTRATION_STATUS_COLORS,
+  ACADEMIC_STATUS_LABELS,
+  ACADEMIC_STATUS_COLORS,
+} from '@/types/registration'
 
 // ────────────────────────────────────────────────────────────────────
-// Filter mode definitions
+// Constants
 // ────────────────────────────────────────────────────────────────────
-
-type FilterMode =
-  | 'all'                  // Lọc theo môn học (tìm kiếm chung)
-  | 'class-open'           // Môn học mở theo lớp sinh viên
-  | 'curriculum-plan'      // Môn trong chương trình đào tạo kế hoạch
-  | 'curriculum-remaining' // Môn chưa học trong CTĐT kế hoạch
-  | 'retake'               // Môn sinh viên cần học lại (đã rớt)
-  | 'by-faculty'           // Lọc theo khoa quản lý môn học
-  | 'by-class'             // Lọc theo lớp
+const PAGE_SIZE = 5
+const DEBOUNCE_MS = 350
 
 // ────────────────────────────────────────────────────────────────────
-// Hooks & helpers
+// Weekday labels (VN convention: 2=Mon, 8=Sun)
 // ────────────────────────────────────────────────────────────────────
-
-function useStudentContext() {
-  const currentUser = useAuthStore((state) => state.currentUser)
-  const snapshot = useDataStore((state) => state)
-  const pushToast = useUiStore((state) => state.pushToast)
-  const [academicRecords, setAcademicRecords] = useState<AcademicRecords | null>(null)
-  const [studentClasses, setStudentClasses] = useState<string[]>([])
-
-  useEffect(() => {
-    if (!currentUser?.roles.includes('STUDENT')) {
-      return
-    }
-
-    let mounted = true
-    useDataStore.getState().setApiStatus('loading')
-
-    Promise.all([
-      courseService.listCourses(),
-      sectionService.listSections(),
-      enrollmentService.listHistory(currentUser.id),
-      wishService.listWishes({ studentId: currentUser.id }),
-      authApiService.getAcademicRecords().catch(() => null),
-      authApiService.getStudentClasses().catch(() => [] as string[]),
-    ])
-      .then(([, , , , records, classes]) => {
-        if (!mounted) return
-        useDataStore.getState().setApiStatus('ready')
-        useDataStore.getState().setLastSyncedAt(new Date().toISOString())
-        if (records) setAcademicRecords(records)
-        setStudentClasses(classes ?? [])
-      })
-      .catch((err) => {
-        if (!mounted) return
-        useDataStore.getState().setApiStatus('error', err instanceof Error ? err.message : 'Unknown error')
-      })
-
-    return () => {
-      mounted = false
-    }
-  }, [currentUser?.id, currentUser?.roles])
-
-  return {
-    currentUser,
-    snapshot,
-    pushToast,
-    academicRecords,
-    studentClasses,
-    actor: currentUser
-      ? { actorId: currentUser.id, actorRole: currentUser.roles[0] ?? 'STUDENT' }
-      : null,
-  }
+const WEEKDAY_LABELS: Record<number, string> = {
+  2: 'Thứ 2',
+  3: 'Thứ 3',
+  4: 'Thứ 4',
+  5: 'Thứ 5',
+  6: 'Thứ 6',
+  7: 'Thứ 7',
+  8: 'Chủ nhật',
 }
 
-/**
- * Tính học kỳ thứ mấy trong CTĐT của sinh viên (1-indexed).
- *
- * Logic: admissionYear = 20XX (từ mã SV), currentSemesterId = "YYYY-YYYY-T"
- * → yearsStudied = firstYear - admissionYear (0-indexed)
- * → semesterIndex = yearsStudied * 2 + termNumber
- *
- * Ví dụ: SV N23DCCN001 (2023), HK "2025-2026-2" → yearsStudied = 2025-2023 = 2
- * → semesterIndex = 2*2 + 2 = 6 (học kỳ 6 trong CTĐT)
- */
-function getStudentSemesterIndex(studentCode: string, currentSemesterId: string): number {
-  const twoDigit = studentCode.slice(1, 3)
-  const admissionYear = Number(`20${twoDigit}`)
-  if (Number.isNaN(admissionYear) || admissionYear < 2000) return 1
-
-  // Parse "2025-2026-2" → firstYear=2025, term=2
-  const parts = currentSemesterId.split('-')
-  const firstYear = Number(parts[0])
-  const term = Number(parts[parts.length - 1])
-
-  if (Number.isNaN(firstYear) || Number.isNaN(term)) return 1
-
-  const yearsStudied = firstYear - admissionYear
-  return Math.max(1, yearsStudied * 2 + term)
+// ────────────────────────────────────────────────────────────────────
+// Status badges
+// ────────────────────────────────────────────────────────────────────
+function RegistrationStatusBadge({ status }: { status: RegistrationStatus }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${REGISTRATION_STATUS_COLORS[status]}`}
+    >
+      {REGISTRATION_STATUS_LABELS[status]}
+    </span>
+  )
 }
 
-interface RegistrationClassScope {
-  classCode: string
-  program?: string
-  faculty?: string
+function AcademicStatusBadge({ status }: { status: AcademicStatus }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${ACADEMIC_STATUS_COLORS[status]}`}
+    >
+      {ACADEMIC_STATUS_LABELS[status]}
+    </span>
+  )
 }
 
-function normalizeLookupValue(value?: string | null) {
-  return (value ?? '').trim().toUpperCase()
-}
+// ────────────────────────────────────────────────────────────────────
+// Section Card
+// ────────────────────────────────────────────────────────────────────
+function SectionCard({
+  section,
+  studentId,
+  onRegisterSuccess,
+}: {
+  section: SectionOption
+  courseCode: string
+  studentId: string
+  onRegisterSuccess: () => void
+}) {
+  const pushToast = useUiStore((s) => s.pushToast)
+  const [loadingRegister, setLoadingRegister] = useState(false)
 
-function inferRegistrationClassScope(classCode: string, users: User[]): RegistrationClassScope {
-  const normalizedClassCode = normalizeLookupValue(classCode)
+  const schedule = section.schedules[0]
+  const scheduleText = schedule
+    ? `${WEEKDAY_LABELS[schedule.weekday] ?? `Thứ ${schedule.weekday}`} • Tiết ${schedule.startPeriod}–${schedule.startPeriod + schedule.periodCount - 1} • ${schedule.room} • Tuần ${schedule.weeks}`
+    : 'Chưa có lịch'
 
-  if (!normalizedClassCode) {
-    return { classCode: '' }
-  }
-
-  const matchedStudent = users.find(
-    (user) =>
-      user.roles.includes('STUDENT') &&
-      normalizeLookupValue(user.studentClass) === normalizedClassCode,
+  const currentEnrollment = useDataStore((s) => 
+    s.enrollments.find(
+      (e) => e.studentId === studentId && e.sectionId === section.sectionId && ['REGISTERED', 'PENDING', 'WAITLISTED'].includes(e.status)
+    )
   )
 
-  if (matchedStudent) {
-    const matchedProgram = matchedStudent.majorName ?? matchedStudent.program
-    const matchedFaculty = matchedStudent.faculty ?? matchedStudent.department
-    return {
-      classCode: matchedStudent.studentClass ?? classCode,
-      ...(matchedProgram ? { program: matchedProgram } : {}),
-      ...(matchedFaculty ? { faculty: matchedFaculty } : {}),
+  const handleRegister = async () => {
+    setLoadingRegister(true)
+    try {
+      const result = await enrollmentService.registerSection(studentId, section.sectionId)
+      pushToast({
+        tone: result.success ? 'success' : 'error',
+        title: result.success ? 'Đã cập nhật đăng ký' : 'Đăng ký thất bại',
+        description: result.message,
+      })
+      if (result.success) {
+        onRegisterSuccess()
+      }
+    } catch {
+      pushToast({
+        tone: 'error',
+        title: 'Lỗi hệ thống',
+        description: 'Không thể thực hiện đăng ký. Vui lòng thử lại.',
+      })
+    } finally {
+      setLoadingRegister(false)
     }
   }
 
-  if (['ATTT', 'DCAT', 'CQAT'].some((token) => normalizedClassCode.includes(token))) {
-    return {
-      classCode,
-      program: 'An toàn thông tin',
-      faculty: 'Khoa An toàn thông tin',
+  const handleCancel = async () => {
+    if (!currentEnrollment) return
+    setLoadingRegister(true)
+    try {
+      await enrollmentService.cancelEnrollment(currentEnrollment.id, undefined, 'Sinh viên tự hủy đăng ký')
+      pushToast({
+        tone: 'success',
+        title: 'Đã hủy đăng ký',
+        description: 'Đã hủy đăng ký thành công.',
+      })
+      onRegisterSuccess() // Refresh list
+    } catch {
+      pushToast({
+        tone: 'error',
+        title: 'Lỗi hệ thống',
+        description: 'Không thể thực hiện hủy đăng ký. Vui lòng thử lại.',
+      })
+    } finally {
+      setLoadingRegister(false)
     }
   }
 
-  if (['CNTT', 'DCCN', 'CQCN'].some((token) => normalizedClassCode.includes(token))) {
-    return {
-      classCode,
-      program: 'Công nghệ thông tin',
-      faculty: 'Khoa Công nghệ thông tin',
-    }
-  }
+  return (
+    <div className="rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 transition-shadow hover:shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-[var(--color-ink)]">{section.sectionCode}</span>
+          <RegistrationStatusBadge status={section.registrationStatus} />
+        </div>
+        <SectionCapacityBar
+          capacity={section.capacity}
+          registeredCount={section.enrolled}
+          waitlistCount={0}
+        />
+      </div>
 
-  return { classCode }
-}
+      <div className="mt-2 space-y-1 text-sm text-[var(--color-muted)]">
+        <p>{scheduleText}</p>
+        {section.lecturer && <p>GV: {section.lecturer}</p>}
+        <p>
+          Sĩ số: {section.enrolled}/{section.capacity} • Còn {section.remainingSeats} chỗ
+        </p>
+      </div>
 
-function courseMatchesRegistrationClass(course: Course | null, scope: RegistrationClassScope) {
-  if (!course || !scope.program) {
-    return true
-  }
+      {/* Ineligible reasons */}
+      {section.registrationStatus !== 'REGISTERED' && !section.eligible && section.ineligibleReasons.length > 0 && (
+        <div className="mt-3 space-y-1">
+          {section.ineligibleReasons.map((reason, idx) => (
+            <div
+              key={idx}
+              className="flex items-start gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs text-red-700"
+            >
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+              <span>{reason.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
-  const supportedMajors = course.majorsSupported ?? []
-  if (!supportedMajors.length) {
-    return true
-  }
-
-  return supportedMajors.includes(scope.program)
-}
-
-function courseMatchesManagingFaculty(course: Course | null, facultyFilter: string) {
-  if (!facultyFilter || !course) {
-    return true
-  }
-
-  const courseFaculty = course.faculty ?? course.department
-  return courseFaculty === facultyFilter
+      {/* Actions */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {section.registrationStatus === 'REGISTERED' ? (
+          <Button
+            loading={loadingRegister}
+            onClick={handleCancel}
+            type="button"
+            variant="outline"
+            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
+            Hủy đăng ký
+          </Button>
+        ) : (
+          <Button
+            loading={loadingRegister}
+            disabled={!section.eligible}
+            onClick={handleRegister}
+            type="button"
+          >
+            {section.eligible ? 'Đăng ký ngay' : 'Không đủ điều kiện'}
+          </Button>
+        )}
+        <Link to={`/student/open-sections/${section.sectionId}`}>
+          <Button type="button" variant="ghost">
+            Xem chi tiết
+          </Button>
+        </Link>
+      </div>
+    </div>
+  )
 }
 
 // ────────────────────────────────────────────────────────────────────
-// Main component
+// Course Card (groups sections)
 // ────────────────────────────────────────────────────────────────────
+function CourseCard({
+  course,
+  studentId,
+  onRegisterSuccess,
+}: {
+  course: CourseOption
+  studentId: string
+  onRegisterSuccess: () => void
+}) {
+  return (
+    <div className="rounded-3xl border border-[var(--color-hairline)] bg-white p-5 transition-shadow duration-200 hover:shadow-[var(--shadow-airbnb)]">
+      {/* Course header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="text-base font-semibold text-[var(--color-ink)]">{course.courseName}</p>
+            <AcademicStatusBadge status={course.academicStatus} />
+          </div>
+          <p className="mt-0.5 text-sm text-[var(--color-muted)]">
+            {course.courseCode} • {course.credits} tín chỉ • {course.faculty ?? course.department}
+          </p>
+          {course.suggestedSemester && (
+            <p className="text-xs text-[var(--color-muted)]">CTĐT kỳ {course.suggestedSemester}</p>
+          )}
+          {course.retakeInfo && (
+            <p className="mt-1 text-xs text-red-600">
+              Đã học {course.retakeInfo.attemptCount} lần
+              {course.retakeInfo.lastGrade && ` • Điểm gần nhất: ${course.retakeInfo.lastGrade}`}
+            </p>
+          )}
+        </div>
+        <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
+          {course.sections.length} lớp
+        </span>
+      </div>
 
+      {/* Sections */}
+      {course.sections.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {course.sections.map((section) => (
+            <SectionCard
+              key={section.sectionId}
+              section={section}
+              courseCode={course.courseCode}
+              studentId={studentId}
+              onRegisterSuccess={onRegisterSuccess}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Main RegisterPage
+// ────────────────────────────────────────────────────────────────────
 export function RegisterPage() {
-  const { currentUser, snapshot, pushToast, actor, academicRecords, studentClasses } = useStudentContext()
-  const [filterMode, setFilterMode] = useState<FilterMode>('all')
-  const [query, setQuery] = useState('')
-  const [classFilter, setClassFilter] = useState('')
-  const [facultyFilter, setFacultyFilter] = useState('')
+  const currentUser = useAuthStore((s) => s.currentUser)
+  const snapshot = useDataStore((s) => s)
+
+  // Filter state
+  const [filterMode, setFilterMode] = useState<FilterMode>('BY_COURSE')
+  const [keyword, setKeyword] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('')
+  const [selectedCourse, setSelectedCourse] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const PAGE_SIZE = 5
-  const [selectedSectionId, setSelectedSectionId] = useState('')
-  const [checkResult, setCheckResult] = useState<ReturnType<typeof evaluateEnrollmentEligibility> | null>(null)
-  const [checkingId, setCheckingId] = useState('')
-  const [loadingId, setLoadingId] = useState('')
+
+  // Data state
+  const [data, setData] = useState<CourseOptionsResponse | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Dropdown options (loaded once)
+  const [departmentOptions, setDepartmentOptions] = useState<Array<{ value: string; label: string }>>([])
+  const [courseOptions, setCourseOptions] = useState<Array<{ value: string; label: string }>>([])
+  const [loadingCourses, setLoadingCourses] = useState(false)
+
+  // AbortController ref for cancelling in-flight requests
+  const abortRef = useRef<AbortController | null>(null)
+  // Debounce timer ref
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const student = currentUser
-  const auditActor = actor
-  const studentClass = student?.studentClass ?? ''
-  const studentProgram = student?.majorName ?? student?.program ?? ''
-  const studentSemesterIndex = student ? getStudentSemesterIndex(student.code, snapshot.settings.currentSemesterId) : 0
+  const studentId = student?.id ?? ''
 
-  // Derived data for curriculum-based filters
-  const passedCourseCodes = useMemo(() => {
-    const set = new Set<string>()
-    if (academicRecords?.completedCourses) {
-      for (const c of academicRecords.completedCourses) {
-        if (c.passed) set.add(c.courseCode)
-      }
-    }
-    return set
-  }, [academicRecords])
-
-  const failedCourseCodes = useMemo(() => {
-    const set = new Set<string>()
-    if (academicRecords?.completedCourses) {
-      for (const c of academicRecords.completedCourses) {
-        if (!c.passed) set.add(c.courseCode)
-      }
-    }
-    return set
-  }, [academicRecords])
-
-  // Also include currently registered courses as "in-progress" to not show them as "remaining"
-  const ongoingCourseCodes = useMemo(() => {
-    const set = new Set<string>()
-    if (academicRecords?.ongoingCourses) {
-      for (const c of academicRecords.ongoingCourses) {
-        set.add(c.courseCode)
-      }
-    }
-    return set
-  }, [academicRecords])
-
-  // Sub-filter options
-  const classOptions = useMemo(() => {
-    const set = new Set(studentClasses)
-    // Always include current student's class
-    if (studentClass) set.add(studentClass)
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'))
-  }, [studentClasses, studentClass])
-  const facultyOptions = Array.from(
-    new Set(
-      snapshot.courses
-        .map((course) => course.faculty ?? course.department)
-        .filter((value): value is string => Boolean(value)),
-    ),
-  ).sort((left, right) => left.localeCompare(right, 'vi'))
-
-  // ── Build course options for "Lọc theo môn học" mode ──────────
-  const courseOptions = useMemo(() => {
-    const allSects = getCurrentSemesterSections(snapshot)
-    const courseMap = new Map<string, { code: string; name: string; tag: string; order: number }>()
-
-    for (const row of allSects) {
-      const c = row.course
-      if (!c || courseMap.has(c.code)) continue
-
-      // Determine category tag and priority
-      if (c.suggestedSemester === studentSemesterIndex) {
-        courseMap.set(c.code, { code: c.code, name: c.name, tag: 'CTĐT kỳ hiện tại', order: 1 })
-      } else if (failedCourseCodes.has(c.code) && !passedCourseCodes.has(c.code)) {
-        courseMap.set(c.code, { code: c.code, name: c.name, tag: 'Cần học lại', order: 2 })
-      } else if (
-        c.suggestedSemester &&
-        c.suggestedSemester > studentSemesterIndex &&
-        c.suggestedSemester <= studentSemesterIndex + 2 &&
-        !passedCourseCodes.has(c.code) &&
-        !ongoingCourseCodes.has(c.code)
-      ) {
-        courseMap.set(c.code, { code: c.code, name: c.name, tag: 'Có thể học trước', order: 3 })
-      } else if (
-        c.suggestedSemester &&
-        c.suggestedSemester <= studentSemesterIndex &&
-        !passedCourseCodes.has(c.code) &&
-        !ongoingCourseCodes.has(c.code)
-      ) {
-        courseMap.set(c.code, { code: c.code, name: c.name, tag: 'Còn thiếu trong CTĐT', order: 1 })
-      }
-    }
-
-    return Array.from(courseMap.values()).sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'vi'))
-  }, [snapshot, studentSemesterIndex, failedCourseCodes, passedCourseCodes, ongoingCourseCodes])
-
-  // ── Primary filter mode options ──────────────────────────────
-  const filterModeOptions: Array<{ label: string; value: FilterMode }> = [
-    { label: 'Lọc theo môn học', value: 'all' },
-    { label: `Môn học mở theo lớp sinh viên ${studentClass || 'N/A'}`, value: 'class-open' },
-    { label: 'Môn trong chương trình đào tạo kế hoạch', value: 'curriculum-plan' },
-    { label: 'Môn chưa học trong CTĐT kế hoạch', value: 'curriculum-remaining' },
-    { label: 'Môn sinh viên cần học lại (đã rớt)', value: 'retake' },
-    { label: 'Lọc theo khoa quản lý môn học', value: 'by-faculty' },
-    { label: 'Lọc theo lớp', value: 'by-class' },
-  ]
-
-  // ── Filter logic ─────────────────────────────────────────────
-  const allSections = getCurrentSemesterSections(snapshot)
-
-  const sectionRows = allSections.filter((item) => {
-    const course = item.course
-
-    // Ẩn section của course đã bị xóa mềm (INACTIVE)
-    if (course && course.status === 'INACTIVE') return false
-
-    switch (filterMode) {
-      case 'all': {
-        // Nếu không có tìm kiếm: hiện các môn gợi ý (CTĐT kỳ hiện tại, cần học lại, hoặc có thể học trước)
-        if (!query) {
-          if (!course) return false
-          const relevantCodes = new Set(courseOptions.map((o) => o.code))
-          return relevantCodes.has(course.code)
-        }
-        
-        // Nếu có tìm kiếm: lọc theo mã hoặc tên môn
-        const keyword = query.toLowerCase()
-        // Nếu input query là định dạng từ datalist (vd: "INT402 - Cấu trúc dữ liệu..."), extract mã môn
-        const searchCode = query.split(' - ')[0]?.trim().toLowerCase()
-        
-        return (
-          item.section.courseCode.toLowerCase().includes(searchCode || keyword) ||
-          item.section.sectionCode.toLowerCase().includes(keyword) ||
-          course?.name.toLowerCase().includes(keyword)
-        )
-      }
-
-      case 'class-open': {
-        // Môn mở cho lớp SV: filter theo majorsSupported match program SV
-        if (!course) return false
-        const supported = course.majorsSupported ?? []
-        if (!supported.length) return true // Áp dụng chung
-        
-        // Dùng helper để kiểm tra xem môn này có ĐẶC THÙ bị giới hạn cho lớp khác không
-        if (!isCourseAllowedForClass(course.name, studentClass || '')) {
-          return false
-        }
-        
-        if (studentProgram && supported.includes(studentProgram)) return true
-        
-        // Fallback: deduce major from class name (e.g. D23CQCN01-N -> CN -> Công nghệ thông tin)
-        if (studentClass) {
-          const majorMap: Record<string, string> = {
-            'CN': 'Công nghệ thông tin',
-            'AT': 'An toàn thông tin',
-            'VT': 'Viễn thông',
-            'DT': 'Điện tử',
-            'PT': 'Đa phương tiện',
-            'QT': 'Quản trị kinh doanh',
-            'KT': 'Kế toán',
-            'MR': 'Marketing',
-          }
-          
-          for (const [code, name] of Object.entries(majorMap)) {
-            // Môn hỗ trợ ngành này VÀ lớp sinh viên thuộc ngành này
-            if (studentClass.includes(code) && supported.includes(name)) {
-              return true
-            }
-          }
-        }
-        
-        return false
-      }
-
-      case 'curriculum-plan': {
-        // Chỉ hiện môn có suggestedSemester = kỳ hiện tại trong CTĐT
-        if (!course) return false
-        return course.suggestedSemester === studentSemesterIndex
-      }
-
-      case 'curriculum-remaining': {
-        // Môn chưa học: suggestedSemester ≤ kỳ hiện tại, chưa passed, chưa đang học
-        if (!course) return false
-        if (!course.suggestedSemester || course.suggestedSemester > studentSemesterIndex) return false
-        if (passedCourseCodes.has(course.code)) return false
-        if (ongoingCourseCodes.has(course.code)) return false
-        return true
-      }
-
-      case 'retake': {
-        // Môn đã rớt: courseCode nằm trong danh sách failed VÀ chưa passed lại
-        if (!course) return false
-        return failedCourseCodes.has(course.code) && !passedCourseCodes.has(course.code)
-      }
-
-      case 'by-faculty': {
-        // Lọc theo khoa
-        return courseMatchesManagingFaculty(course, facultyFilter)
-      }
-
-      case 'by-class': {
-        // Lọc theo lớp sinh viên: dùng department mapping (trùng logic backend)
-        if (!course) return false
-        if (!classFilter) return true
-
-        // 1. Suy department từ class code (D23CQCN01-N → CN → INT)
-        const classDept = getDepartmentFromClass(classFilter)
-        if (!classDept) return true // Không parse được → hiện tất cả
-
-        // 2. Chỉ hiện courses thuộc department tương ứng
-        if (course.department !== classDept) return false
-
-        // 3. Lọc theo suggestedSemester phù hợp với năm nhập học của lớp
-        //    để mỗi lớp chỉ thấy ~5 môn
-        const admissionYear = getAdmissionYearFromClass(classFilter)
-        if (admissionYear && course.suggestedSemester) {
-          // Tính semester index hiện tại của lớp đó
-          // Hỗ trợ cả "sem-2026-1" và "2025-2026-2" format
-          const semId = snapshot.settings.currentSemesterId
-          const yearMatch = semId.match(/(\d{4})/)
-          const termMatch = semId.match(/(\d)$/)
-          const academicFirstYear = yearMatch ? Number(yearMatch[1]) : new Date().getFullYear()
-          const term = termMatch ? Number(termMatch[1]) : 1
-          const classSemesterIndex = Math.max(1, (academicFirstYear - admissionYear) * 2 + term)
-          // Chỉ hiện các môn đúng kỳ trong CTĐT
-          if (course.suggestedSemester !== classSemesterIndex) return false
-        }
-
-        // 4. Lọc thêm theo specific class config (nếu có)
-        if (!isCourseAllowedForClass(course.name, classFilter)) {
-          return false
-        }
-
-        return true
-      }
-
-      default:
-        return true
-    }
-  })
-
-  // Apply search query as secondary filter for modes that show sub-filter search
-  const filteredRows = (filterMode === 'by-faculty' || filterMode === 'by-class') && query
-    ? sectionRows.filter((item) => {
-        const keyword = query.toLowerCase()
-        return (
-          item.section.courseCode.toLowerCase().includes(keyword) ||
-          item.section.sectionCode.toLowerCase().includes(keyword) ||
-          item.course?.name.toLowerCase().includes(keyword)
-        )
-      })
-    : sectionRows
-
-  const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE)
-  const startIndex = (currentPage - 1) * PAGE_SIZE
-  const paginatedRows = filteredRows.slice(startIndex, startIndex + PAGE_SIZE)
-
-  const currentCredits = student ? getStudentCurrentCredits(snapshot, student.id) : 0
-  const currentEnrollments = student ? getStudentSemesterEnrollments(snapshot, student.id) : []
-
-  async function handleCheck(sectionId: string) {
-    const section = snapshot.sections.find((item) => item.id === sectionId)
-    const targetCourse = snapshot.courses.find((item) => item.code === section?.courseCode)
-    if (!section || !targetCourse || !student) {
-      return
-    }
-
-    const result = evaluateEnrollmentEligibility({
-      nowIso: snapshot.settings.simulationNow,
-      student,
-      section,
-      targetCourse,
-      courses: snapshot.courses,
-      sections: snapshot.sections,
-      enrollments: snapshot.enrollments,
-      settings: snapshot.settings,
+  // Load departments + courses on mount
+  useEffect(() => {
+    fetchDepartments().then(setDepartmentOptions)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoadingCourses(true)
+    fetchCourseList().then((list) => {
+      setCourseOptions(list)
+      setLoadingCourses(false)
     })
-    setSelectedSectionId(sectionId)
-    setCheckResult(result)
+  }, [])
 
-    setCheckingId(sectionId)
-    const apiResult = await enrollmentService.checkEligibility(student.id, sectionId)
-    setCheckingId('')
-    setCheckResult(apiResult)
+  // ── Fetch course options from backend ────────────────────────────
+  const fetchCourseOptions = useCallback(
+    async (overrides?: { mode?: FilterMode; kw?: string; dept?: string; page?: number }) => {
+      if (!studentId) return
+
+      // Cancel previous request
+      if (abortRef.current) {
+        abortRef.current.abort()
+      }
+      const controller = new AbortController()
+      abortRef.current = controller
+
+      const mode = overrides?.mode ?? filterMode
+      const kw = overrides?.kw ?? keyword
+      const dept = overrides?.dept ?? departmentFilter
+      const page = overrides?.page ?? currentPage
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const query: import('@/types/registration').CourseOptionsQuery = {
+          mode,
+          studentId,
+          page,
+          limit: PAGE_SIZE,
+        }
+        if (kw) {
+          query.keyword = kw
+          if (mode === 'BY_SECTION') query.sectionCode = kw
+        }
+        // BY_COURSE: use selectedCourse or keyword
+        if (mode === 'BY_COURSE') {
+          const courseVal = selectedCourse || kw
+          if (courseVal) query.courseCode = courseVal
+          if (kw) query.keyword = kw
+        }
+        if (mode === 'BY_DEPARTMENT' && dept) {
+          query.department = dept
+        }
+
+        const result = await registrationService.getCourseOptions(
+          query,
+          controller.signal,
+        )
+        setData(result)
+      } catch (err: unknown) {
+        // Ignore aborted requests
+        if (err?.name === 'AbortError') return
+        const message =
+          err instanceof Error ? err.message : 'Không thể tải dữ liệu. Vui lòng thử lại.'
+        setError(message)
+        setData(null)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [studentId, filterMode, keyword, departmentFilter, selectedCourse, currentPage],
+  )
+
+  // ── Trigger API on mode/filter changes ───────────────────────────
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchCourseOptions()
+    // Cleanup: abort on unmount
+    return () => {
+      if (abortRef.current) abortRef.current.abort()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterMode, departmentFilter, selectedCourse, currentPage])
+
+  // ── Debounced keyword search ─────────────────────────────────────
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      fetchCourseOptions({ kw: keyword })
+    }, DEBOUNCE_MS)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyword])
+
+  // ── Handler: mode change ─────────────────────────────────────────
+  const handleModeChange = (nextMode: FilterMode) => {
+    setFilterMode(nextMode)
+    setKeyword('')
+    setDepartmentFilter('')
+    setSelectedCourse('')
+    setCurrentPage(1)
+    setData(null)
   }
 
-  // ── Filter mode description badge ────────────────────────────
+  // ── Handler: after successful registration → refetch ─────────────
+  const handleRegisterSuccess = () => {
+    fetchCourseOptions()
+  }
+
+  // ── Derived stats ────────────────────────────────────────────────
+  const currentCredits = student ? getStudentCurrentCredits(snapshot, student.id) : 0
+  const currentEnrollments = student ? getStudentSemesterEnrollments(snapshot, student.id) : []
+  const registeredCount = currentEnrollments.filter((e) => e.enrollment.status === 'REGISTERED').length
+  const waitlistedCount = currentEnrollments.filter((e) => e.enrollment.status === 'WAITLISTED').length
+
+  // ── Pagination ───────────────────────────────────────────────────
+  const totalCourses = data?.pagination?.total ?? data?.courses?.length ?? 0
+  const totalPages = data?.pagination?.totalPages ?? Math.ceil(totalCourses / PAGE_SIZE)
+  const totalSections = data?.courses?.reduce((sum, c) => sum + c.sections.length, 0) ?? 0
+
+  // ── Filter info badge ────────────────────────────────────────────
   function getFilterDescription(): string {
     switch (filterMode) {
-      case 'all': {
-        if (query) {
-          return `Tìm kiếm: "${query}"`
-        }
-        return `${courseOptions.length} môn gợi ý (CTĐT, học lại, học trước)`
-      }
-      case 'class-open':
-        return `Lớp ${studentClass} • ${studentProgram || 'Áp dụng chung'}`
-      case 'curriculum-plan':
-        return `Kỳ ${studentSemesterIndex} trong CTĐT • Các môn đúng tiến độ`
-      case 'curriculum-remaining':
-        return `Kỳ 1–${studentSemesterIndex} • Các môn còn thiếu chưa hoàn thành`
-      case 'retake':
-        return `${failedCourseCodes.size} môn cần học lại`
-      case 'by-faculty':
-        return facultyFilter || 'Chọn khoa để lọc'
-      case 'by-class':
-        return classFilter || 'Chọn lớp để lọc'
+      case 'BY_COURSE':
+        return keyword ? `Tìm kiếm: "${keyword}"` : 'Nhập mã hoặc tên môn để tìm'
+      case 'OPEN_FOR_STUDENT_CLASS':
+        return `Lớp ${data?.student?.studentClass?.code ?? student?.studentClass ?? 'N/A'}`
+      case 'CURRICULUM_PLAN':
+        return `Các môn đúng tiến độ CTĐT`
+      case 'NOT_STUDIED_IN_CURRICULUM':
+        return 'Các môn còn thiếu chưa hoàn thành'
+      case 'FAILED_COURSES':
+        return `${totalCourses} môn cần học lại`
+      case 'BY_DEPARTMENT':
+        return departmentFilter || 'Chọn khoa để lọc'
+      case 'BY_SECTION':
+        return keyword ? `Tìm: "${keyword}"` : 'Nhập mã lớp học phần để tìm'
       default:
         return ''
     }
   }
 
-  if (!student || !auditActor) {
-    return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
+  // ── Render ───────────────────────────────────────────────────────
+  if (!student) {
+    return (
+      <EmptyState
+        title="Không tìm thấy sinh viên"
+        description="Vui lòng đăng nhập lại."
+      />
+    )
   }
 
   return (
@@ -527,210 +464,246 @@ export function RegisterPage() {
         subtitle="Kiểm tra điều kiện theo từng quy tắc học vụ, theo dõi credit meter và gửi đăng ký theo section."
       />
 
+      {/* Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <CreditMeter current={currentCredits} min={snapshot.settings.minCredits} max={snapshot.settings.semesterType === 'SUMMER' ? snapshot.settings.maxCreditsSummer : snapshot.settings.maxCreditsMain} />
-        <StatCard label="Lớp đang học" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'REGISTERED').length)} hint="Số lớp đã đăng ký thành công" />
-        <StatCard label="Đang ở danh sách chờ" value={String(currentEnrollments.filter((item) => item.enrollment.status === 'WAITLISTED').length)} hint="Số lớp chờ xếp chỗ do hết slot" />
-        <StatCard label="Cảnh báo" value={checkResult?.checks.filter((item) => !item.passed).length ? String(checkResult.checks.filter((item) => !item.passed).length) : '0'} hint="Các điều kiện học vụ chưa đạt" />
+        <CreditMeter
+          current={currentCredits}
+          min={snapshot.settings.minCredits}
+          max={
+            snapshot.settings.semesterType === 'SUMMER'
+              ? snapshot.settings.maxCreditsSummer
+              : snapshot.settings.maxCreditsMain
+          }
+        />
+        <StatCard
+          label="Lớp đang học"
+          value={String(registeredCount)}
+          hint="Số lớp đã đăng ký thành công"
+        />
+        <StatCard
+          label="Đang ở danh sách chờ"
+          value={String(waitlistedCount)}
+          hint="Số lớp chờ xếp chỗ do hết slot"
+        />
+        <StatCard
+          label="Tổng lớp hiển thị"
+          value={String(totalSections)}
+          hint="Lớp học phần phù hợp với bộ lọc"
+        />
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[0.62fr_0.38fr]">
-        <Card title="Bảng chọn lớp học phần" description="Chọn chế độ lọc, kiểm tra điều kiện và đăng ký trực tiếp">
-          {/* ── Primary filter dropdown ──────────────────────── */}
-          <div className="mb-5 grid gap-3 xl:grid-cols-2">
+      {/* Main content */}
+      <Card
+        title="Bảng chọn lớp học phần"
+        description="Chọn chế độ lọc, kiểm tra điều kiện và đăng ký trực tiếp"
+      >
+        {/* ── Filters ──────────────────────────────────────── */}
+        <div className="mb-6 grid items-end gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {/* Row 1: Student class + Filter mode */}
+          
+          <div className="flex h-[58px] min-w-0 items-center gap-3 rounded-full border border-[var(--color-hairline)] bg-white px-4 py-2 shadow-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-[var(--color-muted)]">Lớp sinh viên</p>
+              <p className="truncate text-sm font-semibold text-[var(--color-ink)]">
+                {student.studentClass ?? 'Chưa xác định'}
+              </p>
+            </div>
+          </div>
+
+          <div className="min-w-0">
             <Select
               label="Chế độ lọc"
               value={filterMode}
-              onChange={(event) => {
-                setFilterMode(event.target.value as FilterMode)
-                setCurrentPage(1)
-                setQuery('')
-                setFacultyFilter('')
-                setClassFilter('')
-              }}
-              options={filterModeOptions.map((o) => ({ label: o.label, value: o.value }))}
+              onChange={(e) => handleModeChange(e.target.value as FilterMode)}
+              options={FILTER_MODE_OPTIONS.map((o) => ({ label: o.label, value: o.value }))}
             />
+          </div>
 
-            {/* ── Conditional sub-filters ──────────────────── */}
-            {filterMode === 'all' && (
-              <>
-                <SearchInput
-                  label="Tìm theo mã / tên môn học (Gợi ý)"
-                  placeholder="Nhập từ khóa hoặc chọn từ danh sách..."
-                  value={query}
-                  onChange={(event) => { setQuery(event.target.value); setCurrentPage(1) }}
-                  list="course-suggestions"
+          {/* Mode-specific sub-filters */}
+          {filterMode === 'BY_COURSE' && (
+            <>
+              <div className="min-w-0">
+                <Select
+                  label="Chọn môn học"
+                  value={selectedCourse}
+                  onChange={(e) => {
+                    setSelectedCourse(e.target.value)
+                    setKeyword('')
+                    setCurrentPage(1)
+                  }}
+                  options={[
+                    { label: loadingCourses ? 'Đang tải danh sách...' : '-- Tất cả môn học --', value: '' },
+                    ...courseOptions,
+                  ]}
                 />
-                <datalist id="course-suggestions">
-                  {courseOptions.map((c) => (
-                    <option key={c.code} value={`${c.code} - ${c.name}`}>
-                      {c.tag}
-                    </option>
-                  ))}
-                </datalist>
-              </>
-            )}
+              </div>
+              <div className="min-w-0">
+                <SearchInput
+                  label="Hoặc tìm theo mã / tên môn"
+                  placeholder="Nhập mã hoặc tên môn học..."
+                  value={keyword}
+                  onChange={(e) => {
+                    setKeyword(e.target.value)
+                    setSelectedCourse('')
+                    setCurrentPage(1)
+                  }}
+                />
+              </div>
+            </>
+          )}
 
-            {filterMode === 'by-faculty' && (
+          {filterMode === 'BY_SECTION' && (
+            <div className="min-w-0">
+              <SearchInput
+                label="Tìm theo mã lớp học phần"
+                placeholder="Nhập mã lớp học phần..."
+                value={keyword}
+                onChange={(e) => {
+                  setKeyword(e.target.value)
+                  setCurrentPage(1)
+                }}
+              />
+            </div>
+          )}
+
+          {filterMode === 'BY_DEPARTMENT' && (
+            <div className="min-w-0">
               <Select
                 label="Chọn khoa quản lý"
-                value={facultyFilter}
-                onChange={(event) => { setFacultyFilter(event.target.value); setCurrentPage(1) }}
+                value={departmentFilter}
+                onChange={(e) => {
+                  setDepartmentFilter(e.target.value)
+                  setCurrentPage(1)
+                }}
                 options={[
                   { label: 'Tất cả khoa', value: '' },
-                  ...facultyOptions.map((f) => ({ label: f, value: f })),
+                  ...departmentOptions,
                 ]}
               />
-            )}
-
-            {filterMode === 'by-class' && (
-              <Select
-                label="Chọn lớp sinh viên"
-                value={classFilter}
-                onChange={(event) => { setClassFilter(event.target.value); setCurrentPage(1) }}
-                options={[
-                  { label: 'Tất cả lớp', value: '' },
-                  ...classOptions.map((c) => ({ label: c, value: c })),
-                ]}
-              />
-            )}
-          </div>
-
-          {/* ── Filter info badge ──────────────────────────── */}
-          <div className="mb-5 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-sm font-medium text-cyan-700">
-              {filterModeOptions.find((o) => o.value === filterMode)?.label}
-            </span>
-            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-muted)]">
-              {getFilterDescription()}
-            </span>
-            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
-              {filteredRows.length} lớp
-            </span>
-          </div>
-
-          {filteredRows.length ? (
-            <div className="space-y-4">
-              {paginatedRows.map((row) => (
-                <div
-                  key={row.section.id}
-                  className="rounded-3xl border border-[var(--color-hairline)] bg-white p-5 transition-shadow duration-200 hover:shadow-[var(--shadow-airbnb)]"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-base font-semibold text-[var(--color-ink)]">{row.course?.name ?? row.section.sectionCode}</p>
-                      <p className="mt-0.5 text-sm text-[var(--color-muted)]">{row.section.sectionCode} • {row.section.courseCode} • {row.course?.credits ?? '--'} tín chỉ</p>
-                      <p className="text-sm text-[var(--color-muted)]">
-                        <span className="font-medium text-[var(--color-ink)]">{row.course?.courseType ?? 'Danh mục chung'}</span>
-                        <span className="mx-2 text-[var(--color-hairline)]">|</span>
-                        Ngành áp dụng: {row.course?.majorsSupported?.length ? row.course.majorsSupported.join(', ') : 'Áp dụng chung'}
-                        <span className="mx-2 text-[var(--color-hairline)]">|</span>
-                        Khoa: {row.course?.faculty ?? row.course?.department ?? 'Đang cập nhật khoa'}
-                      </p>
-                      {row.course?.suggestedSemester && (
-                        <p className="text-xs text-[var(--color-muted)]">
-                          CTĐT kỳ {row.course.suggestedSemester}
-                          {failedCourseCodes.has(row.course.code) && !passedCourseCodes.has(row.course.code) && (
-                            <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700">Cần học lại</span>
-                          )}
-                        </p>
-                      )}
-                    </div>
-                    <StatusBadge kind="section" status={row.derivedStatus} />
-                  </div>
-                  <div className="mt-3">
-                    <SectionCapacityBar capacity={row.section.capacity} registeredCount={row.section.registeredCount} waitlistCount={row.section.waitlistCount} />
-                  </div>
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <Button
-                      loading={checkingId === row.section.id}
-                      variant="secondary"
-                      onClick={() => void handleCheck(row.section.id)}
-                      type="button"
-                    >
-                      Kiểm tra điều kiện
-                    </Button>
-                    <Button
-                      loading={loadingId === row.section.id}
-                      onClick={async () => {
-                        setLoadingId(row.section.id)
-                        const result = await enrollmentService.registerSection(student.id, row.section.id, auditActor)
-                        setLoadingId('')
-                        pushToast({
-                          tone: result.success ? 'success' : 'error',
-                          title: result.success ? 'Đã cập nhật đăng ký' : 'Đăng ký thất bại',
-                          description: result.message,
-                        })
-                        void handleCheck(row.section.id)
-                      }}
-                      type="button"
-                    >
-                      Đăng ký ngay
-                    </Button>
-                    <Link to={`/student/open-sections/${row.section.id}`}>
-                      <Button type="button" variant="ghost">
-                        Xem chi tiết
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-
-              {totalPages > 1 && (
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[var(--color-hairline)] bg-[var(--color-surface)] px-6 py-4 shadow-sm">
-                  <p className="text-sm text-[var(--color-muted)]">
-                    Hiển thị <span className="font-medium text-[var(--color-ink)]">{startIndex + 1}</span> đến <span className="font-medium text-[var(--color-ink)]">{Math.min(startIndex + PAGE_SIZE, filteredRows.length)}</span> trong tổng số <span className="font-medium text-[var(--color-ink)]">{filteredRows.length}</span> lớp
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="px-3 text-sm font-medium text-[var(--color-ink)]">
-                      {currentPage} / {totalPages}
-                    </span>
-                    <Button
-                      variant="secondary"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
-          ) : (
-            <EmptyState
-              title="Không có lớp học phần phù hợp"
-              description={
-                filterMode === 'retake'
-                  ? 'Không có môn nào cần học lại. Chúc mừng bạn!'
-                  : filterMode === 'curriculum-remaining'
-                    ? 'Bạn đã hoàn thành tất cả các môn theo CTĐT đến kỳ hiện tại.'
-                    : 'Hãy đổi chế độ lọc hoặc từ khóa tìm kiếm để xem danh sách khác.'
-              }
-            />
           )}
-        </Card>
+        </div>
 
-        {checkResult && selectedSectionId ? (
-          <RuleCheckPanel
-            title={`Kết quả kiểm tra điều kiện lớp: ${snapshot.sections.find((item) => item.id === selectedSectionId)?.sectionCode ?? 'Đang tải'}`}
-            checks={checkResult.checks}
-            summary={checkResult.message}
-          />
-        ) : (
-          <EmptyState title="Chưa chọn section" description="Hãy bấm Kiểm tra điều kiện ở bảng bên trái để xem kết quả chi tiết." />
+        {/* ── Filter info badge ────────────────────────────── */}
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-sm font-medium text-cyan-700">
+            {FILTER_MODE_OPTIONS.find((o) => o.value === filterMode)?.label}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-muted)]">
+            {getFilterDescription()}
+          </span>
+          {data && (
+            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
+              {totalCourses} môn • {totalSections} lớp
+            </span>
+          )}
+          {data?.term && (
+            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700">
+              {data.term.name}
+            </span>
+          )}
+        </div>
+
+        {/* ── Loading state ─────────────────────────────────── */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-cyan-200 border-t-cyan-600" />
+            <span className="ml-3 text-sm text-[var(--color-muted)]">Đang tải dữ liệu...</span>
+          </div>
         )}
-      </div>
+
+        {/* ── Error state ──────────────────────────────────── */}
+        {error && !loading && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+            <AlertTriangle className="mx-auto h-8 w-8 text-red-400" />
+            <p className="mt-2 text-sm font-medium text-red-700">{error}</p>
+            <Button
+              variant="secondary"
+              className="mt-3"
+              onClick={() => fetchCourseOptions()}
+              type="button"
+            >
+              Thử lại
+            </Button>
+          </div>
+        )}
+
+        {/* ── Data display ────────────────────────────────── */}
+        {!loading && !error && data && data.courses.length > 0 && (
+          <div className="space-y-4">
+            {data.courses.map((course) => (
+              <CourseCard
+                key={course.courseId}
+                course={course}
+                studentId={studentId}
+                onRegisterSuccess={handleRegisterSuccess}
+              />
+            ))}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[var(--color-hairline)] bg-[var(--color-surface)] px-6 py-4 shadow-sm">
+                <p className="text-sm text-[var(--color-muted)]">
+                  Trang{' '}
+                  <span className="font-medium text-[var(--color-ink)]">{currentPage}</span> /{' '}
+                  <span className="font-medium text-[var(--color-ink)]">{totalPages}</span>
+                  {' '}• Tổng {totalCourses} môn
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="px-3 text-sm font-medium text-[var(--color-ink)]">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="!flex !h-10 !w-10 items-center justify-center rounded-full !p-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Empty state ──────────────────────────────────── */}
+        {!loading && !error && data && data.courses.length === 0 && (
+          <EmptyState
+            title="Không có lớp học phần phù hợp"
+            description={
+              filterMode === 'FAILED_COURSES'
+                ? 'Không có môn nào cần học lại. Chúc mừng bạn!'
+                : filterMode === 'NOT_STUDIED_IN_CURRICULUM'
+                  ? 'Bạn đã hoàn thành tất cả các môn theo CTĐT đến kỳ hiện tại.'
+                  : 'Hãy đổi chế độ lọc hoặc từ khóa tìm kiếm để xem danh sách khác.'
+            }
+          />
+        )}
+
+        {/* ── Initial state (no data yet) ──────────────────── */}
+        {!loading && !error && !data && (
+          <EmptyState
+            title="Chọn chế độ lọc"
+            description="Hãy chọn chế độ lọc ở trên để xem danh sách lớp học phần."
+          />
+        )}
+      </Card>
     </div>
   )
 }
 
-export default RegisterPage;
+export default RegisterPage

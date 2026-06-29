@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { courseService } from '@/services/course.api'
 import { enrollmentService } from '@/services/enrollment.api'
@@ -235,10 +236,43 @@ export function ScheduleRoomsPage() {
         {selected ? (
           <Card title="Cập nhật phòng và lịch" description="Thay đổi sẽ được kiểm tra xung đột phòng học trong học kỳ hiện tại">
             <div className="grid gap-4 md:grid-cols-2">
-              <Input label="Phòng học" value={room} onChange={(event) => setRoom(event.target.value)} list="schedule-room-options" />
-              <Input label="Thứ" value={weekday} onChange={(event) => setWeekday(event.target.value)} />
-              <Input label="Tiết bắt đầu" value={startPeriod} onChange={(event) => setStartPeriod(event.target.value)} />
-              <Input label="Số tiết" value={periodCount} onChange={(event) => setPeriodCount(event.target.value)} />
+              <Select
+                label="Phòng học"
+                value={room}
+                onChange={(event) => setRoom(event.target.value)}
+                options={[
+                  { label: 'Chọn phòng học', value: '' },
+                  ...roomOptions.map((r) => ({ label: r, value: r })),
+                ]}
+              />
+              <Select
+                label="Thứ"
+                value={weekday}
+                onChange={(event) => setWeekday(event.target.value)}
+                options={[
+                  { label: 'Chọn thứ', value: '' },
+                  ...[2, 3, 4, 5, 6, 7, 8].map((d) => ({
+                    label: d === 8 ? 'Chủ nhật' : `Thứ ${d}`,
+                    value: String(d),
+                  })),
+                ]}
+              />
+              <Input
+                label="Tiết bắt đầu"
+                type="number"
+                min={1}
+                max={15}
+                value={startPeriod}
+                onChange={(event) => setStartPeriod(event.target.value)}
+              />
+              <Input
+                label="Số tiết"
+                type="number"
+                min={1}
+                max={15}
+                value={periodCount}
+                onChange={(event) => setPeriodCount(event.target.value)}
+              />
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <Button
@@ -256,15 +290,11 @@ export function ScheduleRoomsPage() {
                   }
                 }}
                 type="button"
+                disabled={!room || !weekday || !startPeriod || !periodCount}
               >
                 Lưu thay đổi
               </Button>
             </div>
-            <datalist id="schedule-room-options">
-              {roomOptions.map((roomOption) => (
-                <option key={roomOption} value={roomOption} />
-              ))}
-            </datalist>
           </Card>
         ) : (
           <EmptyState title="Chưa có section nào" description="Không có dữ liệu để cập nhật room schedule." />

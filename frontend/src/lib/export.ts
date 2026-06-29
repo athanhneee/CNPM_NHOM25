@@ -18,7 +18,7 @@ export function exportRowsToCsv(
   }
 
   const headers = Object.keys(firstRow)
-  const csvContent = [
+  const csvContent = '\uFEFF' + [
     headers.join(','),
     ...rows.map((row) =>
       headers

@@ -81,6 +81,7 @@ export interface RuleCourse {
 export interface RuleSection {
   id: string
   courseCode: string
+  sectionCode?: string
   semesterId: string
   weekday: number
   startPeriod: number
@@ -100,6 +101,7 @@ export interface RuleSection {
 
 export interface ScheduleConflictDetail {
   conflictSectionId: string
+  conflictSectionCode: string
   weekday: number
   candidatePeriods: string
   conflictPeriods: string
@@ -342,6 +344,7 @@ export function checkScheduleConflict(
       overlappingWeeks.sort((a, b) => a - b)
       return {
         conflictSectionId: section.id,
+        conflictSectionCode: section.sectionCode ?? section.courseCode,
         weekday: conflictWeekday,
         candidatePeriods: conflictCandidatePeriods,
         conflictPeriods,
@@ -887,7 +890,7 @@ export function evaluateEnrollmentEligibility(
         const weeksInfo = conflict.overlappingWeeks.length > 0
           ? `, tuần ${conflict.overlappingWeeks.join(', ')}`
           : ''
-        failMessage = `Trùng lịch với lớp ${conflict.conflictSectionId}: ${dayName}, tiết ${conflict.conflictPeriods}${weeksInfo}.`
+        failMessage = `Trùng lịch với lớp ${conflict.conflictSectionCode}: ${dayName}, tiết ${conflict.conflictPeriods}${weeksInfo}.`
       }
       return buildRuleResult(
         'schedule-conflict',

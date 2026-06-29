@@ -141,6 +141,7 @@ function WishStatusBadge({ status }: { status: WishRequest['status'] }) {
   )
 }
 
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatWishDate(value: string) {
   return new Intl.DateTimeFormat('vi-VN', {
@@ -196,7 +197,7 @@ export function CreateSectionPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium">Mã môn học</label>
               <select
-                className="flex h-9 w-full rounded-3xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-full border border-transparent bg-slate-50 hover:bg-slate-100 px-4 py-1 text-sm transition-colors focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:border-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
                 value={form.courseCode}
                 onChange={(e) => {
                   const courseCode = e.target.value;
@@ -232,7 +233,7 @@ export function CreateSectionPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium">Giảng viên</label>
               <select
-                className="flex h-9 w-full rounded-3xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-full border border-transparent bg-slate-50 hover:bg-slate-100 px-4 py-1 text-sm transition-colors focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:border-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
                 value={form.lecturerId}
                 onChange={(e) => setForm((value) => ({ ...value, lecturerId: e.target.value }))}
               >
@@ -255,7 +256,7 @@ export function CreateSectionPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium">Phòng học</label>
               <select
-                className="flex h-9 w-full rounded-3xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-full border border-transparent bg-slate-50 hover:bg-slate-100 px-4 py-1 text-sm transition-colors focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:border-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
                 value={form.room}
                 onChange={(e) => setForm((value) => ({ ...value, room: e.target.value }))}
               >
@@ -268,7 +269,7 @@ export function CreateSectionPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium">Thứ</label>
               <select
-                className="flex h-9 w-full rounded-3xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-full border border-transparent bg-slate-50 hover:bg-slate-100 px-4 py-1 text-sm transition-colors focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:border-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
                 value={form.weekday}
                 onChange={(e) => setForm((value) => ({ ...value, weekday: e.target.value }))}
               >

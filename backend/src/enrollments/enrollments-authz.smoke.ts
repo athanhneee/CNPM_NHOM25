@@ -15,7 +15,11 @@ const mockService = {
   remove: async () => ({}),
 }
 
-const controller = new EnrollmentsController(mockService as any)
+const mockCourseOptionsService = {
+  getCourseOptions: async () => ({ mode: 'BY_COURSE', student: {}, term: {}, courses: [] }),
+}
+
+const controller = new EnrollmentsController(mockService as any, mockCourseOptionsService as any)
 
 function user(userId: string, roles: Array<'STUDENT' | 'LECTURER' | 'ACADEMIC_OFFICE' | 'ADMIN'>) {
   return {

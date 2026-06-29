@@ -210,7 +210,7 @@ export function WeekSchedulePage() {
             variant="secondary"
             onClick={() => setSelectedWeek(w => clamp(w - 1, 1, maxWeek))}
             disabled={selectedWeek <= 1}
-            className="!flex h-10 w-16 items-center justify-center rounded-full bg-white border border-slate-300 shadow-sm"
+            className="!flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white !px-0 !py-0 shadow-sm ring-0"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -221,7 +221,7 @@ export function WeekSchedulePage() {
             variant="secondary"
             onClick={() => setSelectedWeek(w => clamp(w + 1, 1, maxWeek))}
             disabled={selectedWeek >= maxWeek}
-            className="!flex h-10 w-16 items-center justify-center rounded-full bg-white border border-slate-300 shadow-sm"
+            className="!flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white !px-0 !py-0 shadow-sm ring-0"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

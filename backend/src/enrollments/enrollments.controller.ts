@@ -22,12 +22,14 @@ import { RolesGuard } from '../common/guards/roles.guard'
 import { RequestUser } from '../common/types/request-user'
 import { buildActor } from '../common/utils/audit'
 import { CheckEligibilityDto, CreateEnrollmentDto, RegisterEnrollmentDto } from './dto/create-enrollment.dto'
+import { CourseOptionsQueryDto } from './dto/course-options.dto'
 import { EnrollmentQueryDto } from './dto/enrollment-query.dto'
 import {
   EnrollmentReasonDto,
   OverrideEnrollmentDto,
   TransferEnrollmentDto,
 } from './dto/update-enrollment.dto'
+import { CourseOptionsService } from './course-options.service'
 import { EnrollmentsService } from './enrollments.service'
 
 @ApiTags('enrollments')
@@ -35,7 +37,10 @@ import { EnrollmentsService } from './enrollments.service'
 @UseGuards(JwtAuthGuard)
 @Controller('enrollments')
 export class EnrollmentsController {
-  constructor(private enrollmentsService: EnrollmentsService) {}
+  constructor(
+    private enrollmentsService: EnrollmentsService,
+    private courseOptionsService: CourseOptionsService,
+  ) {}
 
   private isPrivileged(user: RequestUser) {
     return user.roles.some((role) => ['ADMIN', 'ACADEMIC_OFFICE'].includes(role))
@@ -59,6 +64,12 @@ export class EnrollmentsController {
     }
 
     throw new ForbiddenException('You do not have permission to access enrollments.')
+  }
+
+  @ApiOperation({ summary: 'Lấy danh sách môn học và lớp học phần theo chế độ lọc (Bảng chọn lớp học phần)' })
+  @Get('registration/course-options')
+  async getCourseOptions(@CurrentUser() user: RequestUser, @Query() query: CourseOptionsQueryDto) {
+    return this.courseOptionsService.getCourseOptions(user.userId, user.roles, query)
   }
 
   @ApiOperation({ summary: 'Danh sach dang ky hoc phan' })
