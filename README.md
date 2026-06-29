@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/evidence/logo-ptit.png" alt="PTIT Logo" width="80" />
+  <img src="frontend/public/Logo-Hoc-Vien-Cong-Nghe-Buu-Chinh-Vien-Thong-PTIT.webp" alt="PTIT Logo" width="120" />
 </p>
 
 <h1 align="center">📚 Tín Chỉ Campus — Course Registration System</h1>
@@ -9,12 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/athanhneee/CNPM_NHOM25/actions/workflows/ci.yml">
-    <img src="https://github.com/athanhneee/CNPM_NHOM25/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status" />
-  </a>
-  <a href="https://github.com/athanhneee/CNPM_NHOM25/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
-  </a>
+  <a href="https://github.com/athanhneee/CNPM_NHOM25/actions/workflows/ci.yml"><img src="https://github.com/athanhneee/CNPM_NHOM25/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status" /></a>
+  <a href="https://github.com/athanhneee/CNPM_NHOM25/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
   <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js" />
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
 </p>
