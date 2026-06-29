@@ -18,7 +18,6 @@ export interface SystemSettings {
   registrationEnd: string
   adjustmentStart: string
   adjustmentEnd: string
-  withdrawalDeadline: string
   maxCreditsMain: number
   maxCreditsSummer: number
   minCredits: number
