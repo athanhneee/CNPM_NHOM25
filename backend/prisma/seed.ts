@@ -42,13 +42,40 @@ const FACULTY_TO_MAJOR: Record<string, string[]> = {
   "Công nghệ Thông tin": ["Công nghệ thông tin"],
   "An toàn Thông tin": ["An toàn thông tin"],
   "Viễn thông": ["Viễn thông"],
+  "Điện tử": ["Điện tử"],
+  "Đa phương tiện": ["Đa phương tiện"],
+  "Quản trị Kinh doanh": ["Quản trị kinh doanh"],
+  "Marketing": ["Marketing"],
+  "Kế toán": ["Kế toán"],
 };
 
 const FACULTY_TO_MAJOR_CODE: Record<string, string[]> = {
   "Công nghệ Thông tin": ["7480201"],
   "An toàn Thông tin": ["7480202"],
   "Viễn thông": ["7480106"],
+  "Điện tử": ["7510301"],
+  "Đa phương tiện": ["7320104"],
+  "Quản trị Kinh doanh": ["7340101"],
+  "Marketing": ["7340115"],
+  "Kế toán": ["7340301"],
 };
+
+/**
+ * Tự động tính suggestedSemester từ mã môn (XX101 → 1, XX106 → 3, XX111 → 5, XX116 → 7).
+ * 20 môn / ngành → 5 môn / semester × 4 semesters (1, 3, 5, 7).
+ */
+function computeSuggestedSemester(courseCode: string, fallback: number): number {
+  const numMatch = courseCode.match(/(\d+)$/);
+  if (!numMatch) return fallback;
+  const num = Number(numMatch[1]);
+  // num 101-105 → index 0 → semester 1
+  // num 106-110 → index 1 → semester 3
+  // num 111-115 → index 2 → semester 5
+  // num 116-120 → index 3 → semester 7
+  const indexInDept = (num % 100) - 1; // 0-19
+  const semesterSlot = Math.floor(indexInDept / 5); // 0, 1, 2, 3
+  return semesterSlot * 2 + 1; // 1, 3, 5, 7
+}
 
 function buildCourse(c: CourseInput) {
   return {
@@ -67,7 +94,7 @@ function buildCourse(c: CourseInput) {
     faculty: c.faculty,
     courseType: c.courseType,
     academicBlock: COURSE_TYPE_TO_BLOCK[c.courseType] ?? "electiveCourses",
-    suggestedSemester: c.suggestedSemester,
+    suggestedSemester: computeSuggestedSemester(c.code, c.suggestedSemester),
     majorsSupported: FACULTY_TO_MAJOR[c.faculty] ?? [c.faculty],
     majorCodesSupported: FACULTY_TO_MAJOR_CODE[c.faculty] ?? [],
   };

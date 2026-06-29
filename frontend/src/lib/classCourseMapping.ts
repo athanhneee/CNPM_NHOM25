@@ -70,11 +70,43 @@ export const SPECIFIC_CLASS_COURSES: Record<string, Record<string, string[]>> = 
  * Lấy mã ngành từ tên lớp (vd: D23CQCN01-N -> CN)
  */
 export function getMajorCodeFromClass(studentClass: string): string | null {
-  const match = studentClass.match(/[A-Z]{2,4}(?=\d{2})/)
+  const upper = studentClass.toUpperCase()
+  const match = upper.match(/(?:CQ|DC)([A-Z]{2})/)
+  return match ? match[1] : null
+}
+
+/**
+ * Mapping mã ngành 2 chữ cái → department code (trùng với backend).
+ */
+export const MAJOR_CODE_TO_DEPARTMENT: Record<string, string> = {
+  CN: 'INT',
+  AT: 'SEC',
+  VT: 'TEL',
+  DT: 'ELE',
+  PT: 'MUL',
+  QT: 'BUS',
+  MR: 'MKT',
+  KT: 'ACC',
+}
+
+/**
+ * Suy department code từ class code.
+ * Ví dụ: D23CQCN01-N → CN → INT
+ */
+export function getDepartmentFromClass(studentClass: string): string | null {
+  const majorCode = getMajorCodeFromClass(studentClass)
+  if (!majorCode) return null
+  return MAJOR_CODE_TO_DEPARTMENT[majorCode] ?? null
+}
+
+/**
+ * Lấy năm nhập học từ class code.
+ * Ví dụ: D23CQCN01-N → 2023
+ */
+export function getAdmissionYearFromClass(studentClass: string): number | null {
+  const match = studentClass.match(/\d{2}/)
   if (!match) return null
-  const code = match[0]
-  // Bỏ tiền tố CQ, DC, vv nếu có. Giả định mã ngành là 2 ký tự cuối (CN, AT, VT, DT, PT, QT, KT, MR)
-  return code.slice(-2)
+  return 2000 + Number(match[0])
 }
 
 /**
@@ -102,3 +134,4 @@ export function isCourseAllowedForClass(courseName: string, studentClass: string
   // Nếu không có cấu hình đặc thù cho ngành này, đây là môn CHUNG của khoa (đã được lọc qua major codes trước đó)
   return true
 }
+

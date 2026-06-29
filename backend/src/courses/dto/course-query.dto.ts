@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger'
 import { CourseCategory, CourseStatus } from '@prisma/client'
-import { IsEnum, IsOptional, IsString } from 'class-validator'
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator'
+import { Transform } from 'class-transformer'
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto'
 
 export class CourseQueryDto extends PaginationQueryDto {
@@ -33,4 +34,15 @@ export class CourseQueryDto extends PaginationQueryDto {
   @IsString()
   @IsOptional()
   semesterId?: string
+
+  @ApiPropertyOptional({ description: 'Mã lớp sinh viên (vd: D23CQCN01-N) để lọc môn theo ngành' })
+  @IsString()
+  @IsOptional()
+  studentClass?: string
+
+  @ApiPropertyOptional({ description: 'Học kỳ đề xuất trong CTĐT (1-8)' })
+  @Transform(({ value }) => value !== undefined ? Number(value) : undefined)
+  @IsInt()
+  @IsOptional()
+  suggestedSemester?: number
 }

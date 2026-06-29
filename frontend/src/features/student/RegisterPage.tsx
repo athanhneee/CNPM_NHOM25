@@ -21,7 +21,7 @@ import { enrollmentService } from '@/services/enrollment.api'
 import { courseService } from '@/services/course.api'
 import { sectionService } from '@/services/section.api'
 import { wishService } from '@/services/wish.api'
-import { isCourseAllowedForClass } from '@/lib/classCourseMapping'
+import { isCourseAllowedForClass, getDepartmentFromClass, getAdmissionYearFromClass } from '@/lib/classCourseMapping'
 import { authApiService } from '@/services/auth.api'
 import type { Course } from '@/types/course'
 import type { User, AcademicRecords } from '@/types/user'
@@ -405,13 +405,39 @@ export function RegisterPage() {
       }
 
       case 'by-class': {
-        // Lọc theo lớp sinh viên
+        // Lọc theo lớp sinh viên: dùng department mapping (trùng logic backend)
         if (!course) return false
-        if (!isCourseAllowedForClass(course.name, classFilter || '')) {
+        if (!classFilter) return true
+
+        // 1. Suy department từ class code (D23CQCN01-N → CN → INT)
+        const classDept = getDepartmentFromClass(classFilter)
+        if (!classDept) return true // Không parse được → hiện tất cả
+
+        // 2. Chỉ hiện courses thuộc department tương ứng
+        if (course.department !== classDept) return false
+
+        // 3. Lọc theo suggestedSemester phù hợp với năm nhập học của lớp
+        //    để mỗi lớp chỉ thấy ~5 môn
+        const admissionYear = getAdmissionYearFromClass(classFilter)
+        if (admissionYear && course.suggestedSemester) {
+          // Tính semester index hiện tại của lớp đó
+          // Hỗ trợ cả "sem-2026-1" và "2025-2026-2" format
+          const semId = snapshot.settings.currentSemesterId
+          const yearMatch = semId.match(/(\d{4})/)
+          const termMatch = semId.match(/(\d)$/)
+          const academicFirstYear = yearMatch ? Number(yearMatch[1]) : new Date().getFullYear()
+          const term = termMatch ? Number(termMatch[1]) : 1
+          const classSemesterIndex = Math.max(1, (academicFirstYear - admissionYear) * 2 + term)
+          // Chỉ hiện các môn đúng kỳ trong CTĐT
+          if (course.suggestedSemester !== classSemesterIndex) return false
+        }
+
+        // 4. Lọc thêm theo specific class config (nếu có)
+        if (!isCourseAllowedForClass(course.name, classFilter)) {
           return false
         }
-        const scope = inferRegistrationClassScope(classFilter, snapshot.users)
-        return courseMatchesRegistrationClass(course, scope)
+
+        return true
       }
 
       default:

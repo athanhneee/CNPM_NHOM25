@@ -115,12 +115,64 @@ export class CoursesService {
     }
   }
 
+  /**
+   * Map mã ngành 2 chữ cái (suy từ class code) → mã khoa (department code trong DB).
+   * Ví dụ: D23CQCN01-N → CN → INT
+   */
+  private static readonly MAJOR_CODE_TO_DEPARTMENT: Record<string, string> = {
+    CN: 'INT',
+    AT: 'SEC',
+    VT: 'TEL',
+    DT: 'ELE',
+    PT: 'MUL',
+    QT: 'BUS',
+    MR: 'MKT',
+    KT: 'ACC',
+  }
+
+  /**
+   * Parse mã ngành 2 chữ cái từ tên lớp sinh viên.
+   * Hỗ trợ cả format CQXX (Chính Quy) và DCXX (Đào tạo từ xa).
+   * Ví dụ:
+   * - D23CQCN01-N → CN
+   * - N23DCCN001 → CN
+   * - D24CQKT01-N → KT
+   */
+  private parseMajorCodeFromClass(classCode: string): string | null {
+    const upper = classCode.toUpperCase()
+    // Pattern: after CQ or DC, get the next 2 letters
+    const match = upper.match(/(?:CQ|DC)([A-Z]{2})/)
+    return match ? match[1] : null
+  }
+
+  /**
+   * Suy department code từ class code.
+   * Trả về null nếu không nhận diện được ngành.
+   */
+  private resolveDepartmentFromClass(classCode: string): string | null {
+    const majorCode = this.parseMajorCodeFromClass(classCode)
+    if (!majorCode) return null
+    return CoursesService.MAJOR_CODE_TO_DEPARTMENT[majorCode] ?? null
+  }
+
   async findAll(query: CourseQueryDto = {}) {
     const where: Prisma.CourseWhereInput = {}
-    if (query.department) where.department = query.department
+
+    // ── Lọc theo lớp sinh viên (studentClass) ──
+    // Parse classCode → majorCode → department → lọc courses thuộc department đó
+    if (query.studentClass) {
+      const department = this.resolveDepartmentFromClass(query.studentClass)
+      if (department) {
+        where.department = department
+      }
+    } else if (query.department) {
+      where.department = query.department
+    }
+
     if (query.campus) where.campus = query.campus
     if (query.status) where.status = query.status as CourseStatus
     if (query.category) where.category = query.category
+    if (query.suggestedSemester !== undefined) where.suggestedSemester = query.suggestedSemester
     if (query.semesterId) {
       where.sections = {
         some: {

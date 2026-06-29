@@ -189,7 +189,7 @@ export function AssignLecturerPage() {
               {paginatedSections.map((row) => {
                 const isSelected = selectedSectionId === row.section.id
                 return (
-                  <div key={row.section.id} className={`cursor-pointer rounded-lg border p-4 transition-colors ${isSelected ? 'border-teal-200 bg-teal-50 ring-1 ring-teal-200' : 'hover:border-slate-300'} `} onClick={() => {
+                  <div key={row.section.id} className={`cursor-pointer rounded-3xl border p-4 transition-colors ${isSelected ? 'border-teal-200 bg-teal-50 ring-1 ring-teal-200' : 'hover:border-slate-300'} `} onClick={() => {
                     setSelectedSectionId(row.section.id)
                     setNextLecturerId(row.section.lecturerId ?? '')
                     setNextGuestLecturer(row.section.guestLecturer ?? '')
