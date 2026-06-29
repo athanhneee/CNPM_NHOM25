@@ -285,20 +285,21 @@ export function CreateSectionPage() {
             <Button
               onClick={async () => {
                 try {
-                  const payload: any = {
+                  const payload: Parameters<typeof sectionService.createSection>[0] = {
                     sectionCode: form.sectionCode,
                     courseCode: form.courseCode,
                     semesterId: snapshot.settings.currentSemesterId,
                     group: form.group,
                     subGroup: form.subGroup,
                     room: form.room,
-                    weekday: Number(form.weekday),
+                    weekday: Number(form.weekday) as 2|3|4|5|6|7|8,
                     startPeriod: Number(form.startPeriod),
                     periodCount: Number(form.periodCount),
                     weeks: form.weeks,
                     capacity: Number(form.capacity),
                     allowWaitlist: false,
                     campus: 'HCM',
+                    status: 'OPEN',
                   }
                   
                   if (isGuestLecturer) {

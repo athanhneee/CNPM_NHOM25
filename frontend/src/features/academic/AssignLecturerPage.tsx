@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
@@ -167,16 +167,12 @@ export function AssignLecturerPage() {
   const totalPages = Math.max(1, Math.ceil(sections.length / itemsPerPage))
   const paginatedSections = sections.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  const selectedSection = useMemo(() => {
-    const sectionData = sections.find((s) => s.section.id === selectedSectionId)
-    if (!sectionData) return null
-    return {
-      section: sectionData.section,
-      course: sectionData.course,
-      lecturer: snapshot.users.find((u) => u.id === sectionData.section.lecturerId),
-    }
-  }, [sections, selectedSectionId, snapshot.users])
-
+  const sectionData = sections.find((s) => s.section.id === selectedSectionId)
+  const selectedSection = sectionData ? {
+    section: sectionData.section,
+    course: sectionData.course,
+    lecturer: snapshot.users.find((u) => u.id === sectionData.section.lecturerId),
+  } : null
   const lecturers = snapshot.users.filter((user) => user.roles.includes('LECTURER'))
   const isGuestLecturer = nextLecturerId === 'OTHER'
 
@@ -288,7 +284,7 @@ export function AssignLecturerPage() {
                   }
                   
                   try {
-                    const payload: any = {}
+                    const payload: { lecturerId?: string; guestLecturer?: string } = {}
                     if (isGuestLecturer) {
                       payload.guestLecturer = nextGuestLecturer
                     } else {
