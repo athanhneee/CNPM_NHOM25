@@ -20,13 +20,11 @@
 </p>
 
 <p align="center">
-  <a href="https://cnpm-nhom25.vercel.app"><strong>🌐 Live Demo</strong></a> ·
+  <a href="https://ptitdangkyhocphan.vercel.app/"><strong>🌐 Live Demo</strong></a> ·
   <a href="#-getting-started"><strong>Getting Started</strong></a> ·
   <a href="#-api-documentation"><strong>API Docs</strong></a> ·
   <a href="#-documentation"><strong>Docs</strong></a>
 </p>
-
-> **Note:** Replace `https://cnpm-nhom25.vercel.app` above with your actual Vercel deployment URL.
 
 ---
 
@@ -261,17 +259,15 @@ npm run build                   # Production build
 
 ---
 
-## 👥 Team — CNPM Nhóm 25
+## 👥 Team — CNPM Nhóm 25 - Nửa Vũng Tàu
 
-| # | Student ID | Full Name | Role |
-|---|-----------|-----------|------|
-| 1 | N23DCCN001 | Member 1 | Frontend Developer |
-| 2 | N23DCCN002 | Member 2 | Backend Developer |
-| 3 | N23DCCN003 | Member 3 | Full-stack Developer |
-| 4 | N23DCCN004 | Member 4 | Tester & Documentation |
-| 5 | N23DCCN005 | Member 5 | Project Manager |
+**Giảng viên hướng dẫn:** Nguyễn Thị Bích Nguyên
 
-> 📌 **Update the team table above with actual member information.**
+| Họ và tên | MSSV | Lớp SV | Vai trò |
+|-----------|------|--------|---------|
+| Trần Đăng Khôi | N23DCAT036 | D23CQAT01-N | Trưởng nhóm |
+| Nguyễn Trần Ngọc Duyên | N23DCCN016 | D23CQCN01-N | Thành viên |
+| Đặng Minh Thành | N23DCCN056 | D23CQCN01-N | Thành viên |
 
 ---
 
