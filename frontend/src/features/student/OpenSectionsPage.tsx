@@ -78,7 +78,6 @@ function normalizeLookupValue(value?: string | null) {
   return (value ?? '').trim().toUpperCase()
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function inferRegistrationClassScope(classCode: string, users: User[]): RegistrationClassScope {
   const normalizedClassCode = normalizeLookupValue(classCode)
 
@@ -121,7 +120,6 @@ function inferRegistrationClassScope(classCode: string, users: User[]): Registra
   return { classCode }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function courseMatchesRegistrationClass(course: Course | null, scope: RegistrationClassScope) {
   if (!course || !scope.program) {
     return true

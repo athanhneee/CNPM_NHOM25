@@ -212,15 +212,11 @@ export function RegisterPage() {
   const [checkingId, setCheckingId] = useState('')
   const [loadingId, setLoadingId] = useState('')
 
-  if (!currentUser || !actor) {
-    return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
-  }
-
   const student = currentUser
   const auditActor = actor
-  const studentClass = student.studentClass ?? ''
-  const studentProgram = student.majorName ?? student.program ?? ''
-  const studentSemesterIndex = getStudentSemesterIndex(student.code, snapshot.settings.currentSemesterId)
+  const studentClass = student?.studentClass ?? ''
+  const studentProgram = student?.majorName ?? student?.program ?? ''
+  const studentSemesterIndex = student ? getStudentSemesterIndex(student.code, snapshot.settings.currentSemesterId) : 0
 
   // Derived data for curriculum-based filters
   const passedCourseCodes = useMemo(() => {
@@ -255,7 +251,6 @@ export function RegisterPage() {
   }, [academicRecords])
 
   // Sub-filter options
-  const classScope = inferRegistrationClassScope(classFilter || studentClass, snapshot.users)
   const classOptions = useMemo(() => {
     const set = new Set(studentClasses)
     // Always include current student's class
@@ -437,13 +432,13 @@ export function RegisterPage() {
   const startIndex = (currentPage - 1) * PAGE_SIZE
   const paginatedRows = filteredRows.slice(startIndex, startIndex + PAGE_SIZE)
 
-  const currentCredits = getStudentCurrentCredits(snapshot, student.id)
-  const currentEnrollments = getStudentSemesterEnrollments(snapshot, student.id)
+  const currentCredits = student ? getStudentCurrentCredits(snapshot, student.id) : 0
+  const currentEnrollments = student ? getStudentSemesterEnrollments(snapshot, student.id) : []
 
   async function handleCheck(sectionId: string) {
     const section = snapshot.sections.find((item) => item.id === sectionId)
     const targetCourse = snapshot.courses.find((item) => item.code === section?.courseCode)
-    if (!section || !targetCourse) {
+    if (!section || !targetCourse || !student) {
       return
     }
 
@@ -490,6 +485,10 @@ export function RegisterPage() {
       default:
         return ''
     }
+  }
+
+  if (!student || !auditActor) {
+    return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
   return (
