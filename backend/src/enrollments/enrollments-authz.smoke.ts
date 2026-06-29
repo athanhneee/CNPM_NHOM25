@@ -9,7 +9,6 @@ const mockService = {
   registerSection: async () => ({ success: true }),
   create: async () => ({}),
   cancelEnrollment: async () => ({}),
-  withdrawEnrollment: async () => ({}),
   processWaitlist: async () => [],
   overrideEnrollment: async () => ({}),
   update: async () => ({}),

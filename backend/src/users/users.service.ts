@@ -30,6 +30,29 @@ export class UsersService {
     }
   }
 
+  async getStudentClasses(): Promise<string[]> {
+    const students = await this.prisma.user.findMany({
+      where: {
+        studentClass: { not: null },
+        status: 'ACTIVE',
+      },
+      select: { studentClass: true, roles: true },
+      orderBy: { studentClass: 'asc' },
+    })
+    const seen = new Set<string>()
+    return students
+      .filter((s) => {
+        const roles = Array.isArray(s.roles) ? s.roles : []
+        return roles.includes('STUDENT')
+      })
+      .map((s) => s.studentClass)
+      .filter((v): v is string => {
+        if (!v || seen.has(v)) return false
+        seen.add(v)
+        return true
+      })
+  }
+
   async findAll(query: UserQueryDto = {}) {
     const { page, limit, skip, take } = parsePagination(query)
     const where: Prisma.UserWhereInput = {}

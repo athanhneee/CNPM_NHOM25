@@ -136,7 +136,6 @@ export function AuditLogsPage() {
     'LOGIN_FAILURE': 'Đăng nhập thất bại',
     'ENROLLMENT_REGISTER': 'Đăng ký học phần',
     'ENROLLMENT_CANCEL': 'Hủy đăng ký',
-    'ENROLLMENT_WITHDRAW': 'Rút học phần',
     'ENROLLMENT_WAITLIST': 'Vào danh sách chờ',
     'WAITLIST_PROMOTED': 'Duyệt danh sách chờ',
     'WAITLIST_OVERRIDE': 'Can thiệp danh sách chờ',

@@ -64,13 +64,7 @@ export const navigationGroups: NavigationGroup[] = [
         roles: ['STUDENT'],
         description: 'Hủy học phần trong cửa sổ điều chỉnh.',
       },
-      {
-        label: 'Rút học phần',
-        to: '/student/withdraw',
-        icon: 'circle-slash-2',
-        roles: ['STUDENT'],
-        description: 'Rút học phần trước hạn rút học phần.',
-      },
+
       {
         label: 'TKB tuần',
         to: '/student/schedule/week',

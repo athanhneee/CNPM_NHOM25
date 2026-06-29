@@ -12,7 +12,6 @@ export type RegistrationErrorCode =
   | 'REG_ERR_SECTION_NOT_OPEN'
   | 'REG_ERR_OUTSIDE_REGISTRATION_WINDOW'
   | 'REG_ERR_OUTSIDE_ADJUSTMENT_WINDOW'
-  | 'REG_ERR_OUTSIDE_WITHDRAWAL_WINDOW'
   | 'REG_ERR_FULL_CAPACITY'
   | 'REG_ERR_PREREQUISITE_NOT_MET'
   | 'REG_ERR_PRESTUDY_NOT_MET'
@@ -25,7 +24,6 @@ export type RegistrationErrorCode =
   | 'REG_ERR_MAX_RETAKE_EXCEEDED'
   | 'REG_ERR_CLASS_NOT_FOUND'
   | 'REG_ERR_STUDENT_NOT_FOUND'
-  | 'REG_ERR_CANNOT_WITHDRAW'
   | 'REG_ERR_CLASS_CANCELLED'
   | 'REG_ERR_ACCOUNT_INACTIVE'
   | 'REG_ERR_MAX_CLASS_PER_DAY'
@@ -40,7 +38,6 @@ export const REGISTRATION_ERROR_MESSAGES: Record<RegistrationErrorCode, string> 
   REG_ERR_SECTION_NOT_OPEN: 'Lớp học phần chưa mở đăng ký.',
   REG_ERR_OUTSIDE_REGISTRATION_WINDOW: 'Ngoài thời gian đăng ký của học kỳ này.',
   REG_ERR_OUTSIDE_ADJUSTMENT_WINDOW: 'Ngoài thời gian điều chỉnh đăng ký.',
-  REG_ERR_OUTSIDE_WITHDRAWAL_WINDOW: 'Đã quá hạn rút học phần.',
   REG_ERR_FULL_CAPACITY: 'Lớp học phần đã đủ sĩ số tối đa.',
   REG_ERR_PREREQUISITE_NOT_MET: 'Sinh viên chưa đạt môn tiên quyết.',
   REG_ERR_PRESTUDY_NOT_MET: 'Sinh viên chưa học môn học trước.',
@@ -52,7 +49,6 @@ export const REGISTRATION_ERROR_MESSAGES: Record<RegistrationErrorCode, string> 
   REG_ERR_ALREADY_PASSED: 'Sinh viên đã tích lũy môn học này và hệ thống không cho phép học cải thiện.',
   REG_ERR_MAX_RETAKE_EXCEEDED: 'Sinh viên đã vượt quá số lần học lại cho phép của môn học này.',
   REG_ERR_STUDENT_NOT_FOUND: 'Không tìm thấy thông tin sinh viên.',
-  REG_ERR_CANNOT_WITHDRAW: 'Không thể hủy hoặc rút học phần này.',
   REG_ERR_CLASS_CANCELLED: 'Lớp học phần đã bị hủy.',
   REG_ERR_ACCOUNT_INACTIVE: 'Tài khoản hiện không thể thực hiện thao tác này.',
   REG_ERR_MAX_CLASS_PER_DAY: 'Vượt quá số lớp tối đa trong một ngày.',
@@ -1036,26 +1032,4 @@ export function canCancelEnrollment(nowIso: string, settings: RuleSettings, phas
   return isWithinRange(nowIso, settings.adjustmentStart, settings.adjustmentEnd)
 }
 
-export function canWithdrawEnrollment(nowIso: string, settings: RuleSettings, phases?: RuleRegistrationPhase[], student?: RuleUser) {
-  if (phases && phases.length > 0) {
-    const simulationNow = new Date(nowIso).getTime()
-    const activePhase = phases.find(p => {
-      const start = new Date(p.startDate).getTime()
-      const end = new Date(p.endDate).getTime()
-      if (simulationNow < start || simulationNow > end) return false
-      if (p.allowedCohorts && Array.isArray(p.allowedCohorts) && p.allowedCohorts.length > 0) {
-        if (!student?.cohort || !p.allowedCohorts.includes(student.cohort)) return false
-      }
-      if (p.allowedMajors && Array.isArray(p.allowedMajors) && p.allowedMajors.length > 0) {
-        if (!student?.majorCode || !p.allowedMajors.includes(student.majorCode)) return false
-      }
-      return true
-    })
-    // If phase system is fully in use, this controls it.
-    if (activePhase) return activePhase.allowWithdraw
-  }
-  return (
-    new Date(nowIso).getTime() > new Date(settings.adjustmentEnd).getTime() &&
-    new Date(nowIso).getTime() <= new Date(settings.withdrawalDeadline).getTime()
-  )
-}
+

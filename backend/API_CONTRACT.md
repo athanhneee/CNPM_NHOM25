@@ -68,7 +68,6 @@ Authorization: Bearer <accessToken>
 | POST | `/enrollments/eligibility` | Authenticated | Body `{ studentId?, sectionId }`; returns rule checks. |
 | POST | `/enrollments/register` | Authenticated | Body `{ studentId?, sectionId }`; transactionally registers or waitlists. Rejects duplicate active registration/waitlist for another section with the same `courseCode` in the current semester using `REG_ERR_ALREADY_REGISTERED_COURSE`. |
 | POST | `/enrollments/:id/cancel` | Owner, ADMIN, ACADEMIC_OFFICE | Body `{ reason? }`; requires adjustment window. |
-| POST | `/enrollments/:id/withdraw` | Owner, ADMIN, ACADEMIC_OFFICE | Body `{ reason }`; requires withdrawal window. |
 | POST | `/enrollments/sections/:sectionId/process-waitlist` | ADMIN, ACADEMIC_OFFICE | Promotes eligible waitlisted students. |
 | POST | `/enrollments/override` | ADMIN, ACADEMIC_OFFICE | Body `{ studentId, sectionId, reason }`. |
 

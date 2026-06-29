@@ -8,4 +8,3 @@ export { RegisterPage, default as RegisterPageDefault } from './RegisterPage';
 export { SemesterSchedulePage, default as SemesterSchedulePageDefault } from './SemesterSchedulePage';
 export { WeekSchedulePage, default as WeekSchedulePageDefault } from './WeekSchedulePage';
 export { WishPage, default as WishPageDefault } from './WishPage';
-export { WithdrawPage, default as WithdrawPageDefault } from './WithdrawPage';

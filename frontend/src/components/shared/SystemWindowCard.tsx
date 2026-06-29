@@ -11,9 +11,6 @@ function resolveWindowState(settings: SystemSettings) {
   return {
     registrationOpen: isWithinRange(now, settings.registrationStart, settings.registrationEnd),
     adjustmentOpen: isWithinRange(now, settings.adjustmentStart, settings.adjustmentEnd),
-    withdrawalOpen:
-      new Date(now).getTime() > new Date(settings.adjustmentEnd).getTime() &&
-      new Date(now).getTime() <= new Date(settings.withdrawalDeadline).getTime(),
   }
 }
 
@@ -22,7 +19,6 @@ export function SystemWindowCard({ settings }: SystemWindowCardProps) {
   const rows = [
     { label: 'Đăng ký học phần', value: state.registrationOpen ? 'Đang mở' : 'Đã đóng' },
     { label: 'Điều chỉnh đăng ký', value: state.adjustmentOpen ? 'Đang mở' : 'Đã đóng' },
-    { label: 'Rút học phần', value: state.withdrawalOpen ? 'Còn hiệu lực' : 'Chưa mở hoặc đã hết hạn' },
     { label: 'Bảo trì hệ thống', value: settings.maintenanceMode ? 'Đang bật' : 'Đang tắt' },
   ]
 

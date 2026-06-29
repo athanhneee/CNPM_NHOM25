@@ -179,7 +179,7 @@ export function SettingsPage() {
             <Input label="Thời gian đóng đăng ký" type="datetime-local" value={form.registrationEnd} onChange={(event) => updateForm((value) => ({ ...value, registrationEnd: event.target.value }))} />
             <Input label="Bắt đầu điều chỉnh" type="datetime-local" value={form.adjustmentStart} onChange={(event) => updateForm((value) => ({ ...value, adjustmentStart: event.target.value }))} />
             <Input label="Kết thúc điều chỉnh" type="datetime-local" value={form.adjustmentEnd} onChange={(event) => updateForm((value) => ({ ...value, adjustmentEnd: event.target.value }))} />
-            <Input label="Hạn rút học phần" type="datetime-local" value={form.withdrawalDeadline} onChange={(event) => updateForm((value) => ({ ...value, withdrawalDeadline: event.target.value }))} />
+
             <Input label="Tín chỉ tối đa học kỳ chính" type="number" min={0} value={String(form.maxCreditsMain)} onChange={(event) => updateForm((value) => ({ ...value, maxCreditsMain: Number(event.target.value) }))} />
             <Input label="Tín chỉ tối đa học kỳ hè" type="number" min={0} value={String(form.maxCreditsSummer)} onChange={(event) => updateForm((value) => ({ ...value, maxCreditsSummer: Number(event.target.value) }))} />
             <Input label="Tín chỉ tối thiểu" type="number" min={0} value={String(form.minCredits)} onChange={(event) => updateForm((value) => ({ ...value, minCredits: Number(event.target.value) }))} />

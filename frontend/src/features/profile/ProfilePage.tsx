@@ -680,16 +680,34 @@ export function ProfilePage() {
       ],
     ]
 
+  const computedCredits = (() => {
+    if (academicRecords?.completedCourses?.length) {
+      return academicRecords.completedCourses
+        .filter((c) => c.passed)
+        .reduce((sum, c) => sum + c.credits, 0)
+    }
+    return user.completedCredits
+  })()
+
+  const computedYearLevel = (() => {
+    if (user.yearLevel) return user.yearLevel
+    if (user.code) {
+      const twoDigit = user.code.slice(1, 3)
+      const admissionYear = Number(`20${twoDigit}`)
+      if (!Number.isNaN(admissionYear) && admissionYear >= 2000 && admissionYear <= 2099) {
+        const diff = Math.max(1, new Date().getFullYear() - admissionYear)
+        return `Năm ${Math.min(diff + 1, 5)}`
+      }
+    }
+    return undefined
+  })()
+
   const overviewItems = (() => {
     if (isStudent) {
       return [
         { label: 'GPA tích lũy', value: user.gpa ? user.gpa.toFixed(2) : 'Chưa cập nhật' },
-        {
-          label: 'Điểm danh',
-          value: user.attendanceRate !== undefined ? `${Math.round(user.attendanceRate * 100)}%` : 'Chưa cập nhật',
-        },
-        { label: 'Tín chỉ hoàn thành', value: formatProfileValue(user.completedCredits) },
-        { label: 'Năm học hiện tại', value: formatProfileValue(user.yearLevel) },
+        { label: 'Tín chỉ hoàn thành', value: computedCredits != null ? String(computedCredits) : 'Chưa cập nhật' },
+        { label: 'Năm học hiện tại', value: computedYearLevel ?? 'Chưa cập nhật' },
       ]
     }
 
@@ -942,7 +960,7 @@ export function ProfilePage() {
           </Card>
 
           <Card title={isStudent ? 'Tổng quan học tập' : 'Tổng quan công việc'}>
-            <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-2">
+            <div className={`grid gap-3 ${isStudent ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-2'}`}>
               {overviewItems.map((item, index) => (
                 <div
                   key={item.label}

@@ -267,5 +267,9 @@ export const authApiService = {
   async getAcademicRecords() {
     return apiRequest<AcademicRecords>('/users/me/academic-records')
   },
+
+  async getStudentClasses(): Promise<string[]> {
+    return apiRequest<string[]>('/users/student-classes')
+  },
 }
 

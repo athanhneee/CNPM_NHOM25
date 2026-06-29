@@ -8,7 +8,6 @@ const segmentLabels: Record<string, string> = {
   'open-sections': 'Học phần mở',
   register: 'Đăng ký học phần',
   cancel: 'Hủy đăng ký',
-  withdraw: 'Rút học phần',
   schedule: 'Lịch học',
   week: 'Dạng tuần',
   semester: 'Dạng học kỳ',

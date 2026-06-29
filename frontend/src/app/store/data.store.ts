@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import {
   canCancelEnrollment,
-  canWithdrawEnrollment,
   evaluateEnrollmentEligibility,
 } from '@/lib/business-rules'
 import {
@@ -278,7 +277,6 @@ export interface DataStoreState {
     errorCode?: string | undefined
   }
   cancelEnrollment: (enrollmentId: string, actor: AuditActor, reason?: string) => Enrollment
-  withdrawEnrollment: (enrollmentId: string, actor: AuditActor, reason: string) => Enrollment
   processWaitlist: (sectionId: string, actor: AuditActor) => Enrollment[]
   overrideEnrollment: (
     studentId: string,
@@ -871,53 +869,6 @@ export const useDataStore = create<DataStoreState>((set, get) => ({
     persistSnapshot({ enrollments: nextEnrollments, sections: nextSections })
     set({ enrollments: nextEnrollments, sections: nextSections })
     get().appendAuditLog('CANCEL_ENROLLMENT', enrollmentId, 'SUCCESS', 'Hủy đăng ký học phần thành công.', actor)
-    return updatedEnrollment
-  },
-  withdrawEnrollment: (enrollmentId, actor, reason) => {
-    const snapshot = get()
-    const currentEnrollment = snapshot.enrollments.find((enrollment) => enrollment.id === enrollmentId)
-    if (!currentEnrollment) {
-      throw new Error('Không tìm thấy thông tin đăng ký.')
-    }
-
-    if (!canWithdrawEnrollment(snapshot.settings.simulationNow, snapshot.settings)) {
-      throw new Error('Ngoài cửa sổ rút học phần.')
-    }
-
-    if (currentEnrollment.status !== 'REGISTERED') {
-      throw new Error('Chỉ có thể rút học phần đã đăng ký.')
-    }
-
-    const updatedEnrollment = {
-      ...currentEnrollment,
-      status: 'DROPPED' as const,
-      updatedAt: snapshot.settings.simulationNow,
-      droppedAt: snapshot.settings.simulationNow,
-      timeline: [
-        ...currentEnrollment.timeline,
-        buildTimelineItem(actor.actorId, actor.actorRole, 'DROPPED', reason, snapshot.settings.simulationNow),
-      ],
-    }
-
-    const nextEnrollments = snapshot.enrollments.map((enrollment) =>
-      enrollment.id === enrollmentId ? updatedEnrollment : enrollment,
-    )
-    const nextSections = snapshot.sections.map((section) => {
-      if (section.id !== currentEnrollment.sectionId) {
-        return section
-      }
-
-      const registeredCount = Math.max(section.registeredCount - 1, 0)
-      return {
-        ...section,
-        registeredCount,
-        status: getSectionStatus({ ...section, registeredCount }),
-      } satisfies Section
-    })
-
-    persistSnapshot({ enrollments: nextEnrollments, sections: nextSections })
-    set({ enrollments: nextEnrollments, sections: nextSections })
-    get().appendAuditLog('WITHDRAW_ENROLLMENT', enrollmentId, 'SUCCESS', 'Rút học phần thành công.', actor, { reason })
     return updatedEnrollment
   },
   processWaitlist: (sectionId, actor) => {

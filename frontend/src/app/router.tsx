@@ -33,7 +33,7 @@ const RegisteredPage = lazy(() => import('@/features/student/RegisteredPage'))
 const SemesterSchedulePage = lazy(() => import('@/features/student/SemesterSchedulePage'))
 const WeekSchedulePage = lazy(() => import('@/features/student/WeekSchedulePage'))
 const WishPage = lazy(() => import('@/features/student/WishPage'))
-const WithdrawPage = lazy(() => import('@/features/student/WithdrawPage'))
+
 const ForbiddenPage = lazy(() => import('@/features/system/ForbiddenPage'))
 const NotFoundPage = lazy(() => import('@/features/system/NotFoundPage'))
 
@@ -63,7 +63,7 @@ export function AppRouter() {
             <Route path="student/open-sections/:sectionId" element={<CourseDetailPage />} />
             <Route path="student/register" element={<RegisterPage />} />
             <Route path="student/cancel" element={<CancelRegistrationPage />} />
-            <Route path="student/withdraw" element={<WithdrawPage />} />
+
             <Route path="student/schedule/week" element={<WeekSchedulePage />} />
             <Route path="student/schedule/semester" element={<SemesterSchedulePage />} />
             <Route path="student/history" element={<HistoryPage />} />

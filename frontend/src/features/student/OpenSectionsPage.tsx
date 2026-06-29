@@ -22,6 +22,7 @@ import { sectionService } from '@/services/section.api'
 import { wishService } from '@/services/wish.api'
 import type { Course } from '@/types/course'
 import type { User } from '@/types/user'
+import { isCourseAllowedForClass } from '@/lib/classCourseMapping'
 
 function useStudentContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
@@ -161,6 +162,15 @@ export function OpenSectionsPage() {
   const auditActor = actor
 
   const rows = getCurrentSemesterSections(snapshot).filter((item) => {
+    // 1. Strict validation: Must belong to student's major and class
+    const scope = inferRegistrationClassScope(student.studentClass || '', snapshot.users)
+    if (!courseMatchesRegistrationClass(item.course, scope)) {
+      return false
+    }
+    if (!isCourseAllowedForClass(item.course?.name || '', student.studentClass || '')) {
+      return false
+    }
+
     const keyword = query.toLowerCase()
     const matchesQuery =
       !query ||

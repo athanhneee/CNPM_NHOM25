@@ -26,18 +26,6 @@ export class EnrollmentReasonDto {
   force?: boolean
 }
 
-export class WithdrawEnrollmentDto {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  reason: string
-
-  @ApiPropertyOptional()
-  @IsBoolean()
-  @IsOptional()
-  force?: boolean
-}
-
 export class OverrideEnrollmentDto {
   @ApiProperty()
   @IsString()

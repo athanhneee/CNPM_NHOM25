@@ -150,29 +150,6 @@ async function main() {
     )
     assert.equal(cancelled.enrollment.status, EnrollmentStatus.CANCELLED)
 
-    await prisma.systemSetting.update({
-      where: { id: 1 },
-      data: { simulationNow: new Date('2026-04-10T08:00:00.000Z') },
-    })
-    const withdrawStudent = await createStudent(usersService, 'N23DCCN904')
-    const withdrawRegistration = await enrollmentsService.registerSection(
-      withdrawStudent.id,
-      'sec-cse101-1',
-      { actorId: withdrawStudent.id, actorRole: UserRole.STUDENT },
-    )
-    const withdrawEnrollment = getEnrollment(withdrawRegistration)
-    assert.equal(withdrawEnrollment.status, EnrollmentStatus.REGISTERED)
-
-    await prisma.systemSetting.update({
-      where: { id: 1 },
-      data: { simulationNow: new Date('2026-05-15T08:00:00.000Z') },
-    })
-    const withdrawn = await enrollmentsService.withdrawEnrollment(
-      withdrawEnrollment.id,
-      { actorId: withdrawStudent.id, actorRole: UserRole.STUDENT },
-      'Integration withdraw',
-    )
-    assert.equal(withdrawn.enrollment.status, EnrollmentStatus.DROPPED)
 
     console.log('Integration smoke tests passed.')
   } finally {

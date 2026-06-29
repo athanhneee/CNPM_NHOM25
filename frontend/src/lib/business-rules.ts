@@ -356,11 +356,3 @@ export function evaluateEnrollmentEligibility(
 export function canCancelEnrollment(nowIso: string, settings: SystemSettings) {
   return isWithinRange(nowIso, settings.adjustmentStart, settings.adjustmentEnd)
 }
-
-export function canWithdrawEnrollment(nowIso: string, settings: SystemSettings) {
-  return (
-    new Date(nowIso).getTime() > new Date(settings.adjustmentEnd).getTime() &&
-    new Date(nowIso).getTime() <= new Date(settings.withdrawalDeadline).getTime()
-  )
-}
-

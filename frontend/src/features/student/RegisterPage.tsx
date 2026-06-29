@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
@@ -21,13 +21,34 @@ import { enrollmentService } from '@/services/enrollment.api'
 import { courseService } from '@/services/course.api'
 import { sectionService } from '@/services/section.api'
 import { wishService } from '@/services/wish.api'
+import { isCourseAllowedForClass } from '@/lib/classCourseMapping'
+import { authApiService } from '@/services/auth.api'
 import type { Course } from '@/types/course'
-import type { User } from '@/types/user'
+import type { User, AcademicRecords } from '@/types/user'
+
+// ────────────────────────────────────────────────────────────────────
+// Filter mode definitions
+// ────────────────────────────────────────────────────────────────────
+
+type FilterMode =
+  | 'all'                  // Lọc theo môn học (tìm kiếm chung)
+  | 'class-open'           // Môn học mở theo lớp sinh viên
+  | 'curriculum-plan'      // Môn trong chương trình đào tạo kế hoạch
+  | 'curriculum-remaining' // Môn chưa học trong CTĐT kế hoạch
+  | 'retake'               // Môn sinh viên cần học lại (đã rớt)
+  | 'by-faculty'           // Lọc theo khoa quản lý môn học
+  | 'by-class'             // Lọc theo lớp
+
+// ────────────────────────────────────────────────────────────────────
+// Hooks & helpers
+// ────────────────────────────────────────────────────────────────────
 
 function useStudentContext() {
   const currentUser = useAuthStore((state) => state.currentUser)
   const snapshot = useDataStore((state) => state)
   const pushToast = useUiStore((state) => state.pushToast)
+  const [academicRecords, setAcademicRecords] = useState<AcademicRecords | null>(null)
+  const [studentClasses, setStudentClasses] = useState<string[]>([])
 
   useEffect(() => {
     if (!currentUser?.roles.includes('STUDENT')) {
@@ -42,11 +63,15 @@ function useStudentContext() {
       sectionService.listSections(),
       enrollmentService.listHistory(currentUser.id),
       wishService.listWishes({ studentId: currentUser.id }),
+      authApiService.getAcademicRecords().catch(() => null),
+      authApiService.getStudentClasses().catch(() => [] as string[]),
     ])
-      .then(() => {
+      .then(([, , , , records, classes]) => {
         if (!mounted) return
         useDataStore.getState().setApiStatus('ready')
         useDataStore.getState().setLastSyncedAt(new Date().toISOString())
+        if (records) setAcademicRecords(records)
+        setStudentClasses(classes ?? [])
       })
       .catch((err) => {
         if (!mounted) return
@@ -62,10 +87,38 @@ function useStudentContext() {
     currentUser,
     snapshot,
     pushToast,
+    academicRecords,
+    studentClasses,
     actor: currentUser
       ? { actorId: currentUser.id, actorRole: currentUser.roles[0] ?? 'STUDENT' }
       : null,
   }
+}
+
+/**
+ * Tính học kỳ thứ mấy trong CTĐT của sinh viên (1-indexed).
+ *
+ * Logic: admissionYear = 20XX (từ mã SV), currentSemesterId = "YYYY-YYYY-T"
+ * → yearsStudied = firstYear - admissionYear (0-indexed)
+ * → semesterIndex = yearsStudied * 2 + termNumber
+ *
+ * Ví dụ: SV N23DCCN001 (2023), HK "2025-2026-2" → yearsStudied = 2025-2023 = 2
+ * → semesterIndex = 2*2 + 2 = 6 (học kỳ 6 trong CTĐT)
+ */
+function getStudentSemesterIndex(studentCode: string, currentSemesterId: string): number {
+  const twoDigit = studentCode.slice(1, 3)
+  const admissionYear = Number(`20${twoDigit}`)
+  if (Number.isNaN(admissionYear) || admissionYear < 2000) return 1
+
+  // Parse "2025-2026-2" → firstYear=2025, term=2
+  const parts = currentSemesterId.split('-')
+  const firstYear = Number(parts[0])
+  const term = Number(parts[parts.length - 1])
+
+  if (Number.isNaN(firstYear) || Number.isNaN(term)) return 1
+
+  const yearsStudied = firstYear - admissionYear
+  return Math.max(1, yearsStudied * 2 + term)
 }
 
 interface RegistrationClassScope {
@@ -142,10 +195,15 @@ function courseMatchesManagingFaculty(course: Course | null, facultyFilter: stri
   return courseFaculty === facultyFilter
 }
 
+// ────────────────────────────────────────────────────────────────────
+// Main component
+// ────────────────────────────────────────────────────────────────────
+
 export function RegisterPage() {
-  const { currentUser, snapshot, pushToast, actor } = useStudentContext()
+  const { currentUser, snapshot, pushToast, actor, academicRecords, studentClasses } = useStudentContext()
+  const [filterMode, setFilterMode] = useState<FilterMode>('all')
   const [query, setQuery] = useState('')
-  const [classFilter, setClassFilter] = useState(currentUser?.studentClass ?? '')
+  const [classFilter, setClassFilter] = useState('')
   const [facultyFilter, setFacultyFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const PAGE_SIZE = 5
@@ -160,15 +218,50 @@ export function RegisterPage() {
 
   const student = currentUser
   const auditActor = actor
-  const classScope = inferRegistrationClassScope(classFilter, snapshot.users)
-  const classOptions = Array.from(
-    new Set(
-      snapshot.users
-        .filter((user) => user.roles.includes('STUDENT'))
-        .map((user) => user.studentClass)
-        .filter((value): value is string => Boolean(value)),
-    ),
-  ).sort((left, right) => left.localeCompare(right, 'vi'))
+  const studentClass = student.studentClass ?? ''
+  const studentProgram = student.majorName ?? student.program ?? ''
+  const studentSemesterIndex = getStudentSemesterIndex(student.code, snapshot.settings.currentSemesterId)
+
+  // Derived data for curriculum-based filters
+  const passedCourseCodes = useMemo(() => {
+    const set = new Set<string>()
+    if (academicRecords?.completedCourses) {
+      for (const c of academicRecords.completedCourses) {
+        if (c.passed) set.add(c.courseCode)
+      }
+    }
+    return set
+  }, [academicRecords])
+
+  const failedCourseCodes = useMemo(() => {
+    const set = new Set<string>()
+    if (academicRecords?.completedCourses) {
+      for (const c of academicRecords.completedCourses) {
+        if (!c.passed) set.add(c.courseCode)
+      }
+    }
+    return set
+  }, [academicRecords])
+
+  // Also include currently registered courses as "in-progress" to not show them as "remaining"
+  const ongoingCourseCodes = useMemo(() => {
+    const set = new Set<string>()
+    if (academicRecords?.ongoingCourses) {
+      for (const c of academicRecords.ongoingCourses) {
+        set.add(c.courseCode)
+      }
+    }
+    return set
+  }, [academicRecords])
+
+  // Sub-filter options
+  const classScope = inferRegistrationClassScope(classFilter || studentClass, snapshot.users)
+  const classOptions = useMemo(() => {
+    const set = new Set(studentClasses)
+    // Always include current student's class
+    if (studentClass) set.add(studentClass)
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'))
+  }, [studentClasses, studentClass])
   const facultyOptions = Array.from(
     new Set(
       snapshot.courses
@@ -177,22 +270,172 @@ export function RegisterPage() {
     ),
   ).sort((left, right) => left.localeCompare(right, 'vi'))
 
-  const sectionRows = getCurrentSemesterSections(snapshot).filter((item) => {
-    const keyword = query.toLowerCase()
-    const matchesQuery =
-      !query ||
-      item.section.courseCode.toLowerCase().includes(keyword) ||
-      item.section.sectionCode.toLowerCase().includes(keyword) ||
-      item.course?.name.toLowerCase().includes(keyword)
-    const matchesClass = courseMatchesRegistrationClass(item.course, classScope)
-    const matchesFaculty = courseMatchesManagingFaculty(item.course, facultyFilter)
+  // ── Build course options for "Lọc theo môn học" mode ──────────
+  const courseOptions = useMemo(() => {
+    const allSects = getCurrentSemesterSections(snapshot)
+    const courseMap = new Map<string, { code: string; name: string; tag: string; order: number }>()
 
-    return matchesQuery && matchesClass && matchesFaculty
+    for (const row of allSects) {
+      const c = row.course
+      if (!c || courseMap.has(c.code)) continue
+
+      // Determine category tag and priority
+      if (c.suggestedSemester === studentSemesterIndex) {
+        courseMap.set(c.code, { code: c.code, name: c.name, tag: 'CTĐT kỳ hiện tại', order: 1 })
+      } else if (failedCourseCodes.has(c.code) && !passedCourseCodes.has(c.code)) {
+        courseMap.set(c.code, { code: c.code, name: c.name, tag: 'Cần học lại', order: 2 })
+      } else if (
+        c.suggestedSemester &&
+        c.suggestedSemester > studentSemesterIndex &&
+        c.suggestedSemester <= studentSemesterIndex + 2 &&
+        !passedCourseCodes.has(c.code) &&
+        !ongoingCourseCodes.has(c.code)
+      ) {
+        courseMap.set(c.code, { code: c.code, name: c.name, tag: 'Có thể học trước', order: 3 })
+      } else if (
+        c.suggestedSemester &&
+        c.suggestedSemester <= studentSemesterIndex &&
+        !passedCourseCodes.has(c.code) &&
+        !ongoingCourseCodes.has(c.code)
+      ) {
+        courseMap.set(c.code, { code: c.code, name: c.name, tag: 'Còn thiếu trong CTĐT', order: 1 })
+      }
+    }
+
+    return Array.from(courseMap.values()).sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'vi'))
+  }, [snapshot, studentSemesterIndex, failedCourseCodes, passedCourseCodes, ongoingCourseCodes])
+
+  // ── Primary filter mode options ──────────────────────────────
+  const filterModeOptions: Array<{ label: string; value: FilterMode }> = [
+    { label: 'Lọc theo môn học', value: 'all' },
+    { label: `Môn học mở theo lớp sinh viên ${studentClass || 'N/A'}`, value: 'class-open' },
+    { label: 'Môn trong chương trình đào tạo kế hoạch', value: 'curriculum-plan' },
+    { label: 'Môn chưa học trong CTĐT kế hoạch', value: 'curriculum-remaining' },
+    { label: 'Môn sinh viên cần học lại (đã rớt)', value: 'retake' },
+    { label: 'Lọc theo khoa quản lý môn học', value: 'by-faculty' },
+    { label: 'Lọc theo lớp', value: 'by-class' },
+  ]
+
+  // ── Filter logic ─────────────────────────────────────────────
+  const allSections = getCurrentSemesterSections(snapshot)
+
+  const sectionRows = allSections.filter((item) => {
+    const course = item.course
+
+    switch (filterMode) {
+      case 'all': {
+        // Nếu không có tìm kiếm: hiện các môn gợi ý (CTĐT kỳ hiện tại, cần học lại, hoặc có thể học trước)
+        if (!query) {
+          if (!course) return false
+          const relevantCodes = new Set(courseOptions.map((o) => o.code))
+          return relevantCodes.has(course.code)
+        }
+        
+        // Nếu có tìm kiếm: lọc theo mã hoặc tên môn
+        const keyword = query.toLowerCase()
+        // Nếu input query là định dạng từ datalist (vd: "INT402 - Cấu trúc dữ liệu..."), extract mã môn
+        const searchCode = query.split(' - ')[0]?.trim().toLowerCase()
+        
+        return (
+          item.section.courseCode.toLowerCase().includes(searchCode || keyword) ||
+          item.section.sectionCode.toLowerCase().includes(keyword) ||
+          course?.name.toLowerCase().includes(keyword)
+        )
+      }
+
+      case 'class-open': {
+        // Môn mở cho lớp SV: filter theo majorsSupported match program SV
+        if (!course) return false
+        const supported = course.majorsSupported ?? []
+        if (!supported.length) return true // Áp dụng chung
+        
+        // Dùng helper để kiểm tra xem môn này có ĐẶC THÙ bị giới hạn cho lớp khác không
+        if (!isCourseAllowedForClass(course.name, studentClass || '')) {
+          return false
+        }
+        
+        if (studentProgram && supported.includes(studentProgram)) return true
+        
+        // Fallback: deduce major from class name (e.g. D23CQCN01-N -> CN -> Công nghệ thông tin)
+        if (studentClass) {
+          const majorMap: Record<string, string> = {
+            'CN': 'Công nghệ thông tin',
+            'AT': 'An toàn thông tin',
+            'VT': 'Viễn thông',
+            'DT': 'Điện tử',
+            'PT': 'Đa phương tiện',
+            'QT': 'Quản trị kinh doanh',
+            'KT': 'Kế toán',
+            'MR': 'Marketing',
+          }
+          
+          for (const [code, name] of Object.entries(majorMap)) {
+            // Môn hỗ trợ ngành này VÀ lớp sinh viên thuộc ngành này
+            if (studentClass.includes(code) && supported.includes(name)) {
+              return true
+            }
+          }
+        }
+        
+        return false
+      }
+
+      case 'curriculum-plan': {
+        // Chỉ hiện môn có suggestedSemester = kỳ hiện tại trong CTĐT
+        if (!course) return false
+        return course.suggestedSemester === studentSemesterIndex
+      }
+
+      case 'curriculum-remaining': {
+        // Môn chưa học: suggestedSemester ≤ kỳ hiện tại, chưa passed, chưa đang học
+        if (!course) return false
+        if (!course.suggestedSemester || course.suggestedSemester > studentSemesterIndex) return false
+        if (passedCourseCodes.has(course.code)) return false
+        if (ongoingCourseCodes.has(course.code)) return false
+        return true
+      }
+
+      case 'retake': {
+        // Môn đã rớt: courseCode nằm trong danh sách failed VÀ chưa passed lại
+        if (!course) return false
+        return failedCourseCodes.has(course.code) && !passedCourseCodes.has(course.code)
+      }
+
+      case 'by-faculty': {
+        // Lọc theo khoa
+        return courseMatchesManagingFaculty(course, facultyFilter)
+      }
+
+      case 'by-class': {
+        // Lọc theo lớp sinh viên
+        if (!course) return false
+        if (!isCourseAllowedForClass(course.name, classFilter || '')) {
+          return false
+        }
+        const scope = inferRegistrationClassScope(classFilter, snapshot.users)
+        return courseMatchesRegistrationClass(course, scope)
+      }
+
+      default:
+        return true
+    }
   })
 
-  const totalPages = Math.ceil(sectionRows.length / PAGE_SIZE)
+  // Apply search query as secondary filter for modes that show sub-filter search
+  const filteredRows = (filterMode === 'by-faculty' || filterMode === 'by-class') && query
+    ? sectionRows.filter((item) => {
+        const keyword = query.toLowerCase()
+        return (
+          item.section.courseCode.toLowerCase().includes(keyword) ||
+          item.section.sectionCode.toLowerCase().includes(keyword) ||
+          item.course?.name.toLowerCase().includes(keyword)
+        )
+      })
+    : sectionRows
+
+  const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE)
   const startIndex = (currentPage - 1) * PAGE_SIZE
-  const paginatedRows = sectionRows.slice(startIndex, startIndex + PAGE_SIZE)
+  const paginatedRows = filteredRows.slice(startIndex, startIndex + PAGE_SIZE)
 
   const currentCredits = getStudentCurrentCredits(snapshot, student.id)
   const currentEnrollments = getStudentSemesterEnrollments(snapshot, student.id)
@@ -223,6 +466,32 @@ export function RegisterPage() {
     setCheckResult(apiResult)
   }
 
+  // ── Filter mode description badge ────────────────────────────
+  function getFilterDescription(): string {
+    switch (filterMode) {
+      case 'all': {
+        if (query) {
+          return `Tìm kiếm: "${query}"`
+        }
+        return `${courseOptions.length} môn gợi ý (CTĐT, học lại, học trước)`
+      }
+      case 'class-open':
+        return `Lớp ${studentClass} • ${studentProgram || 'Áp dụng chung'}`
+      case 'curriculum-plan':
+        return `Kỳ ${studentSemesterIndex} trong CTĐT • Các môn đúng tiến độ`
+      case 'curriculum-remaining':
+        return `Kỳ 1–${studentSemesterIndex} • Các môn còn thiếu chưa hoàn thành`
+      case 'retake':
+        return `${failedCourseCodes.size} môn cần học lại`
+      case 'by-faculty':
+        return facultyFilter || 'Chọn khoa để lọc'
+      case 'by-class':
+        return classFilter || 'Chọn lớp để lọc'
+      default:
+        return ''
+    }
+  }
+
   return (
     <div className="grid gap-10">
       <PageTitleBlock
@@ -238,37 +507,81 @@ export function RegisterPage() {
       </div>
 
       <div className="grid gap-8 xl:grid-cols-[0.62fr_0.38fr]">
-        <Card title="Bảng chọn lớp học phần" description="Sử dụng tìm kiếm, lọc theo lớp sinh viên, khoa quản lý, kiểm tra điều kiện và đăng ký trực tiếp">
-          <div className="mb-5 grid gap-3 xl:grid-cols-3">
-            <SearchInput label="Tìm theo mã / tên môn học" placeholder="Nhập từ khóa..." value={query} onChange={(event) => { setQuery(event.target.value); setCurrentPage(1); }} />
+        <Card title="Bảng chọn lớp học phần" description="Chọn chế độ lọc, kiểm tra điều kiện và đăng ký trực tiếp">
+          {/* ── Primary filter dropdown ──────────────────────── */}
+          <div className="mb-5 grid gap-3 xl:grid-cols-2">
             <Select
-              label="Lớp sinh viên"
-              value={classFilter}
-              onChange={(event) => { setClassFilter(event.target.value); setCurrentPage(1); }}
-              options={[
-                { label: 'Tất cả lớp', value: '' },
-                ...classOptions.map((c) => ({ label: c, value: c }))
-              ]}
+              label="Chế độ lọc"
+              value={filterMode}
+              onChange={(event) => {
+                setFilterMode(event.target.value as FilterMode)
+                setCurrentPage(1)
+                setQuery('')
+                setFacultyFilter('')
+                setClassFilter('')
+              }}
+              options={filterModeOptions.map((o) => ({ label: o.label, value: o.value }))}
             />
-            <Select
-              label="Khoa quản lý"
-              value={facultyFilter}
-              onChange={(event) => { setFacultyFilter(event.target.value); setCurrentPage(1); }}
-              options={[{ label: 'Tất cả khoa', value: '' }, ...facultyOptions.map(f => ({ label: f, value: f }))]}
-            />
+
+            {/* ── Conditional sub-filters ──────────────────── */}
+            {filterMode === 'all' && (
+              <>
+                <SearchInput
+                  label="Tìm theo mã / tên môn học (Gợi ý)"
+                  placeholder="Nhập từ khóa hoặc chọn từ danh sách..."
+                  value={query}
+                  onChange={(event) => { setQuery(event.target.value); setCurrentPage(1) }}
+                  list="course-suggestions"
+                />
+                <datalist id="course-suggestions">
+                  {courseOptions.map((c) => (
+                    <option key={c.code} value={`${c.code} - ${c.name}`}>
+                      {c.tag}
+                    </option>
+                  ))}
+                </datalist>
+              </>
+            )}
+
+            {filterMode === 'by-faculty' && (
+              <Select
+                label="Chọn khoa quản lý"
+                value={facultyFilter}
+                onChange={(event) => { setFacultyFilter(event.target.value); setCurrentPage(1) }}
+                options={[
+                  { label: 'Tất cả khoa', value: '' },
+                  ...facultyOptions.map((f) => ({ label: f, value: f })),
+                ]}
+              />
+            )}
+
+            {filterMode === 'by-class' && (
+              <Select
+                label="Chọn lớp sinh viên"
+                value={classFilter}
+                onChange={(event) => { setClassFilter(event.target.value); setCurrentPage(1) }}
+                options={[
+                  { label: 'Tất cả lớp', value: '' },
+                  ...classOptions.map((c) => ({ label: c, value: c })),
+                ]}
+              />
+            )}
           </div>
+
+          {/* ── Filter info badge ──────────────────────────── */}
           <div className="mb-5 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
-              Lớp áp dụng: {classFilter.trim() ? classFilter : 'Tất cả lớp'}
-            </span>
-            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
-              Chuyên ngành: {classFilter.trim() ? classScope.program ?? 'Áp dụng chung' : 'Tất cả'}
+            <span className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-sm font-medium text-cyan-700">
+              {filterModeOptions.find((o) => o.value === filterMode)?.label}
             </span>
             <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-muted)]">
-              Khoa quản lý: {facultyFilter.trim() ? facultyFilter : 'Tất cả khoa'}
+              {getFilterDescription()}
+            </span>
+            <span className="inline-flex items-center rounded-full border border-[var(--color-hairline)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-ink)]">
+              {filteredRows.length} lớp
             </span>
           </div>
-          {sectionRows.length ? (
+
+          {filteredRows.length ? (
             <div className="space-y-4">
               {paginatedRows.map((row) => (
                 <div
@@ -282,6 +595,14 @@ export function RegisterPage() {
                       <p className="text-sm text-[var(--color-muted)]">
                         {row.course?.courseType ?? 'Danh mục chung'} • {row.course?.majorsSupported?.join(', ') ?? 'Áp dụng chung'} • {row.course?.faculty ?? row.course?.department ?? 'Đang cập nhật khoa'}
                       </p>
+                      {row.course?.suggestedSemester && (
+                        <p className="text-xs text-[var(--color-muted)]">
+                          CTĐT kỳ {row.course.suggestedSemester}
+                          {failedCourseCodes.has(row.course.code) && !passedCourseCodes.has(row.course.code) && (
+                            <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700">Cần học lại</span>
+                          )}
+                        </p>
+                      )}
                     </div>
                     <StatusBadge kind="section" status={row.derivedStatus} />
                   </div>
@@ -326,7 +647,7 @@ export function RegisterPage() {
               {totalPages > 1 && (
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[var(--color-hairline)] bg-[var(--color-surface)] px-6 py-4 shadow-sm">
                   <p className="text-sm text-[var(--color-muted)]">
-                    Hiển thị <span className="font-medium text-[var(--color-ink)]">{startIndex + 1}</span> đến <span className="font-medium text-[var(--color-ink)]">{Math.min(startIndex + PAGE_SIZE, sectionRows.length)}</span> trong tổng số <span className="font-medium text-[var(--color-ink)]">{sectionRows.length}</span> lớp
+                    Hiển thị <span className="font-medium text-[var(--color-ink)]">{startIndex + 1}</span> đến <span className="font-medium text-[var(--color-ink)]">{Math.min(startIndex + PAGE_SIZE, filteredRows.length)}</span> trong tổng số <span className="font-medium text-[var(--color-ink)]">{filteredRows.length}</span> lớp
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
@@ -353,7 +674,16 @@ export function RegisterPage() {
               )}
             </div>
           ) : (
-            <EmptyState title="Không có lớp học phần phù hợp" description="Hãy đổi lớp sinh viên, khoa quản lý hoặc từ khóa tìm kiếm để xem danh sách khác." />
+            <EmptyState
+              title="Không có lớp học phần phù hợp"
+              description={
+                filterMode === 'retake'
+                  ? 'Không có môn nào cần học lại. Chúc mừng bạn!'
+                  : filterMode === 'curriculum-remaining'
+                    ? 'Bạn đã hoàn thành tất cả các môn theo CTĐT đến kỳ hiện tại.'
+                    : 'Hãy đổi chế độ lọc hoặc từ khóa tìm kiếm để xem danh sách khác.'
+              }
+            />
           )}
         </Card>
 

@@ -7,7 +7,6 @@ export type PermissionKey =
   | 'student.view'
   | 'student.register'
   | 'student.cancel'
-  | 'student.withdraw'
   | 'student.wish'
   | 'lecturer.view'
   | 'academic.manageCourses'
@@ -30,7 +29,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, PermissionKey[]> = {
     'student.view',
     'student.register',
     'student.cancel',
-    'student.withdraw',
     'student.wish',
   ],
   LECTURER: [

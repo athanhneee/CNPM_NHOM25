@@ -77,7 +77,7 @@ interface EnrollmentQuery {
   status?: EnrollmentStatus
 }
 
-interface CancelWithdrawResponse {
+interface CancelResponse {
   enrollment: BackendEnrollment
   promoted?: BackendEnrollment[]
   warnings?: string[]
@@ -331,7 +331,7 @@ export const enrollmentService = {
   },
 
   async cancelEnrollment(enrollmentId: string, _actor?: EnrollmentActor, reason?: string) {
-    const response = await apiRequest<CancelWithdrawResponse>(`/enrollments/${enrollmentId}/cancel`, {
+    const response = await apiRequest<CancelResponse>(`/enrollments/${enrollmentId}/cancel`, {
       method: 'POST',
       body: { reason },
     })
@@ -344,19 +344,8 @@ export const enrollmentService = {
     return { enrollment, promoted, warnings: response.warnings ?? [] }
   },
 
-  async withdrawEnrollment(enrollmentId: string, reason: string, _actor?: EnrollmentActor) {
-    const response = await apiRequest<CancelWithdrawResponse>(`/enrollments/${enrollmentId}/withdraw`, {
-      method: 'POST',
-      body: { reason },
-    })
-    
-    const enrollment = normalizeEnrollment(response.enrollment)
-    const promoted = response.promoted ? normalizeEnrollments(response.promoted) : []
 
-    upsertEnrollments([enrollment, ...promoted])
-    await refreshSections()
-    return { enrollment, promoted, warnings: response.warnings ?? [] }
-  },
+
 
   async listHistory(studentId: string) {
     const enrollments = normalizeEnrollments(

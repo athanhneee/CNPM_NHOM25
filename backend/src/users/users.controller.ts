@@ -22,6 +22,12 @@ import { UsersService } from './users.service'
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  @ApiOperation({ summary: 'Danh sách mã lớp sinh viên (cho bộ lọc đăng ký)' })
+  @Get('student-classes')
+  async getStudentClasses() {
+    return this.usersService.getStudentClasses()
+  }
+
   @ApiOperation({ summary: 'Danh sách tài khoản người dùng' })
   @UseGuards(RolesGuard)
   @Roles('ADMIN')

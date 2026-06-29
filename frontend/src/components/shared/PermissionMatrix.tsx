@@ -18,7 +18,6 @@ const permissionLabels: Record<PermissionKey, string> = {
   'student.view': 'Tra cứu học phần',
   'student.register': 'Đăng ký học phần',
   'student.cancel': 'Hủy đăng ký',
-  'student.withdraw': 'Rút học phần',
   'student.wish': 'Gửi nguyện vọng',
   'lecturer.view': 'Xem lớp phụ trách',
   'academic.manageCourses': 'Quản lý môn học',

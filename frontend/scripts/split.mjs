@@ -46,7 +46,6 @@ const fileMappings = {
     "SemesterSchedulePage": "src/features/student/SemesterSchedulePage.tsx",
     "WeekSchedulePage": "src/features/student/WeekSchedulePage.tsx",
     "WishPage": "src/features/student/WishPage.tsx",
-    "WithdrawPage": "src/features/student/WithdrawPage.tsx"
   }
 };
 
