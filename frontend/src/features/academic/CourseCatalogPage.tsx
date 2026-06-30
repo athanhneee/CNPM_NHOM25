@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, type TableColumn } from "@/components/ui/Table";
 import { Textarea } from "@/components/ui/Textarea";
+import { CourseMultiSelect } from "@/components/ui/CourseMultiSelect";
 import { FilterBar } from "@/components/shared/FilterBar";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { StatCard } from "@/components/shared/StatCard";
@@ -202,9 +203,9 @@ export function CourseCatalogPage() {
     academicBlock: DEFAULT_ACADEMIC_BLOCK,
     majorsSupported: "Công nghệ thông tin",
     suggestedSemester: "6",
-    prerequisites: "",
-    prestudy: "",
-    corequisites: "",
+    prerequisites: [] as string[],
+    prestudy: [] as string[],
+    corequisites: [] as string[],
   });
 
   const majorOptions = useMemo(
@@ -371,9 +372,9 @@ export function CourseCatalogPage() {
                 suggestedSemester: row.suggestedSemester
                   ? String(row.suggestedSemester)
                   : "",
-                prerequisites: row.prerequisites?.join(", ") ?? "",
-                prestudy: row.prestudy?.join(", ") ?? "",
-                corequisites: row.corequisites?.join(", ") ?? "",
+                prerequisites: row.prerequisites ?? [],
+                prestudy: row.prestudy ?? [],
+                corequisites: row.corequisites ?? [],
               });
               setDrawerOpen(true);
             }}
@@ -629,37 +630,37 @@ export function CourseCatalogPage() {
           <div className="border-t border-slate-100 pt-4 mt-2">
             <p className="text-sm font-semibold text-slate-700 mb-3">Điều kiện đăng ký</p>
             <div className="grid gap-4">
-              <Input
+              <CourseMultiSelect
                 label="Môn tiên quyết (bắt buộc đậu trước)"
-                placeholder="VD: INT1001, INT1002"
+                hint="Sinh viên phải đậu tất cả môn này mới được đăng ký"
+                options={snapshot.courses
+                  .filter((c) => c.code !== form.code)
+                  .map((c) => ({ code: c.code, name: c.name }))}
                 value={form.prerequisites}
-                onChange={(event) =>
-                  setForm((value) => ({
-                    ...value,
-                    prerequisites: event.target.value,
-                  }))
+                onChange={(val) =>
+                  setForm((prev) => ({ ...prev, prerequisites: val }))
                 }
               />
-              <Input
+              <CourseMultiSelect
                 label="Môn học trước (đã từng học, không bắt buộc đậu)"
-                placeholder="VD: ACC101, ACC102"
+                hint="Sinh viên chỉ cần đã từng đăng ký học, không yêu cầu đậu"
+                options={snapshot.courses
+                  .filter((c) => c.code !== form.code)
+                  .map((c) => ({ code: c.code, name: c.name }))}
                 value={form.prestudy}
-                onChange={(event) =>
-                  setForm((value) => ({
-                    ...value,
-                    prestudy: event.target.value,
-                  }))
+                onChange={(val) =>
+                  setForm((prev) => ({ ...prev, prestudy: val }))
                 }
               />
-              <Input
+              <CourseMultiSelect
                 label="Môn song hành (phải đăng ký cùng kỳ)"
-                placeholder="VD: INT2001"
+                hint="Sinh viên phải đăng ký cùng kỳ hoặc đã hoàn thành"
+                options={snapshot.courses
+                  .filter((c) => c.code !== form.code)
+                  .map((c) => ({ code: c.code, name: c.name }))}
                 value={form.corequisites}
-                onChange={(event) =>
-                  setForm((value) => ({
-                    ...value,
-                    corequisites: event.target.value,
-                  }))
+                onChange={(val) =>
+                  setForm((prev) => ({ ...prev, corequisites: val }))
                 }
               />
             </div>
@@ -696,9 +697,9 @@ export function CourseCatalogPage() {
                           form.academicBlock,
                           form.courseType,
                         ),
-                        prerequisites: normalizeMajors(form.prerequisites),
-                        prestudy: normalizeMajors(form.prestudy),
-                        corequisites: normalizeMajors(form.corequisites),
+                        prerequisites: form.prerequisites,
+                        prestudy: form.prestudy,
+                        corequisites: form.corequisites,
                         ...(suggestedSemester ? { suggestedSemester } : {}),
                       },
                       actor,
@@ -714,9 +715,9 @@ export function CourseCatalogPage() {
                         campus: form.campus,
                         status:
                           form.status === "ACTIVE" ? "ACTIVE" : "INACTIVE",
-                        prerequisites: normalizeMajors(form.prerequisites),
-                        prestudy: normalizeMajors(form.prestudy),
-                        corequisites: normalizeMajors(form.corequisites),
+                        prerequisites: form.prerequisites,
+                        prestudy: form.prestudy,
+                        corequisites: form.corequisites,
                         category: resolveCourseCategory(
                           form.academicBlock,
                           form.courseType,
