@@ -161,7 +161,6 @@ export function CourseDetailPage() {
 
   const section = snapshot.sections.find((item) => item.id === sectionId)
   const course = snapshot.courses.find((item) => item.code === section?.courseCode)
-  const lecturer = snapshot.users.find((item) => item.id === section?.lecturerId)
 
   if (!section || !course) {
     return <ErrorState title="Không tìm thấy học phần" description="Lớp học phần không tồn tại hoặc đã bị xóa." />
@@ -214,7 +213,7 @@ export function CourseDetailPage() {
               { label: 'Khối kiến thức', value: course.academicBlock ? (ACADEMIC_BLOCK_LABELS[course.academicBlock] || course.academicBlock) : 'Danh mục chung' },
               { label: 'Học kỳ gợi ý', value: course.suggestedSemester ? `Học kỳ ${course.suggestedSemester}` : 'Đang cập nhật' },
               { label: 'Ngành áp dụng', value: course.majorsSupported?.join(', ') || 'Danh mục chung' },
-              { label: 'Giảng viên', value: lecturer?.fullName ?? '--' },
+              { label: 'Giảng viên', value: section.lecturerName ?? '--' },
               { label: 'Phòng học', value: section.room },
               { label: 'Lịch học', value: `Thứ ${section.weekday} • Tiết ${section.startPeriod}-${section.startPeriod + section.periodCount - 1}` },
               { label: 'Tuần học', value: section.weeks },

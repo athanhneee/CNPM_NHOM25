@@ -15,6 +15,7 @@ export interface Section {
   subGroup: string
   lecturerId?: string
   guestLecturer?: string
+  lecturerName?: string
   room: string
   weekday: 2 | 3 | 4 | 5 | 6 | 7 | 8
   startPeriod: number

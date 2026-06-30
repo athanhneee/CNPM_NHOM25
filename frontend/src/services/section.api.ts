@@ -18,6 +18,8 @@ interface BackendSection {
   group: string
   subGroup?: string | null
   lecturerId: string
+  lecturer?: { fullName: string } | null
+  guestLecturer?: string | null
   room?: string | null
   weekday: number
   startPeriod: number
@@ -140,6 +142,8 @@ function normalizeSection(section: BackendSection): Section {
     group: section.group,
     subGroup: section.subGroup ?? '',
     lecturerId: section.lecturerId,
+    guestLecturer: section.guestLecturer ?? undefined,
+    lecturerName: section.lecturer?.fullName ?? section.guestLecturer ?? undefined,
     room: section.room ?? '',
     weekday: normalizeWeekday(section.weekday),
     startPeriod: section.startPeriod,

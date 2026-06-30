@@ -61,7 +61,10 @@ export class SectionsService {
   constructor(private prisma: PrismaService) {}
 
   private async getExistingSection(id: string) {
-    const section = await this.prisma.section.findUnique({ where: { id } })
+    const section = await this.prisma.section.findUnique({
+      where: { id },
+      include: { lecturer: { select: { fullName: true } } },
+    })
     if (!section) {
       throw new NotFoundException('Không tìm thấy lớp học phần.')
     }
@@ -200,6 +203,7 @@ export class SectionsService {
     const [items, total] = await this.prisma.$transaction([
       this.prisma.section.findMany({
         where,
+        include: { lecturer: { select: { fullName: true } } },
         orderBy: [{ sectionCode: 'asc' }],
         skip: query.page || query.limit ? skip : undefined,
         take: query.page || query.limit ? take : undefined,
