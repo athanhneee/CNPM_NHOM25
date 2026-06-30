@@ -632,7 +632,6 @@ export class CourseOptionsService {
     const now = new Date(settings.simulationNow).getTime()
     const regStart = new Date(settings.registrationStart).getTime()
     const regEnd = new Date(settings.registrationEnd).getTime()
-    const adjEnd = new Date(settings.adjustmentEnd).getTime()
 
     // Check phases if available
     const phases = (semester as any)?.phases
