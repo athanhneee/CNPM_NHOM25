@@ -143,7 +143,16 @@ export function PrerequisitePage() {
   const PAGE_SIZE = 15
 
   const allRelations = useMemo(() => {
-    const relations: any[] = []
+    const relations: {
+      id: string
+      courseCode: string
+      courseName: string
+      requiredCourseCode: string
+      requiredCourseName: string
+      relationType: string
+      program: string
+      department: string
+    }[] = []
     for (const course of snapshot.courses) {
       const addRelations = (codes: string[], type: 'PREREQUISITE' | 'PRESTUDY' | 'COREQUISITE') => {
         for (const reqCode of codes) {
