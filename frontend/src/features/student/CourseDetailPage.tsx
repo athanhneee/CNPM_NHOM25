@@ -193,7 +193,7 @@ export function CourseDetailPage() {
     }
   }, [student, section, snapshot.enrollments])
 
-  if (!currentUser || !actor) {
+  if (!student || !auditActor) {
     return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
   }
 
