@@ -80,7 +80,7 @@ function useAcademicContext() {
     useDataStore.getState().setApiStatus('loading')
 
     Promise.all([
-      adminService.listUsers({ role: 'LECTURER', limit: 1000 }),
+      adminService.listUsers({ role: 'LECTURER', limit: 200 }),
       courseService.listCourses(),
       sectionService.listSections(),
       enrollmentService.listEnrollments(),
