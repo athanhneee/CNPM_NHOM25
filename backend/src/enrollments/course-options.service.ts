@@ -651,7 +651,7 @@ export class CourseOptionsService {
 
     if (!isInRegistrationWindow) {
       if (now < regStart) return 'UPCOMING'
-      if (now > adjEnd) return 'CLOSED'
+      return 'CLOSED'
     }
 
     // Capacity

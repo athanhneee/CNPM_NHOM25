@@ -127,7 +127,7 @@ export const FILTER_MODE_OPTIONS: FilterModeOption[] = [
 // ── Status display helpers ───────────────────────────────────────
 export const REGISTRATION_STATUS_LABELS: Record<RegistrationStatus, string> = {
   OPEN: 'Đang mở đăng ký',
-  CLOSED: 'Đã đóng đăng ký',
+  CLOSED: 'Ngoài thời gian đăng ký',
   FULL: 'Đã đầy',
   CANCELLED: 'Đã hủy',
   WAITLIST: 'Danh sách chờ',
