@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
@@ -142,7 +142,33 @@ export function PrerequisitePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const PAGE_SIZE = 15
 
-  const filteredRows = snapshot.courseRelations.filter((item) => {
+  const allRelations = useMemo(() => {
+    const relations: any[] = []
+    for (const course of snapshot.courses) {
+      const addRelations = (codes: string[], type: 'PREREQUISITE' | 'PRESTUDY' | 'COREQUISITE') => {
+        for (const reqCode of codes) {
+          const reqCourse = snapshot.courses.find(c => c.code === reqCode)
+          relations.push({
+            id: `${course.code}-${reqCode}-${type}`,
+            courseCode: course.code,
+            courseName: course.name,
+            requiredCourseCode: reqCode,
+            requiredCourseName: reqCourse?.name || reqCode,
+            relationType: type,
+            program: course.majorsSupported?.join(', ') || 'Danh mục chung',
+            department: course.department,
+          })
+        }
+      }
+      
+      addRelations(course.prerequisites, 'PREREQUISITE')
+      addRelations(course.prestudy, 'PRESTUDY')
+      addRelations(course.corequisites, 'COREQUISITE')
+    }
+    return relations
+  }, [snapshot.courses])
+
+  const filteredRows = allRelations.filter((item) => {
     if (!query) {
       return true
     }
