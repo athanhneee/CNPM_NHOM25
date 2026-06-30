@@ -346,6 +346,13 @@ export class EnrollmentsService {
     const [items, total] = await this.prisma.$transaction([
       this.prisma.enrollment.findMany({
         where,
+        include: {
+          section: {
+            select: {
+              courseCode: true,
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
         skip: query.page || query.limit ? skip : undefined,
         take: query.page || query.limit ? take : undefined,
@@ -357,7 +364,16 @@ export class EnrollmentsService {
   }
 
   async findOne(id: string, actor?: AuditActor) {
-    const enrollment = await this.prisma.enrollment.findUnique({ where: { id } })
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: { id },
+      include: {
+        section: {
+          select: {
+            courseCode: true,
+          },
+        },
+      },
+    })
     if (!enrollment) {
       throw new NotFoundException('Không tìm thấy thông tin đăng ký.')
     }
@@ -503,6 +519,13 @@ export class EnrollmentsService {
               cancelledAt: null,
               droppedAt: null,
             },
+            include: {
+              section: {
+                select: {
+                  courseCode: true,
+                },
+              },
+            },
           })
         } else {
           enrollment = await tx.enrollment.create({
@@ -515,6 +538,13 @@ export class EnrollmentsService {
               isRetake: result.isRetake ?? false,
               isImprovement: result.isImprovement ?? false,
               timeline: [buildTimelineItem(actor, finalStatus, result.message, now)],
+            },
+            include: {
+              section: {
+                select: {
+                  courseCode: true,
+                },
+              },
             },
           })
         }
@@ -1146,6 +1176,13 @@ export class EnrollmentsService {
             timeline: [
               buildTimelineItem(actor, EnrollmentStatus.REGISTERED, `Chuyển từ lớp ${fromSection.sectionCode}: ${body.reason}`, now),
             ],
+          },
+          include: {
+            section: {
+              select: {
+                courseCode: true,
+              },
+            },
           },
         })
 

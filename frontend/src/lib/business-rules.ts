@@ -106,14 +106,14 @@ export function evaluateEnrollmentEligibility(
   const completedCourseCodes = new Set(
     studentEnrollments
       .filter((item) => HISTORY_PASS_STATUSES.has(item.status))
-      .map((item) => sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode)
+      .map((item) => item.courseCode ?? sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode)
       .filter((item): item is string => Boolean(item)),
   )
 
   const completedOrAttemptedCourseCodes = new Set(
     studentEnrollments
       .filter((item) => HISTORY_RESULT_STATUSES.has(item.status))
-      .map((item) => sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode)
+      .map((item) => item.courseCode ?? sections.find((sectionItem) => sectionItem.id === item.sectionId)?.courseCode)
       .filter((item): item is string => Boolean(item)),
   )
 

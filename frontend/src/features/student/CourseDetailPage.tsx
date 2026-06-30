@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { evaluateEnrollmentEligibility } from '@/lib/business-rules'
+import type { EligibilityCheckResult } from '@/types/enrollment'
 import { useAuthStore } from '@/app/store/auth.store'
 import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
@@ -163,20 +164,49 @@ export function CourseDetailPage() {
   const section = snapshot.sections.find((item) => item.id === sectionId)
   const course = snapshot.courses.find((item) => item.code === section?.courseCode)
 
-  if (!section || !course) {
-    return <ErrorState title="Không tìm thấy học phần" description="Lớp học phần không tồn tại hoặc đã bị xóa." />
-  }
+  const localEligibility = useMemo(() => {
+    if (!section || !course) return null
+    return evaluateEnrollmentEligibility({
+      nowIso: snapshot.settings.simulationNow,
+      student,
+      section,
+      targetCourse: course,
+      courses: snapshot.courses,
+      sections: snapshot.sections,
+      enrollments: snapshot.enrollments,
+      settings: snapshot.settings,
+    })
+  }, [snapshot.settings.simulationNow, student, section, course, snapshot.courses, snapshot.sections, snapshot.enrollments, snapshot.settings])
 
-  const eligibility = evaluateEnrollmentEligibility({
-    nowIso: snapshot.settings.simulationNow,
-    student,
-    section,
-    targetCourse: course,
-    courses: snapshot.courses,
-    sections: snapshot.sections,
-    enrollments: snapshot.enrollments,
-    settings: snapshot.settings,
-  })
+  const [eligibility, setEligibility] = useState<EligibilityCheckResult | null>(localEligibility)
+
+  useEffect(() => {
+    if (!section || !student) return
+    let active = true
+    enrollmentService.checkEligibility(student.id, section.id)
+      .then((res) => {
+        if (active) {
+          setEligibility(res)
+        }
+      })
+      .catch((err) => {
+        console.error('Lỗi kiểm tra điều kiện từ hệ thống:', err)
+      })
+    return () => {
+      active = false
+    }
+  }, [student.id, section?.id, snapshot.enrollments])
+
+  if (!section || !course || !eligibility) {
+    if (!section || !course) {
+      return <ErrorState title="Không tìm thấy học phần" description="Lớp học phần không tồn tại hoặc đã bị xóa." />
+    }
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   const currentEnrollment = snapshot.enrollments.find(
     (e) => e.sectionId === section.id && ['REGISTERED', 'WAITLISTED', 'PENDING'].includes(e.status)

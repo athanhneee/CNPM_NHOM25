@@ -42,6 +42,9 @@ interface BackendEnrollment {
   waitlistOrder?: number | null
   timeline?: unknown
   pdfStatusCode?: EnrollmentConventionCode | null
+  section?: {
+    courseCode: string
+  } | null
 }
 
 interface PaginatedResponse<T> {
@@ -160,6 +163,10 @@ function normalizeEnrollment(rawEnrollment: BackendEnrollment): Enrollment {
     createdAt,
     updatedAt,
     timeline: normalizeTimeline(rawEnrollment.timeline, status, updatedAt),
+  }
+
+  if (rawEnrollment.section?.courseCode) {
+    enrollment.courseCode = rawEnrollment.section.courseCode
   }
 
   if (rawEnrollment.cancelledAt) {

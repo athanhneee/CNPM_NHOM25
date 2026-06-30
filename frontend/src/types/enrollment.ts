@@ -25,6 +25,7 @@ export interface Enrollment {
   studentId: string
   sectionId: string
   semesterId: string
+  courseCode?: string
   status: EnrollmentStatus
   pdfStatusCode?: EnrollmentConventionCode
   createdAt: string
