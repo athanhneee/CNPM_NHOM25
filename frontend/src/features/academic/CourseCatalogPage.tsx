@@ -202,6 +202,9 @@ export function CourseCatalogPage() {
     academicBlock: DEFAULT_ACADEMIC_BLOCK,
     majorsSupported: "Công nghệ thông tin",
     suggestedSemester: "6",
+    prerequisites: "",
+    prestudy: "",
+    corequisites: "",
   });
 
   const majorOptions = useMemo(
@@ -368,6 +371,9 @@ export function CourseCatalogPage() {
                 suggestedSemester: row.suggestedSemester
                   ? String(row.suggestedSemester)
                   : "",
+                prerequisites: row.prerequisites?.join(", ") ?? "",
+                prestudy: row.prestudy?.join(", ") ?? "",
+                corequisites: row.corequisites?.join(", ") ?? "",
               });
               setDrawerOpen(true);
             }}
@@ -620,6 +626,44 @@ export function CourseCatalogPage() {
               }))
             }
           />
+          <div className="border-t border-slate-100 pt-4 mt-2">
+            <p className="text-sm font-semibold text-slate-700 mb-3">Điều kiện đăng ký</p>
+            <div className="grid gap-4">
+              <Input
+                label="Môn tiên quyết (bắt buộc đậu trước)"
+                placeholder="VD: INT1001, INT1002"
+                value={form.prerequisites}
+                onChange={(event) =>
+                  setForm((value) => ({
+                    ...value,
+                    prerequisites: event.target.value,
+                  }))
+                }
+              />
+              <Input
+                label="Môn học trước (đã từng học, không bắt buộc đậu)"
+                placeholder="VD: ACC101, ACC102"
+                value={form.prestudy}
+                onChange={(event) =>
+                  setForm((value) => ({
+                    ...value,
+                    prestudy: event.target.value,
+                  }))
+                }
+              />
+              <Input
+                label="Môn song hành (phải đăng ký cùng kỳ)"
+                placeholder="VD: INT2001"
+                value={form.corequisites}
+                onChange={(event) =>
+                  setForm((value) => ({
+                    ...value,
+                    corequisites: event.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <Button
               onClick={async () => {
@@ -652,6 +696,9 @@ export function CourseCatalogPage() {
                           form.academicBlock,
                           form.courseType,
                         ),
+                        prerequisites: normalizeMajors(form.prerequisites),
+                        prestudy: normalizeMajors(form.prestudy),
+                        corequisites: normalizeMajors(form.corequisites),
                         ...(suggestedSemester ? { suggestedSemester } : {}),
                       },
                       actor,
@@ -667,9 +714,9 @@ export function CourseCatalogPage() {
                         campus: form.campus,
                         status:
                           form.status === "ACTIVE" ? "ACTIVE" : "INACTIVE",
-                        prerequisites: [],
-                        prestudy: [],
-                        corequisites: [],
+                        prerequisites: normalizeMajors(form.prerequisites),
+                        prestudy: normalizeMajors(form.prestudy),
+                        corequisites: normalizeMajors(form.corequisites),
                         category: resolveCourseCategory(
                           form.academicBlock,
                           form.courseType,
