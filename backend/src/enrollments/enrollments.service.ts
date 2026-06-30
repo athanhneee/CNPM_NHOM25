@@ -317,10 +317,8 @@ export class EnrollmentsService {
   }
 
   private async syncSectionCounters(client: Prisma.TransactionClient, sectionId: string) {
-    const [section, enrollments] = await Promise.all([
-      client.section.findUnique({ where: { id: sectionId } }),
-      client.enrollment.findMany({ where: { sectionId }, select: { status: true } }),
-    ])
+    const section = await client.section.findUnique({ where: { id: sectionId } })
+    const enrollments = await client.enrollment.findMany({ where: { sectionId }, select: { status: true } })
 
     if (!section) {
       return
@@ -697,7 +695,7 @@ export class EnrollmentsService {
 
         return { enrollment: updatedEnrollment, promoted, warnings: corequisiteWarnings }
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 20000 },
     )
   }
 
@@ -882,18 +880,26 @@ export class EnrollmentsService {
       include: { section: true }
     });
 
+    const activeCourseCodes = Array.from(new Set(activeEnrollments.map((e: any) => e.section.courseCode as string)));
+    if (activeCourseCodes.length === 0) return [];
+
+    const conditions = await tx.courseCondition.findMany({
+      where: { courseCode: { in: activeCourseCodes }, type: 'COREQUISITE' }
+    });
+
+    const courses = await tx.course.findMany({
+      where: { code: { in: activeCourseCodes } }
+    });
+
     const violations: string[] = [];
     for (const enrollment of activeEnrollments) {
       const code = enrollment.section.courseCode;
-      const conditions = await tx.courseCondition.findMany({
-        where: { courseCode: code, type: 'COREQUISITE' }
-      });
       
       let violated = false;
-      if (conditions.some((c: any) => c.requiredCourseCode === canceledCourseCode)) {
+      if (conditions.some((c: any) => c.courseCode === code && c.requiredCourseCode === canceledCourseCode)) {
         violated = true;
       } else {
-        const course = await tx.course.findUnique({ where: { code } });
+        const course = courses.find((c: any) => c.code === code);
         if (course?.corequisites && Array.isArray(course.corequisites)) {
           if (course.corequisites.includes(canceledCourseCode)) {
             violated = true;
@@ -905,7 +911,7 @@ export class EnrollmentsService {
         violations.push(`Học phần ${code} yêu cầu môn song hành ${canceledCourseCode} vừa bị rút/hủy.`);
       }
     }
-    return violations;
+    return Array.from(new Set(violations));
   }
 
   private async _processWaitlist(tx: Prisma.TransactionClient, sectionId: string, actor: AuditActor, now: Date) {
