@@ -2761,7 +2761,7 @@ export async function seedDemoData(
       maintenanceMode: false,
       allowWaitlist: true,
       countWaitlistCredits: false,
-      allowGradeImprovement: true,
+      allowGradeImprovement: false,
       maxRetakeAttempts: 3,
       sessionTimeoutMinutes: 30,
       warningBeforeLogoutSeconds: 60,
