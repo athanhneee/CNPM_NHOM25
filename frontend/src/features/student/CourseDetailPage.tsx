@@ -191,8 +191,8 @@ export function CourseDetailPage() {
           currentEnrollment ? (
             <Button
               loading={loading}
-              variant="outline"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+              variant="secondary"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 ring-red-200"
               onClick={async () => {
                 setLoading(true)
                 try {
