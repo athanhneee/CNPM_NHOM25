@@ -186,6 +186,7 @@ export function CourseDetailPage() {
         actions={
           <Button
             loading={loading}
+            disabled={!eligibility.canRegister}
             onClick={async () => {
               setLoading(true)
               const result = await enrollmentService.registerSection(student.id, section.id, auditActor)
@@ -198,7 +199,7 @@ export function CourseDetailPage() {
             }}
             type="button"
           >
-            Đăng ký
+            {eligibility.canRegister ? 'Đăng ký' : 'Không đủ điều kiện'}
           </Button>
         }
       />
