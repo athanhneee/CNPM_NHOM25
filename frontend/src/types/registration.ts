@@ -22,7 +22,7 @@ export type RegistrationStatus =
   | 'PENDING'
   | 'UPCOMING'
   | 'LOCKED'
-
+  | 'COMPLETED'
 // ── Ineligibility reason from backend ────────────────────────────
 export interface IneligibleReason {
   code: string
@@ -135,6 +135,7 @@ export const REGISTRATION_STATUS_LABELS: Record<RegistrationStatus, string> = {
   PENDING: 'Chờ duyệt',
   UPCOMING: 'Sắp mở đăng ký',
   LOCKED: 'Đã khóa',
+  COMPLETED: 'Đã học xong',
 }
 
 export const REGISTRATION_STATUS_COLORS: Record<RegistrationStatus, string> = {
@@ -147,6 +148,7 @@ export const REGISTRATION_STATUS_COLORS: Record<RegistrationStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   UPCOMING: 'bg-indigo-100 text-indigo-600 border-indigo-200',
   LOCKED: 'bg-gray-200 text-gray-700 border-gray-300',
+  COMPLETED: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 }
 
 export const ACADEMIC_STATUS_LABELS: Record<AcademicStatus, string> = {

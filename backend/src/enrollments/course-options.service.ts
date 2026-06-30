@@ -377,12 +377,16 @@ export class CourseOptionsService {
           const eligibility = evaluateEnrollmentEligibility(context)
 
           // Compute registration status
-          const regStatus = this.computeRegistrationStatus(
+          let regStatus = this.computeRegistrationStatus(
             sec,
             semester,
             settings,
             studentEnrollment,
           )
+
+          if (academicStatus === 'PASSED' && !studentEnrollment) {
+            regStatus = 'COMPLETED' as RegistrationStatus
+          }
 
           // Collect ineligible reasons from failed checks
           const ineligibleReasons: IneligibleReason[] = []

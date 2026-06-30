@@ -196,7 +196,7 @@ function SectionCard({
           >
             Hủy đăng ký
           </Button>
-        ) : (
+        ) : section.registrationStatus === 'COMPLETED' ? null : (
           <Button
             loading={loadingRegister}
             disabled={!section.eligible}
