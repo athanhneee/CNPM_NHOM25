@@ -306,6 +306,7 @@ export function CourseCatalogPage() {
     {
       key: "name",
       header: "Tên môn học",
+      className: "whitespace-normal min-w-[200px] xl:max-w-[300px]",
       render: (row) => (
         <span className="font-medium text-slate-900">{row.name}</span>
       ),
@@ -313,7 +314,8 @@ export function CourseCatalogPage() {
     {
       key: "major",
       header: "Ngành áp dụng",
-      render: (row) => row.majorsSupported?.join(", ") ?? "Danh mục chung",
+      className: "whitespace-normal min-w-[150px] xl:max-w-[250px]",
+      render: (row) => (row.majorsSupported && row.majorsSupported.length > 0) ? row.majorsSupported.join(", ") : "Danh mục chung",
     },
     {
       key: "courseType",
@@ -330,16 +332,19 @@ export function CourseCatalogPage() {
     {
       key: "prereq",
       header: "Tiên quyết",
+      className: "whitespace-normal max-w-[150px]",
       render: (row) => row.prerequisites.join(", ") || "Không có",
     },
     {
       key: "prestudy",
       header: "Học trước",
+      className: "whitespace-normal max-w-[150px]",
       render: (row) => row.prestudy.join(", ") || "Không có",
     },
     {
       key: "corequisite",
       header: "Song hành",
+      className: "whitespace-normal max-w-[150px]",
       render: (row) => row.corequisites.join(", ") || "Không có",
     },
     {
