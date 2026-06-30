@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { InfoList } from '@/components/shared/InfoList'
 import { RuleCheckPanel } from '@/components/shared/RuleCheckPanel'
+import { CircleCheck, Clock } from 'lucide-react'
 import { enrollmentService } from '@/services/enrollment.api'
 import { courseService } from '@/services/course.api'
 import { sectionService } from '@/services/section.api'
@@ -177,29 +178,63 @@ export function CourseDetailPage() {
     settings: snapshot.settings,
   })
 
+  const currentEnrollment = snapshot.enrollments.find(
+    (e) => e.sectionId === section.id && ['REGISTERED', 'WAITLISTED', 'PENDING'].includes(e.status)
+  )
+
   return (
     <div className="grid gap-6">
       <PageTitleBlock
         title="Sinh viên - Chi tiết học phần"
         subtitle="Xem đầy đủ thông tin lớp học phần, quy tắc tiên quyết và kết quả kiểm tra điều kiện trước khi đăng ký."
         actions={
-          <Button
-            loading={loading}
-            disabled={!eligibility.canRegister}
-            onClick={async () => {
-              setLoading(true)
-              const result = await enrollmentService.registerSection(student.id, section.id, auditActor)
-              setLoading(false)
-              pushToast({
-                tone: result.success ? 'success' : 'error',
-                title: result.success ? 'Đăng ký thành công' : 'Đăng ký thất bại',
-                description: result.message,
-              })
-            }}
-            type="button"
-          >
-            {eligibility.canRegister ? 'Đăng ký' : 'Không đủ điều kiện'}
-          </Button>
+          currentEnrollment ? (
+            <Button
+              loading={loading}
+              variant="outline"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+              onClick={async () => {
+                setLoading(true)
+                try {
+                  await enrollmentService.cancelEnrollment(currentEnrollment.id, auditActor)
+                  pushToast({
+                    tone: 'success',
+                    title: 'Hủy đăng ký thành công',
+                    description: 'Đã hủy thành công lớp học phần này.',
+                  })
+                } catch (error) {
+                  pushToast({
+                    tone: 'error',
+                    title: 'Lỗi hủy đăng ký',
+                    description: error instanceof Error ? error.message : 'Có lỗi xảy ra',
+                  })
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              type="button"
+            >
+              Hủy đăng ký
+            </Button>
+          ) : (
+            <Button
+              loading={loading}
+              disabled={!eligibility.canRegister}
+              onClick={async () => {
+                setLoading(true)
+                const result = await enrollmentService.registerSection(student.id, section.id, auditActor)
+                setLoading(false)
+                pushToast({
+                  tone: result.success ? 'success' : 'error',
+                  title: result.success ? 'Đăng ký thành công' : 'Đăng ký thất bại',
+                  description: result.message,
+                })
+              }}
+              type="button"
+            >
+              {eligibility.canRegister ? 'Đăng ký' : 'Không đủ điều kiện'}
+            </Button>
+          )
         }
       />
 
@@ -224,7 +259,29 @@ export function CourseDetailPage() {
           />
         </Card>
 
-        <RuleCheckPanel checks={eligibility.checks} summary={eligibility.message} />
+        {currentEnrollment ? (
+          <Card title="Trạng thái đăng ký" description="Lớp học phần này đã được lưu vào danh sách của bạn.">
+            <div className="flex flex-col items-center justify-center py-16 text-center h-full">
+              <div className={`rounded-full p-4 mb-4 ${currentEnrollment.status === 'WAITLISTED' ? 'bg-amber-100' : 'bg-emerald-100'}`}>
+                {currentEnrollment.status === 'WAITLISTED' ? (
+                  <Clock className="h-10 w-10 text-amber-600" />
+                ) : (
+                  <CircleCheck className="h-10 w-10 text-emerald-600" />
+                )}
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                {currentEnrollment.status === 'WAITLISTED' ? 'Đang chờ xếp lớp' : 'Đã đăng ký thành công'}
+              </h3>
+              <p className="text-slate-500 text-[15px] max-w-[300px]">
+                {currentEnrollment.status === 'WAITLISTED'
+                  ? 'Bạn đang ở danh sách chờ. Hệ thống sẽ tự động đăng ký khi có người hủy lớp.'
+                  : 'Lớp học phần này đã được xác nhận vào Thời khóa biểu của bạn trong học kỳ này.'}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <RuleCheckPanel checks={eligibility.checks} summary={eligibility.message} />
+        )}
       </div>
     </div>
   )
