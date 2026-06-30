@@ -280,12 +280,20 @@ export function RegisterPage() {
   const currentUser = useAuthStore((s) => s.currentUser)
   const snapshot = useDataStore((s) => s)
 
-  // Filter state
-  const [filterMode, setFilterMode] = useState<FilterMode>('BY_COURSE')
-  const [keyword, setKeyword] = useState('')
-  const [departmentFilter, setDepartmentFilter] = useState('')
-  const [selectedCourse, setSelectedCourse] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
+  // Filter state (persisted in sessionStorage)
+  const [filterMode, setFilterMode] = useState<FilterMode>(() => (sessionStorage.getItem('reg_filterMode') as FilterMode) || 'BY_COURSE')
+  const [keyword, setKeyword] = useState(() => sessionStorage.getItem('reg_keyword') || '')
+  const [departmentFilter, setDepartmentFilter] = useState(() => sessionStorage.getItem('reg_departmentFilter') || '')
+  const [selectedCourse, setSelectedCourse] = useState(() => sessionStorage.getItem('reg_selectedCourse') || '')
+  const [currentPage, setCurrentPage] = useState(() => parseInt(sessionStorage.getItem('reg_currentPage') || '1', 10))
+
+  useEffect(() => {
+    sessionStorage.setItem('reg_filterMode', filterMode)
+    sessionStorage.setItem('reg_keyword', keyword)
+    sessionStorage.setItem('reg_departmentFilter', departmentFilter)
+    sessionStorage.setItem('reg_selectedCourse', selectedCourse)
+    sessionStorage.setItem('reg_currentPage', String(currentPage))
+  }, [filterMode, keyword, departmentFilter, selectedCourse, currentPage])
 
   // Data state
   const [data, setData] = useState<CourseOptionsResponse | null>(null)
