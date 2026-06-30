@@ -338,6 +338,11 @@ export function CourseCatalogPage() {
       render: (row) => row.prestudy.join(", ") || "Không có",
     },
     {
+      key: "corequisite",
+      header: "Song hành",
+      render: (row) => row.corequisites.join(", ") || "Không có",
+    },
+    {
       key: "status",
       header: "Trạng thái",
       render: (row) => (

@@ -648,7 +648,7 @@ export class EnrollmentsService {
           const totalCredits = semesterEnrollments.reduce((sum, e) => sum + e.section.course.credits, 0);
           const canceledCredits = enrollment.status === 'REGISTERED' && sectionToCancel ? sectionToCancel.course.credits : 0;
           
-          if (totalCredits - canceledCredits < settings.minCredits) {
+          if (totalCredits >= settings.minCredits && totalCredits - canceledCredits < settings.minCredits) {
              throw new BadRequestException(`Không thể hủy học phần vì tổng tín chỉ sẽ thấp hơn mức tối thiểu (${settings.minCredits} tín chỉ).`);
           }
 
