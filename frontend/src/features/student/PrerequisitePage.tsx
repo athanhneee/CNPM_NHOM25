@@ -154,9 +154,13 @@ export function PrerequisitePage() {
       department: string
     }[] = []
     for (const course of snapshot.courses) {
+      if (course.status === 'INACTIVE') continue
+
       const addRelations = (codes: string[], type: 'PREREQUISITE' | 'PRESTUDY' | 'COREQUISITE') => {
         for (const reqCode of codes) {
           const reqCourse = snapshot.courses.find(c => c.code === reqCode)
+          
+          if (reqCourse?.status === 'INACTIVE') continue
           relations.push({
             id: `${course.code}-${reqCode}-${type}`,
             courseCode: course.code,
