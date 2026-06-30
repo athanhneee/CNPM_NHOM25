@@ -34,7 +34,7 @@ export type RegistrationErrorCode =
 export type PdfRegistrationStatusCode = 'DK_TC' | 'HUY_DK' | 'KHONG_DU_DK' | 'NGOAI_TGDK'
 
 export const REGISTRATION_ERROR_MESSAGES: Record<RegistrationErrorCode, string> = {
-  REG_ERR_ALREADY_REGISTERED_COURSE: 'Sinh vien da dang ky hoac vao danh sach cho mot lop khac cua cung hoc phan trong hoc ky nay.',
+  REG_ERR_ALREADY_REGISTERED_COURSE: 'Sinh viên đã đăng ký hoặc vào danh sách chờ một lớp khác của cùng học phần trong học kỳ này.',
   REG_ERR_SECTION_NOT_OPEN: 'Lớp học phần chưa mở đăng ký.',
   REG_ERR_OUTSIDE_REGISTRATION_WINDOW: 'Ngoài thời gian đăng ký của học kỳ này.',
   REG_ERR_OUTSIDE_ADJUSTMENT_WINDOW: 'Ngoài thời gian điều chỉnh đăng ký.',
@@ -822,9 +822,9 @@ export function evaluateEnrollmentEligibility(
     ),
     buildRuleResult(
       'duplicate-course',
-      'Trung hoc phan trong hoc ky',
+      'Trùng học phần trong học kỳ',
       Boolean(section && !hasDuplicateCourse),
-      'Chua co lop khac cua cung hoc phan trong hoc ky nay.',
+      'Chưa có lớp khác của cùng học phần trong học kỳ này.',
       REGISTRATION_ERROR_MESSAGES.REG_ERR_ALREADY_REGISTERED_COURSE,
       'REG_ERR_ALREADY_REGISTERED_COURSE',
     ),

@@ -21,7 +21,7 @@ export function RuleCheckPanel({
 }: RuleCheckPanelProps) {
   return (
     <Card title={title} description={summary}>
-      <div className="space-y-2">
+      <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2">
         {checks.map((check) => (
           <div
             key={check.key}
