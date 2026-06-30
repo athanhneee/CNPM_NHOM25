@@ -135,11 +135,12 @@ function SectionCard({
         description: 'Đã hủy đăng ký thành công.',
       })
       onRegisterSuccess() // Refresh list
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } }
       pushToast({
         tone: 'error',
         title: 'Lỗi hệ thống',
-        description: err?.response?.data?.message || 'Không thể thực hiện hủy đăng ký. Vui lòng thử lại.',
+        description: error?.response?.data?.message || 'Không thể thực hiện hủy đăng ký. Vui lòng thử lại.',
       })
     } finally {
       setLoadingRegister(false)
