@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { enrollmentService } from '@/services/enrollment.api'
 import { courseService } from '@/services/course.api'
@@ -199,18 +200,30 @@ export function WishPage() {
       <div className="grid gap-6 lg:grid-cols-[0.44fr_0.56fr]">
         <Card title="Gửi nguyện vọng mới" description="Mẫu BM_09 cho nhu cầu mở thêm lớp hoặc đổi nhóm">
           <form className="grid gap-4" onSubmit={handleSubmit}>
-            <Input label="Mã môn học" value={courseCode} onChange={(event) => setCourseCode(event.target.value)} list="course-code-list" />
-            <Input label="Nhóm / tổ mong muốn" value={preferredGroup} onChange={(event) => setPreferredGroup(event.target.value)} />
+            <Select
+              label="Mã môn học"
+              value={courseCode}
+              onChange={(event) => setCourseCode(event.target.value)}
+              options={snapshot.courses.map((c) => ({
+                label: `${c.code} - ${c.name}`,
+                value: c.code,
+              }))}
+            />
+            <Input
+              label="Nhóm / tổ mong muốn"
+              value={preferredGroup}
+              onChange={(event) => {
+                const val = event.target.value
+                if (val === '' || /^\d+$/.test(val)) {
+                  setPreferredGroup(val)
+                }
+              }}
+            />
             <Textarea label="Lý do" value={reason} onChange={(event) => setReason(event.target.value)} />
             <Button type="submit" disabled={isSubmitting}>
               Gửi nguyện vọng
             </Button>
           </form>
-          <datalist id="course-code-list">
-            {snapshot.courses.map((course) => (
-              <option key={course.code} value={course.code} />
-            ))}
-          </datalist>
         </Card>
 
         <Card title="Danh sách nguyện vọng đã gửi" description="Theo dõi trạng thái xử lý của từng yêu cầu">
