@@ -12,6 +12,7 @@ import { Table, type TableColumn } from '@/components/ui/Table'
 import { Textarea } from '@/components/ui/Textarea'
 import { InfoList } from '@/components/shared/InfoList'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { adminService } from '@/services/admin.api'
 import { courseService } from '@/services/course.api'
 import { enrollmentService } from '@/services/enrollment.api'
 import { sectionService } from '@/services/section.api'
@@ -81,6 +82,7 @@ function useAcademicContext() {
     useDataStore.getState().setApiStatus('loading')
 
     Promise.all([
+      adminService.listUsers({ limit: 200 }),
       courseService.listCourses(),
       sectionService.listSections(),
       enrollmentService.listEnrollments(),
