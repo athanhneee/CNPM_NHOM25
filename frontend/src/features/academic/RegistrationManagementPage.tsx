@@ -5,6 +5,7 @@ import { useDataStore } from '@/app/store/data.store'
 import { useUiStore } from '@/app/store/ui.store'
 import { PageTitleBlock } from '@/components/layout/PageTitleBlock'
 import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
@@ -178,7 +179,27 @@ export function RegistrationManagementPage() {
     { key: 'code', header: 'MSSV', render: (row) => row.student?.code ?? '--' },
     { key: 'name', header: 'Họ và tên', render: (row) => row.student?.fullName ?? '--' },
     { key: 'program', header: 'Lớp', render: (row) => row.student?.studentClass ?? row.student?.program ?? '--' },
-    { key: 'status', header: 'Trạng thái', render: (row) => <StatusBadge kind="enrollment" status={row.enrollment.status} /> },
+    {
+      key: 'status',
+      header: 'Trạng thái',
+      render: (row) => {
+        const isLocked = row.student?.status === 'LOCKED'
+        const isActiveEnrollment = row.enrollment.status === 'REGISTERED' || row.enrollment.status === 'WAITLISTED'
+
+        if (isLocked && isActiveEnrollment) {
+          return (
+            <Badge
+              className="bg-orange-50 text-orange-700 ring-orange-200"
+              title="Tài khoản sinh viên đã bị khóa bởi Admin. Đăng ký được giữ nguyên, chờ phòng giáo vụ xử lý."
+            >
+              Chờ xử lý (TK bị khóa)
+            </Badge>
+          )
+        }
+
+        return <StatusBadge kind="enrollment" status={row.enrollment.status} />
+      },
+    },
   ]
 
   return (
