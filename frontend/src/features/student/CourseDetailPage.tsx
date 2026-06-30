@@ -154,10 +154,6 @@ export function CourseDetailPage() {
   const { currentUser, snapshot, pushToast, actor } = useStudentContext()
   const [loading, setLoading] = useState(false)
 
-  if (!currentUser || !actor) {
-    return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
-  }
-
   const student = currentUser
   const auditActor = actor
 
@@ -165,7 +161,7 @@ export function CourseDetailPage() {
   const course = snapshot.courses.find((item) => item.code === section?.courseCode)
 
   const localEligibility = useMemo(() => {
-    if (!section || !course) return null
+    if (!student || !section || !course) return null
     return evaluateEnrollmentEligibility({
       nowIso: snapshot.settings.simulationNow,
       student,
@@ -176,7 +172,7 @@ export function CourseDetailPage() {
       enrollments: snapshot.enrollments,
       settings: snapshot.settings,
     })
-  }, [snapshot.settings.simulationNow, student, section, course, snapshot.courses, snapshot.sections, snapshot.enrollments, snapshot.settings])
+  }, [student, section, course, snapshot.courses, snapshot.sections, snapshot.enrollments, snapshot.settings])
 
   const [eligibility, setEligibility] = useState<EligibilityCheckResult | null>(localEligibility)
 
@@ -195,7 +191,11 @@ export function CourseDetailPage() {
     return () => {
       active = false
     }
-  }, [student.id, section?.id, snapshot.enrollments])
+  }, [student, section, snapshot.enrollments])
+
+  if (!currentUser || !actor) {
+    return <EmptyState title="Không tìm thấy sinh viên" description="Vui lòng đăng nhập lại." />
+  }
 
   if (!section || !course || !eligibility) {
     if (!section || !course) {
